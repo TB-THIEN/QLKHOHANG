@@ -1,0 +1,128 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.NhanVienCreateVm
+@{
+    ViewData["Title"] = "Thêm mới nhân viên";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-person-plus me-2 text-primary"></i>Thêm mới nhân viên</h3><p class="page-subtitle">Nhập đủ thông tin, hoặc chỉ tạo tài khoản + mật khẩu để nhân viên tự bổ sung sau</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="app-card">
+    <form asp-action="Create" method="post" id="frmNv" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <h6 class="section-title"><i class="bi bi-key"></i>Tài khoản đăng nhập</h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="HoTen" class="form-label required"></label>
+                <input asp-for="HoTen" class="form-control" placeholder="VD: Nguyễn Văn A" pattern="[^0-9]*" title="Họ tên không được chứa số" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TenVaiTro" class="form-label required"></label>
+                @* Combobox Vai trò: ô nhập + click xổ list 6 dòng + cuộn, gõ để lọc gợi ý, nhập tên mới để tự tạo *@
+                <div class="position-relative">
+                    <input asp-for="TenVaiTro" id="txtVaiTro" class="form-control" autocomplete="off"
+                           placeholder="Nhập hoặc bấm để chọn vai trò..." aria-expanded="false" aria-controls="goiYVaiTro" />
+                    @* List gợi ý: CSS .role-suggest-box giới hạn đúng 6 dòng (max-height 228px) + overflow-y:auto để cuộn *@
+                    <div id="goiYVaiTro" class="role-suggest-box" role="listbox"></div>
+                </div>
+                <div class="form-hint">Bấm vào ô để xem 6 vai trò có sẵn (cuộn xuống để xem thêm). Gõ để lọc gợi ý, hoặc nhập tên mới để tự tạo (trừ vai trò Quản lý).</div>
+                <span asp-validation-for="TenVaiTro" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TenDangNhap" class="form-label required"></label>
+                <input asp-for="TenDangNhap" class="form-control" id="txtTenDn" placeholder="VD: nguyenvana" />
+                <div id="canhBaoTrung" class="text-danger small" style="display:none">Tên đăng nhập đã tồn tại!</div>
+                <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="MatKhau" class="form-label required"></label>
+                <input asp-for="MatKhau" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                <div class="form-hint">Nhân viên sẽ phải đổi mật khẩu ở lần đăng nhập đầu.</div>
+                <span asp-validation-for="MatKhau" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="TrangThaiHoatDong" class="form-label">Trạng thái</label>
+                <select asp-for="TrangThaiHoatDong" class="form-select">
+                    <option value="true">Đang làm</option>
+                    <option value="false">Nghỉ làm</option>
+                </select>
+                <div class="form-hint">Chọn "Nghỉ làm" sẽ ẩn nhân viên khỏi danh sách (không xóa).</div>
+            </div>
+        </div>
+
+        <h6 class="section-title"><i class="bi bi-person-vcard"></i>Thông tin cá nhân </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Số điện thoại</label>
+                <input asp-for="SoDienThoai" class="form-control" placeholder="VD: 090..." />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="VD: a@email.com" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Cccd" class="form-label"></label>
+                <input asp-for="Cccd" class="form-control" placeholder="12 chữ số" maxlength="12" inputmode="numeric" />
+                <span asp-validation-for="Cccd" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AnhThe" class="form-label"></label>
+                <input asp-for="AnhThe" class="form-control" accept="image/*" />
+                <span asp-validation-for="AnhThe" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="StkNganHang" class="form-label"></label>
+                <input asp-for="StkNganHang" class="form-control" placeholder="VD: 0123456789" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ChiNhanhNganHang" class="form-label"></label>
+                <input asp-for="ChiNhanhNganHang" class="form-control" placeholder="VD: Vietcombank Quận 1" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Thường trú</label>
+                <input asp-for="ThuongTru" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ngày sinh</label>
+                <input asp-for="NgaySinh" type="date" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Giới tính</label>
+                <select asp-for="GioiTinh" class="form-select"><option value="">-- Chọn --</option><option>Nam</option><option>Nữ</option><option>Khác</option></select>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Lưu nhân viên</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Cảnh báo trùng tên đăng nhập realtime
+        document.getElementById('txtTenDn').addEventListener('blur', async (e) => {
+            const v = e.target.value;
+            if (!v) return;
+            const res = await fetch('/NhanVien/KiemTraTrungTen?tenDangNhap=' + encodeURIComponent(v));
+            const data = await res.json();
+            document.getElementById('canhBaoTrung').style.display = data.trung ? 'block' : 'none';
+        });
+        // Vai trò: combobox nhập + click xổ list 6 dòng + cuộn, gõ để lọc gợi ý (giữ nguyên giá trị gõ để tạo mới khi submit)
+        (function () {
+            var txt = document.getElementById('txtVaiTro');
+            if (!txt || typeof window.setupVaiTroAutocomplete !== 'function') return;
+            // showOnFocus=true: click/focus vào ô trống vẫn hiện toàn bộ vai trò có sẵn
+            window.setupVaiTroAutocomplete('txtVaiTro', 'goiYVaiTro', ['Quản lý']);
+            // Chuẩn hóa khoảng trắng thừa trước khi gửi (VD: "  NV kho  " -> "NV kho")
+            document.getElementById('frmNv').addEventListener('submit', function () {
+                txt.value = txt.value.trim();
+            });
+        })();
+    </script>
+}

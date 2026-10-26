@@ -1,0 +1,42 @@
+@model List<QuanLyKhoWeb.Models.Entities.PhieuNhapKho>
+@{
+    ViewData["Title"] = "Tồn kho & Nhập kho";
+    ViewData["Subtitle"] = "Phiếu nhập hàng từ nhà cung cấp";
+    var vaiTro = User.FindFirst("VaiTro")?.Value ?? "";
+    var duocTao = vaiTro == "Quản lý" || vaiTro == "Nhân viên kho";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-boxes me-2 text-primary"></i>Tồn kho &amp; Nhập kho</h3><p class="page-subtitle">Nhập hàng từ nhà cung cấp, tạo phiếu là cộng tồn</p></div>
+    @if (duocTao) { <a asp-action="TaoPhieu" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Tạo phiếu nhập</a> }
+</div>
+<div class="mb-3 d-flex gap-2">
+    <a asp-action="Index" class="btn btn-outline-primary btn-sm">Tồn kho</a>
+    <a asp-action="PhieuNhap" class="btn btn-primary btn-sm">Phiếu nhập</a>
+</div>
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã phiếu</th><th>Nhà cung cấp</th><th>Người tạo</th><th>Ngày nhập</th><th class="num">Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@p.MaCodePhieuNhap</td>
+                    <td>@(p.MaNhaCungCapNavigation?.TenNhaCungCap ?? "—")</td>
+                    <td>@(p.NguoiTaoNavigation?.HoTen ?? "—")</td>
+                    <td><small>@p.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</small></td>
+                    <td class="num">@((p.TongTienHang ?? 0).ToString("N0")) đ</td>
+                    <td>
+                        @if (p.TrangThai == "COMPLETED") { <span class="badge bg-success">Hoàn tất</span> }
+                        else if (p.TrangThai == "CANCELLED") { <span class="badge bg-secondary">Đã hủy</span> }
+                        else if (p.TrangThai == "RECEIVING") { <span class="badge bg-warning">Đang nhận</span> }
+                        else { <span class="badge bg-info">Nháp</span> }
+                    </td>
+                    <td><a asp-action="ChiTietPhieu" asp-route-id="@p.MaPhieuNhap" class="btn btn-sm btn-outline-primary" title="Chi tiết"><i class="bi bi-eye"></i></a></td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="7"><div class="empty-state"><i class="bi bi-box-arrow-in-down"></i><div>Chưa có phiếu nhập nào</div>@if (duocTao) { <a asp-action="TaoPhieu" class="btn btn-sm btn-primary">Tạo phiếu đầu tiên</a> }</div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>

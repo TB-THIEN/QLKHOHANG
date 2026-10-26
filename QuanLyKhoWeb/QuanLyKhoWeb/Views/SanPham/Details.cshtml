@@ -1,0 +1,103 @@
+﻿@model QuanLyKhoWeb.Models.Entities.SanPhamSku
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    var m = Model.MaMauSanPhamNavigation;
+}
+@functions {
+    // Giải mã SKU dạng NHOM-TEN-THUOCTINH-YYMM### (VD: HOU-DIA-SUTRA-2603001)
+    string GiaiMaSku(string sku)
+    {
+        var p = (sku ?? "").Split('-');
+        if (p.Length != 4 || p[3].Length < 7) return "";
+        var thang = "đợt tháng " + p[3].Substring(2, 2) + "/20" + p[3].Substring(0, 2);
+        return $"{p[0]} (nhóm hàng) · {p[1]} (tên SP) · {p[2]} (chất liệu + màu) · {thang} · số {p[3].Substring(4)}";
+    }
+}
+<div class="page-header">
+    <div>
+        <h3 class="app-page-title"><i class="bi bi-box-seam me-2 text-primary"></i>@(m?.TenSanPham ?? Model.MaCodeSku)</h3>
+        <p class="page-subtitle">@Model.MaCodeSku · @m?.MaDanhMucNavigation?.TenDanhMuc</p>
+    </div>
+    <div class="d-flex gap-2 align-items-start flex-wrap">
+        @if (Model.SoLuong == 0) { <span class="badge bg-danger">Hết hàng</span> }
+        else if (Model.SoLuong <= 5) { <span class="badge bg-warning">Sắp hết</span> }
+        else { <span class="badge bg-success">Còn hàng</span> }
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+        @if ((User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaSku" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Sửa</a>
+            @* Nút xóa: Quản lý + NV kho + NV bán hàng (server chặn bằng policy DuocTao) *@
+            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoaSp"><i class="bi bi-trash me-1"></i>Xóa</button>
+        }
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="app-card text-center">
+            @if (!string.IsNullOrEmpty(m?.DuongDanHinhAnh))
+            { <img src="@m.DuongDanHinhAnh" class="img-fluid rounded" style="border:1px solid var(--app-border)" alt="@m?.TenSanPham" /> }
+            else { <div class="empty-state"><i class="bi bi-image"></i><div>Chưa có ảnh</div></div> }
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-card-list"></i>Thông số sản phẩm</h6>
+            <dl class="detail-list">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-hash"></i>Mã SKU</dt><dd class="mb-0 fw-bold text-primary">@Model.MaCodeSku<br /><small class="text-muted fw-normal">@GiaiMaSku(Model.MaCodeSku)</small></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-box"></i>Lô hàng</dt><dd class="mb-0">@(Model.MaLoHangNavigation?.MaCodeLoHang ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-tag"></i>Tên</dt><dd class="mb-0">@m?.TenSanPham</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-grid"></i>Danh mục</dt><dd class="mb-0">@m?.MaDanhMucNavigation?.TenDanhMuc</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-award"></i>Nhãn hiệu</dt><dd class="mb-0">@m?.NhanHieu</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-bookmark"></i>Loại</dt><dd class="mb-0">@m?.LoaiSanPham</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-layers"></i>Chất liệu</dt><dd class="mb-0">@(m?.ChatLieu ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-palette"></i>Màu sắc</dt><dd class="mb-0">@(m?.MauSac ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-qr-code"></i>Mã QR</dt><dd class="mb-0">
+                    @* QR được sinh trực tiếp từ mã SKU (không cần cột riêng trong DB): in ra dán lên hàng, quét để lấy mã SKU *@
+                    <div id="qrSku" class="d-inline-block align-middle"></div>
+                    <div><small class="text-muted">@Model.MaCodeSku</small></div>
+                </dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-cash-stack"></i>Giá</dt><dd class="mb-0 fw-bold">@Model.GiaNiemYet.ToString("N0") đ</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-boxes"></i>Tồn kho</dt><dd class="mb-0 fw-bold">@Model.SoLuong</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-file-text"></i>Mô tả</dt><dd class="mb-0">@m?.MoTa</dd></div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+@if ((User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng")
+{
+<!-- Popup xác nhận xóa sản phẩm -->
+<div class="modal fade" id="xoaSp" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title">Xóa sản phẩm @Model.MaCodeSku?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="Xoa" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaSku" />
+            <div class="modal-body">
+                <p class="mb-0">Bạn có chắc muốn xóa <b>@(m?.TenSanPham ?? Model.MaCodeSku)</b>?</p>
+                <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Xóa kèm vị trí kệ, phiếu nhập và nhật ký tồn của sản phẩm. Không xóa được nếu sản phẩm đã có trong đơn hàng.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}
+
+@section Scripts {
+    @* Sinh QR từ mã SKU ngay trên trình duyệt (không cần cột riêng trong DB, không cần server vẽ ảnh) *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        (function () {
+            var el = document.getElementById('qrSku');
+            if (!el) return;
+            try {
+                new QRCode(el, { text: '@Model.MaCodeSku', width: 96, height: 96, correctLevel: QRCode.CorrectLevel.M });
+            } catch (e) {
+                el.innerHTML = '<small class="text-muted">Không tải được thư viện QR (cần mạng). Mã SKU: @Model.MaCodeSku</small>';
+            }
+        })();
+    </script>
+}

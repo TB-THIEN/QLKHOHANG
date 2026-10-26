@@ -1,0 +1,65 @@
+﻿@model List<dynamic>
+@{
+    ViewData["Title"] = "Top sản phẩm bán chạy";
+    var boLoc = (ViewBag.BoLoc as string) ?? "TAT_CA";
+    var nhanBoLoc = new Dictionary<string, string>
+    {
+        ["TAT_CA"] = "Tất cả",
+        ["NGAY"] = "Ngày",
+        ["THANG"] = "Tháng",
+        ["NAM"] = "Năm",
+        ["TUY_CHON"] = "Tùy chỉnh"
+    };
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-trophy me-2 text-primary"></i>Top sản phẩm bán chạy</h3><p class="page-subtitle">Xếp hạng theo số lượng bán trong kỳ lọc</p></div>
+    <a asp-controller="BaoCao" asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Về báo cáo</a>
+</div>
+<div class="app-card mb-3">
+    <div class="d-flex align-items-center gap-2 mb-2 text-muted" style="font-size:12.5px"><i class="bi bi-funnel"></i> Bộ lọc</div>
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">Bộ lọc</label>
+            <select name="boLoc" class="form-select">
+                @foreach (var o in new[] { "TAT_CA", "NGAY", "THANG", "NAM", "TUY_CHON" })
+                {
+                    @if (boLoc == o) { <option value="@o" selected>@nhanBoLoc[o]</option> } else { <option value="@o">@nhanBoLoc[o]</option> }
+                }
+            </select>
+        </div>
+        <div class="col-md-3"><label class="form-label">Từ ngày</label><input type="date" name="tuNgay" value="@ViewBag.TuNgay" class="form-control" /></div>
+        <div class="col-md-3"><label class="form-label">Đến ngày</label><input type="date" name="denNgay" value="@ViewBag.DenNgay" class="form-control" /></div>
+        <div class="col-md-3"><button class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>Lọc</button></div>
+    </form>
+</div>
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>#</th><th>Hình</th><th>Tên</th><th>Mã SKU</th><th class="num">SL bán</th><th class="num">Doanh thu</th></tr></thead>
+            <tbody>
+            @{ int i = 0; }
+            @foreach (var r in Model)
+            {
+                i++;
+                string? hinh = r.duong_dan_hinh_anh;
+                <tr>
+                    <td class="fw-bold">
+                        @if (i == 1) { <span class="badge bg-warning">1</span> }
+                        else if (i == 2) { <span class="badge bg-secondary">2</span> }
+                        else if (i == 3) { <span class="badge" style="background:#f5e3c8;color:#8a5a00;border:1px solid #e8c88a">3</span> }
+                        else { <span class="text-muted">@i</span> }
+                    </td>
+                    <td>@if (!string.IsNullOrEmpty(hinh)) { <img src="@hinh" class="thumb-44" alt="" loading="lazy" /> } else { <span class="text-muted"><i class="bi bi-image"></i></span> }</td>
+                    <td>@r.ten_san_pham</td>
+                    <td class="text-primary">@r.ma_code_sku</td>
+                    <td class="num fw-bold">@r.tong_so_luong_ban</td>
+                    <td class="num">@(((decimal)r.tong_doanh_thu).ToString("N0")) đ</td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="6"><div class="empty-state"><i class="bi bi-trophy"></i><div>Chưa có dữ liệu</div></div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

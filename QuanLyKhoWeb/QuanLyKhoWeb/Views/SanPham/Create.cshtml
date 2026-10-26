@@ -1,0 +1,175 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.SanPhamCreateVm
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    var khus = ViewBag.Khus as List<QuanLyKhoWeb.Models.Entities.KhuVucKho> ?? new();
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm sản phẩm</h3><p class="page-subtitle">Mã SKU tự sinh dạng NHÓM-TÊN-CHẤTLIEU+MÀU-YYMM### (VD: HOU-DIA-SUTRA-2603001)</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+<div class="app-card">
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <h6 class="section-title"><i class="bi bi-tag"></i>Thông tin cơ bản</h6>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6"><label asp-for="TenSanPham" class="form-label required"></label><input asp-for="TenSanPham" class="form-control" placeholder="VD: Bàn làm việc gỗ" pattern="[^0-9]*" title="Tên sản phẩm không được chứa số" /><span asp-validation-for="TenSanPham" class="text-danger"></span></div>
+            <div class="col-md-6">
+                <label asp-for="DanhMuc" class="form-label required"></label>
+                <div class="position-relative">
+                    <input asp-for="DanhMuc" class="form-control" id="txtDm" autocomplete="off" placeholder="Bấm để chọn hoặc gõ để tìm danh mục..." />
+                    <div id="goiYDm" class="role-suggest-box"></div>
+                </div>
+                <div class="form-hint">Bấm vào ô để xem 6 danh mục có sẵn (cuộn để xem thêm). Gõ để lọc, nhập tên mới hệ thống tự tạo.</div>
+                <span asp-validation-for="DanhMuc" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="NgayLoHang" class="form-label required"></label>
+                <input asp-for="NgayLoHang" type="date" class="form-control" />
+                <div class="form-hint">Tháng/năm của ngày này dùng để sinh mã SKU (VD: lô 15/03/2026 → ...2603...).</div>
+                <span asp-validation-for="NgayLoHang" class="text-danger"></span>
+            </div>
+    </div>
+
+    <h6 class="section-title"><i class="bi bi-bookmark"></i>Phân loại &amp; hình ảnh</h6>
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <label asp-for="NhanHieu" class="form-label required"></label>
+            <div class="position-relative">
+                <input asp-for="NhanHieu" class="form-control" id="txtNh" autocomplete="off" placeholder="Bấm để chọn hoặc gõ để tìm..." />
+                <div id="goiYNh" class="role-suggest-box"></div>
+            </div>
+            <span asp-validation-for="NhanHieu" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="LoaiSanPham" class="form-label required"></label>
+            <div class="position-relative">
+                <input asp-for="LoaiSanPham" class="form-control" id="txtLoai" autocomplete="off" placeholder="Bấm để chọn hoặc gõ để tìm..." />
+                <div id="goiYLoai" class="role-suggest-box"></div>
+            </div>
+            <span asp-validation-for="LoaiSanPham" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ChatLieu" class="form-label required"></label>
+            <div class="position-relative">
+                <input asp-for="ChatLieu" class="form-control" id="txtChatLieu" autocomplete="off" placeholder="Bấm để chọn hoặc gõ: Sứ, Gỗ, Inox..." />
+                <div id="goiYChatLieu" class="role-suggest-box"></div>
+            </div>
+            <div class="form-hint">Bấm để xem 6 chất liệu có sẵn. Lấy tối đa 3 ký tự đầu (VD: Sứ → SU) để ghép vào mã SKU.</div>
+            <span asp-validation-for="ChatLieu" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="MauSac" class="form-label required"></label>
+            <div class="position-relative">
+                <input asp-for="MauSac" class="form-control" id="txtMauSac" autocomplete="off" placeholder="Bấm để chọn hoặc gõ: Trắng, Đen, Nâu..." />
+                <div id="goiYMauSac" class="role-suggest-box"></div>
+            </div>
+            <div class="form-hint">Bấm để xem 6 màu có sẵn. Lấy tối đa 3 ký tự đầu (VD: Trắng → TRA) để ghép vào mã SKU.</div>
+            <span asp-validation-for="MauSac" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="HinhAnh" class="form-label"></label>
+            <!-- input type="file" - bấm vào sẽ tự mở File Explorer để chọn ảnh trong máy -->
+            <input asp-for="HinhAnh" class="form-control" id="fileHinh" accept="image/*" />
+            <span asp-validation-for="HinhAnh" class="text-danger"></span>
+            <div class="mt-2" id="wrapPreview" style="display:none"><img id="imgPreview" class="thumb-48" alt="Xem trước ảnh" /></div>
+        </div>
+    </div>
+
+    <h6 class="section-title"><i class="bi bi-cash-stack"></i>Giá bán</h6>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6"><label asp-for="GiaNiemYet" class="form-label required"></label><input asp-for="GiaNiemYet" type="text" inputmode="numeric" class="form-control money" placeholder="VD: 1.500.000" /><span asp-validation-for="GiaNiemYet" class="text-danger"></span></div>
+        </div>
+        <div class="form-hint mb-3"><i class="bi bi-info-circle me-1"></i>Tồn kho sẽ được cộng khi tạo phiếu nhập kho; có thể xếp sẵn số lượng ban đầu vào khu/kệ bên dưới.</div>
+
+        <h6 class="section-title"><i class="bi bi-hdd-rack"></i>Vị trí xếp ban đầu (không bắt buộc)</h6>
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label asp-for="MaKhuVuc" class="form-label"></label>
+                <select asp-for="MaKhuVuc" id="selKhu" class="form-select">
+                    <option value="">-- Không xếp khu --</option>
+                    @foreach (var k in khus) { <option value="@k.MaKhuVuc">@k.TenKhuVuc</option> }
+                </select>
+                <span asp-validation-for="MaKhuVuc" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="MaKeHang" class="form-label"></label>
+                <select asp-for="MaKeHang" id="selKe" class="form-select" disabled>
+                    <option value="">-- Chọn khu trước --</option>
+                </select>
+                <div class="form-hint">Bỏ trống kệ để xếp trực tiếp vào khu.</div>
+                <span asp-validation-for="MaKeHang" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="SoLuongTrenKe" class="form-label"></label>
+                <input asp-for="SoLuongTrenKe" type="number" min="0" step="1" class="form-control" placeholder="VD: 10" />
+                <div class="form-hint">Số lượng này trở thành tồn ban đầu và được xếp vào vị trí đã chọn.</div>
+                <span asp-validation-for="SoLuongTrenKe" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h6 class="section-title"><i class="bi bi-file-text"></i>Mô tả</h6>
+    <div class="mb-1"><textarea asp-for="MoTa" class="form-control" rows="3"></textarea></div>
+
+    <div class="mt-3 d-flex gap-2"><button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Lưu sản phẩm</button><a asp-action="Index" class="btn btn-outline-secondary">Hủy</a></div>
+</form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Combobox giống ô Vai trò: click/focus xổ list 6 dòng + cuộn, gõ để lọc gợi ý
+        // (backend GoiY đã hỗ trợ term rỗng -> trả full list; CSS .role-suggest-box giới hạn 6 dòng)
+        window.setupAutocomplete('txtDm', 'goiYDm', {
+          url: term => '/SanPham/GoiY?loai=danhmuc&term=' + encodeURIComponent(term),
+          icon: 'bi-grid', allowCreate: true, showOnFocus: true, createText: term => 'Tạo danh mục mới "' + term + '"'
+        });
+        window.setupAutocomplete('txtNh', 'goiYNh', {
+          url: term => '/SanPham/GoiY?loai=nhanhieu&term=' + encodeURIComponent(term),
+          icon: 'bi-award', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtLoai', 'goiYLoai', {
+          url: term => '/SanPham/GoiY?loai=loai&term=' + encodeURIComponent(term),
+          icon: 'bi-bookmark', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtChatLieu', 'goiYChatLieu', {
+          url: term => '/SanPham/GoiY?loai=chatlieu&term=' + encodeURIComponent(term),
+          icon: 'bi-layers', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtMauSac', 'goiYMauSac', {
+          url: term => '/SanPham/GoiY?loai=mausac&term=' + encodeURIComponent(term),
+          icon: 'bi-palette', allowCreate: false, showOnFocus: true
+        });
+        // Khu -> kệ: chọn khu thì nạp kệ; bỏ trống kệ = xếp trực tiếp vào khu
+        (function () {
+            var selKhu = document.getElementById('selKhu'), selKe = document.getElementById('selKe');
+            var daChonKe = '@(Model.MaKeHang?.ToString() ?? "")';
+            selKhu.addEventListener('change', async () => {
+                selKe.innerHTML = '<option value="">-- Đang tải kệ... --</option>';
+                selKe.disabled = true;
+                if (!selKhu.value) { selKe.innerHTML = '<option value="">-- Chọn khu trước --</option>'; return; }
+                const res = await fetch('/SanPham/KeTheoKhu?maKhuVuc=' + selKhu.value);
+                const list = await res.json();
+                selKe.innerHTML = '<option value="">-- Không chọn kệ (xếp vào khu) --</option>';
+                list.forEach(k => {
+                    const o = document.createElement('option');
+                    o.value = k.maKeHang; o.textContent = k.tenKeHang;
+                    selKe.appendChild(o);
+                });
+                if (daChonKe) selKe.value = daChonKe;
+                selKe.disabled = false;
+            });
+            if (selKhu.value) selKhu.dispatchEvent(new Event('change'));
+        })();
+        const fileHinh = document.getElementById('fileHinh'), wrap = document.getElementById('wrapPreview'), img = document.getElementById('imgPreview');
+        fileHinh.addEventListener('change', () => {
+          const file = fileHinh.files && fileHinh.files[0];
+          if (!file) { wrap.style.display = 'none'; return; }
+          if (!file.type.startsWith('image/')) { alert('Vui lòng chọn file hình ảnh.'); fileHinh.value = ''; wrap.style.display = 'none'; return; }
+          if (file.size > 5 * 1024 * 1024) { alert('Ảnh vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn.'); fileHinh.value = ''; wrap.style.display = 'none'; return; }
+          const reader = new FileReader();
+          reader.onload = e => { img.src = e.target.result; wrap.style.display = 'block'; };
+          reader.readAsDataURL(file);
+        });
+    </script>
+}

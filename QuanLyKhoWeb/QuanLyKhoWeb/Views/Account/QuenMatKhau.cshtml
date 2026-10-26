@@ -1,0 +1,155 @@
+@model QuanLyKhoWeb.Models.ViewModels.KhoiPhucMatKhauVm
+@{
+    Layout = null;
+    ViewData["Title"] = "Quên mật khẩu";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quên mật khẩu - Kho Hàng</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body>
+<main class="login-wrap">
+    <div class="login-card@(ViewData.ModelState.IsValid ? "" : " shake")">
+        <div class="text-center mb-3">
+            <div class="login-brand" aria-hidden="true"><i class="bi bi-key"></i></div>
+            <h1 class="fw-bold mb-1" style="font-size:22px">Quên mật khẩu</h1>
+            <p class="text-muted mb-0">Nhập email, bấm <b>Gửi mã</b>, rồi nhập mã (hiệu lực 3 phút, dùng 1 lần) và mật khẩu mới.</p>
+        </div>
+        <div id="guiMaThongBao"></div>
+        <form asp-action="QuenMatKhau" method="post" autocomplete="off">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaDatLai" id="hidMaDatLai" />
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            }
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <div class="icon-field">
+                    <i class="bi bi-envelope field-icon"></i>
+                    <input asp-for="Email" class="form-control" id="txtEmail" placeholder="VD: admin@email.com" autofocus />
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="MaXacNhan" class="form-label"></label>
+                <div class="d-flex gap-2">
+                    <input asp-for="MaXacNhan" class="form-control text-center" placeholder="Nhập 6 chữ số" maxlength="6" inputmode="numeric" style="letter-spacing:.35em;font-weight:700;font-size:18px" />
+                    <button type="button" class="btn btn-outline-primary text-nowrap" id="btnGuiMa"><i class="bi bi-send me-1"></i>Gửi mã</button>
+                </div>
+                <div class="form-hint mt-1" id="demNguoc" style="display:none">Mã hết hạn sau <b id="soGiay">3:00</b>.</div>
+                <span asp-validation-for="MaXacNhan" class="text-danger"></span>
+            </div>
+            <div class="mb-2">
+                <label asp-for="MatKhauMoi" class="form-label"></label>
+                <div class="icon-field has-toggle">
+                    <input asp-for="MatKhauMoi" class="form-control" id="pw1" placeholder="Tối thiểu 6 ký tự" />
+                    <button type="button" class="pw-toggle" data-for="pw1" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+                </div>
+                <span asp-validation-for="MatKhauMoi" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="XacNhanMatKhau" class="form-label"></label>
+                <div class="icon-field has-toggle">
+                    <input asp-for="XacNhanMatKhau" class="form-control" id="pw2" placeholder="Nhập lại mật khẩu mới" />
+                    <button type="button" class="pw-toggle" data-for="pw2" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+                </div>
+                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Đặt lại mật khẩu</button>
+            <div class="text-center mt-3">
+                <a asp-action="DangNhap" class="small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập</a>
+            </div>
+        </form>
+    </div>
+</main>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.pw-toggle').forEach(function (tg) {
+    var pw = document.getElementById(tg.getAttribute('data-for'));
+    function sync() {
+      var has = pw.value.length > 0;
+      tg.hidden = !has;
+      if (!has && pw.type === 'text') { pw.type = 'password'; tg.innerHTML = '<i class="bi bi-eye"></i>'; }
+    }
+    pw.addEventListener('input', sync);
+    sync();
+    tg.addEventListener('click', function () {
+      var show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      tg.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+      pw.focus();
+    });
+  });
+
+  // Nút Gửi mã: bấm mới gửi mail, sau đó đếm ngược 3 phút; hết giờ thì mã hết hạn, nút trở lại
+  var btn = document.getElementById('btnGuiMa');
+  var dem = document.getElementById('demNguoc');
+  var soGiay = document.getElementById('soGiay');
+  var thongBao = document.getElementById('guiMaThongBao');
+  var timer = null;
+  function hienThi(msg, ok) {
+    thongBao.innerHTML = '<div class="alert alert-' + (ok ? 'success' : 'danger') + ' mb-3">' + msg + '</div>';
+  }
+  function batDauDem() {
+    var conLai = 180; // 3 phút = thời hạn mã trên server
+    btn.disabled = true;
+    dem.style.display = 'block';
+    clearInterval(timer);
+    function tick() {
+      var m = Math.floor(conLai / 60), s = conLai % 60;
+      soGiay.textContent = m + ':' + String(s).padStart(2, '0');
+      if (conLai <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send me-1"></i>Gửi lại mã';
+        dem.style.display = 'none';
+        return;
+      }
+      conLai--;
+    }
+    tick();
+    timer = setInterval(tick, 1000);
+  }
+  btn.addEventListener('click', async function () {
+    var email = document.getElementById('txtEmail').value.trim();
+    if (!email) { hienThi('Vui lòng nhập email trước khi gửi mã.', false); return; }
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border" aria-hidden="true"></span> Đang gửi...';
+    try {
+      var form = new FormData();
+      form.append('__RequestVerificationToken', token);
+      form.append('email', email);
+      const res = await fetch('/Account/GuiMa', { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.thanhCong) {
+        document.getElementById('hidMaDatLai').value = data.maDatLai;
+        hienThi(data.thongBao + ' Vui lòng kiểm tra hộp thư (cả mục Spam).', true);
+        btn.innerHTML = '<i class="bi bi-send me-1"></i>Gửi mã';
+        batDauDem();
+      } else {
+        hienThi(data.thongBao, false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send me-1"></i>Gửi mã';
+      }
+    } catch (e) {
+      hienThi('Không gửi được. Vui lòng thử lại.', false);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send me-1"></i>Gửi mã';
+    }
+  });
+})();
+</script>
+</body>
+</html>

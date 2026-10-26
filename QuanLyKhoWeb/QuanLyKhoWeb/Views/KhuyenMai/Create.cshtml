@@ -1,0 +1,65 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.KhuyenMaiCreateVm
+@{
+    ViewData["Title"] = "Tạo mã khuyến mãi";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm mã giảm giá đơn hàng</h3><p class="page-subtitle">Áp dụng giảm giá trên tổng tiền đơn hàng</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+<div class="app-card">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <h6 class="section-title"><i class="bi bi-tag"></i>Thông tin mã</h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Mã khuyến mãi</label>
+                <input class="form-control" value="@ViewBag.MaTuSinh" readonly />
+                <div class="form-hint">Mã tự sinh, không cần nhập tay.</div>
+            </div>
+            <div class="col-md-6"><label asp-for="TenKhuyenMai" class="form-label required"></label><input asp-for="TenKhuyenMai" class="form-control" placeholder="VD: Giảm đơn từ 500K" pattern="[^0-9]*" title="Tên mã không được chứa số" /><span asp-validation-for="TenKhuyenMai" class="text-danger"></span></div>
+        </div>
+
+        <h6 class="section-title"><i class="bi bi-cash-coin"></i>Giá trị giảm</h6>
+        <div class="row g-3">
+            <div class="col-md-4"><label asp-for="LoaiGiamGia" class="form-label required"></label><select asp-for="LoaiGiamGia" id="selLoai" class="form-select"><option value="PERCENT">Phần trăm giảm (%)</option><option value="FIXED_AMOUNT">Số tiền giảm (đ)</option></select></div>
+            <div class="col-md-4"><label asp-for="GiaTriGiam" class="form-label required"></label><input asp-for="GiaTriGiam" id="numGiaTri" type="text" inputmode="numeric" class="form-control money" placeholder="Bắt buộc nhập" /><div class="form-hint" id="hintGiaTri">Số nguyên từ 1 đến 100.</div><span asp-validation-for="GiaTriGiam" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="GiaTriDonToiThieu" class="form-label required"></label><input asp-for="GiaTriDonToiThieu" type="text" inputmode="numeric" class="form-control money" placeholder="Bắt buộc nhập (0 = không điều kiện)" /><div class="form-hint">Đơn dưới mức này không áp dụng được. Nhập 0 nếu không điều kiện.</div><span asp-validation-for="GiaTriDonToiThieu" class="text-danger"></span></div>
+        </div>
+
+        <h6 class="section-title"><i class="bi bi-calendar-range"></i>Thời gian &amp; giới hạn sử dụng</h6>
+        <div class="row g-3 mb-3">
+            <div class="col-md-4"><label asp-for="SoLanSuDungToiDa" class="form-label required"></label><input asp-for="SoLanSuDungToiDa" type="number" min="1" step="1" class="form-control" placeholder="VD: 100 (bắt buộc nhập)" /><span asp-validation-for="SoLanSuDungToiDa" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="NgayBatDau" class="form-label required"></label><input asp-for="NgayBatDau" type="date" class="form-control" /><span asp-validation-for="NgayBatDau" class="text-danger"></span></div>
+            <div class="col-md-4"><label asp-for="NgayKetThuc" class="form-label required"></label><input asp-for="NgayKetThuc" type="date" class="form-control" /><span asp-validation-for="NgayKetThuc" class="text-danger"></span></div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2"><button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Lưu mã</button><a asp-action="Index" class="btn btn-outline-secondary">Hủy</a></div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Đổi ràng buộc ô giá trị theo loại: % chỉ nhận số nguyên 1-100, tiền nhận số tiền > 0.
+        // Ô tiền dùng class money (site.js) nên nhập 50000 sẽ hiện 50.000.
+        (function () {
+            var sel = document.getElementById('selLoai'), num = document.getElementById('numGiaTri'),
+                hint = document.getElementById('hintGiaTri');
+            function soThat() { return parseFloat(num.value.replace(/\./g, '')); }
+            function sync() {
+                if (sel.value === 'PERCENT') {
+                    num.classList.remove('money');
+                    if (num.value && (soThat() < 1 || soThat() > 100 || !Number.isInteger(soThat()))) num.value = '';
+                    hint.textContent = 'Số nguyên từ 1 đến 100.';
+                } else {
+                    if (!num.classList.contains('money')) num.classList.add('money');
+                    hint.textContent = 'Số tiền giảm (đ), lớn hơn 0. Nhập 50000 sẽ hiện 50.000.';
+                }
+            }
+            sel.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}
+

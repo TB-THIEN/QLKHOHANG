@@ -1,0 +1,127 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.DonHang>
+@{
+    ViewData["Title"] = "Đơn hàng";
+    ViewData["Subtitle"] = "Mã tự sinh, hủy có xác nhận";
+    // Nhân viên giao hàng chỉ được xem, không được tạo đơn
+    var duocTao = (User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng";
+    var hinhThuc = (ViewBag.HinhThuc as string) ?? "";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-receipt me-2 text-primary"></i>Đơn hàng</h3><p class="page-subtitle">Mã tự sinh, hủy có xác nhận và hoàn tồn</p></div>
+    @if (duocTao) { <div class="d-flex gap-2"><a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Tạo đơn hàng</a></div> }
+</div>
+
+<!-- Bộ lọc thời gian (giống Hình 2.4) -->
+<div class="app-card mb-3">
+    <div class="d-flex align-items-center gap-2 mb-2 text-muted" style="font-size:12.5px"><i class="bi bi-funnel"></i> Lọc theo thời gian</div>
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" name="tuNgay" value="@ViewBag.TuNgay" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" name="denNgay" value="@ViewBag.DenNgay" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Hình thức nhận hàng</label>
+            <select name="hinhThuc" class="form-select">
+                <option value="">-- Tất cả --</option>
+                <option value="TAI_SHOP" selected="@(hinhThuc == "TAI_SHOP")">Nhận tại shop</option>
+                <option value="GIAO_HANG" selected="@(hinhThuc == "GIAO_HANG")">Giao hàng</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>Lọc</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+        </div>
+        <div class="col-md-3 d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(0)"><i class="bi bi-calendar-day me-1"></i>Hôm nay</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(7)">7 ngày</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(30)">30 ngày</button>
+        </div>
+    </form>
+</div>
+
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã đơn</th><th>Sản phẩm</th><th class="num">Số lượng</th><th class="num">Tổng tiền</th><th>Nhân viên tạo</th><th>Hình thức</th><th>Chức năng</th></tr></thead>
+            <tbody>
+            @foreach (var d in Model)
+            {
+                var tongSl = d.ChiTietDonHangs.Sum(c => c.SoLuong);
+                var first = d.ChiTietDonHangs.FirstOrDefault();
+                var conLai = d.ChiTietDonHangs.Count - 1;
+                <tr>
+                    <td>
+                        <span class="fw-bold text-primary">@d.MaCodeDonHang</span><br />
+                        <small class="text-muted">@d.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")</small><br />
+                        @if (d.TrangThai == "CANCELLED") { <span class="badge bg-secondary">Đã hủy</span> }
+                        else if (d.TrangThai == "COMPLETED") { <span class="badge bg-success">Hoàn tất</span> }
+                        else { <span class="badge bg-info">Đã xác nhận</span> }
+                    </td>
+                    <td style="max-width:280px">
+                        @if (first != null)
+                        {
+                            <span>@first.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham (@first.MaSkuNavigation?.MaCodeSku)</span>
+                            @if (conLai > 0)
+                            {
+                                <span class="badge bg-light text-dark" title="@string.Join(", ", d.ChiTietDonHangs.Skip(1).Select(c => c.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham))">+@conLai SP khác</span>
+                            }
+                        }
+                    </td>
+                    <td class="num">@tongSl</td>
+                    <td class="num fw-bold">@d.ThanhTien.ToString("N0") đ</td>
+                    <td>@(d.MaNhanVienNavigation?.HoTen ?? "—")</td>
+                    <td>
+                        @if (d.HinhThucNhanHang == "GIAO_HANG") { <span class="badge bg-primary">Giao hàng</span> }
+                        else { <span class="badge bg-light text-dark">Nhận tại shop</span> }
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a asp-action="Details" asp-route-id="@d.MaDonHang" class="btn btn-sm btn-outline-primary" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                            @if (duocTao && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED")
+                            {
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#huy-@d.MaDonHang" title="Hủy đơn"><i class="bi bi-x-circle"></i></button>
+                            }
+                        </div>
+                        <!-- Popup hủy: dòng thông báo + 2 nút Hủy / Xác nhận -->
+                        <div class="modal fade" id="huy-@d.MaDonHang" tabindex="-1">
+                            <div class="modal-dialog"><div class="modal-content">
+                                <div class="modal-header"><h6 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Hủy đơn @d.MaCodeDonHang?</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <form asp-action="Huy" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@d.MaDonHang" />
+                                    <div class="modal-body">
+                                        <p>Bạn có chắc muốn hủy đơn hàng này? Tồn kho sẽ được hoàn lại.</p>
+                                        <input name="lyDoHuy" class="form-control" placeholder="Lý do hủy (không bắt buộc)" />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-danger">Xác nhận</button>
+                                    </div>
+                                </form>
+                            </div></div>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i><div>Chưa có đơn hàng trong kỳ lọc</div>@if (duocTao) { <a asp-action="Create" class="btn btn-sm btn-primary">Tạo đơn đầu tiên</a> }</div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function locNhanh(soNgay) {
+  const den = new Date(); const tu = new Date();
+  tu.setDate(den.getDate() - soNgay);
+  const f = d => d.toISOString().slice(0,10);
+  window.location = `/DonHang?tuNgay=${f(tu)}&denNgay=${f(den)}`;
+}
+</script>
+}
+
+

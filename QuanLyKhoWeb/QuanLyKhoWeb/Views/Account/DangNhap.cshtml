@@ -1,0 +1,96 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.DangNhapViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Đăng nhập";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Kho Hàng</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body>
+<main class="login-wrap">
+    <div class="login-card@(ViewData.ModelState.IsValid ? "" : " shake")">
+        <div class="text-center mb-3">
+            <div class="login-brand" aria-hidden="true">K</div>
+            <h1 class="fw-bold mb-1" style="font-size:22px">Kho Hàng</h1>
+            <p class="text-muted mb-0">Đăng nhập quản lí kho hàng</p>
+        </div>
+        <form asp-action="DangNhap" method="post" autocomplete="on">
+            @Html.AntiForgeryToken()
+            @if (TempData["ThongBao"] != null)
+            {
+                <div class="alert alert-success mb-3" role="status">@TempData["ThongBao"]</div>
+            }
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            }
+            <div class="mb-3">
+                <label asp-for="TenDangNhap" class="form-label"></label>
+                <div class="icon-field">
+                    <i class="bi bi-person field-icon"></i>
+                    <input asp-for="TenDangNhap" class="form-control" placeholder="Nhập tên đăng nhập" autocomplete="username" autofocus />
+                </div>
+                <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="MatKhau" class="form-label"></label>
+                <div class="icon-field has-toggle">
+                    <i class="bi bi-lock field-icon"></i>
+                    <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" autocomplete="current-password" id="pwInput" />
+                    <button type="button" class="pw-toggle" id="pwToggle" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+                </div>
+                <div class="caps-warn" id="capsWarn"><i class="bi bi-exclamation-triangle me-1"></i>Bạn đang bật Caps Lock.</div>
+                <span asp-validation-for="MatKhau" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+            <div class="text-center mt-2">
+                <a asp-action="QuenMatKhau" class="small text-decoration-none">Quên mật khẩu?</a>
+            </div>
+            <p class="text-muted text-center mt-2 mb-0" style="font-size:12.5px">Tài khoản mới được quản lý cấp vui lòng đổi mật khẩu ở lần đăng nhập đầu.</p>
+        </form>
+    </div>
+</main>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script>
+(function () {
+  var pw = document.getElementById('pwInput');
+  var tg = document.getElementById('pwToggle');
+  // Chỉ hiện nút con mắt khi người dùng đã nhập mật khẩu
+  function syncToggle() {
+    var has = pw.value.length > 0;
+    tg.hidden = !has;
+    if (!has && pw.type === 'text') {
+      pw.type = 'password';
+      tg.innerHTML = '<i class="bi bi-eye"></i>';
+      tg.setAttribute('aria-label', 'Hiện mật khẩu');
+    }
+  }
+  pw.addEventListener('input', syncToggle);
+  syncToggle();
+  tg.addEventListener('click', function () {
+    var show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    tg.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    tg.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+    pw.focus();
+  });
+  // Cảnh báo Caps Lock
+  var caps = document.getElementById('capsWarn');
+  pw.addEventListener('keyup', function (e) {
+    var on = e.getModifierState && e.getModifierState('CapsLock');
+    caps.style.display = on ? 'block' : 'none';
+  });
+})();
+</script>
+</body>
+</html>

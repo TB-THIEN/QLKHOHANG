@@ -1,0 +1,149 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.SanPhamSku>
+@{
+    ViewData["Title"] = "Sản phẩm";
+    ViewData["Subtitle"] = "Mã SKU tự sinh";
+    var loHang = (ViewBag.LoHang as string) ?? "";
+    var danhMuc = (ViewBag.DanhMuc as string) ?? "";
+    var nhanHieu = (ViewBag.NhanHieu as string) ?? "";
+    var loaiSanPham = (ViewBag.LoaiSanPham as string) ?? "";
+    var chatLieu = (ViewBag.ChatLieu as string) ?? "";
+    var mauSac = (ViewBag.MauSac as string) ?? "";
+    var tonKho = (ViewBag.TonKho as string) ?? "";
+    List<string> dsDanhMuc = ViewBag.DsDanhMuc ?? new List<string>();
+    List<string> dsNhanHieu = ViewBag.DsNhanHieu ?? new List<string>();
+    List<string> dsLoai = ViewBag.DsLoai ?? new List<string>();
+    List<string> dsChatLieu = ViewBag.DsChatLieu ?? new List<string>();
+    List<string> dsMauSac = ViewBag.DsMauSac ?? new List<string>();
+    // Nhân viên giao hàng chỉ được xem, không được tạo/sửa sản phẩm
+    var duocTao = (User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-box-seam me-2 text-primary"></i>Danh sách sản phẩm</h3><p class="page-subtitle">Mã SKU dạng NHÓM-TÊN-CHẤTLIEU+MÀU-YYMM###, ảnh + giá + tồn</p></div>
+    @if (duocTao) { <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm</a> }
+</div>
+<div class="app-card mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="search" value="@ViewData["SearchValue"]" />
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-box me-1"></i>Lô hàng</label>
+            <input name="loHang" value="@loHang" class="form-control" placeholder="VD: L260315" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-grid me-1"></i>Danh mục</label>
+            <select name="danhMuc" class="form-select">
+                <option value="">-- Tất cả --</option>
+                @foreach (var d in dsDanhMuc) { <option value="@d" selected="@(d == danhMuc)">@d</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-award me-1"></i>Nhãn hiệu</label>
+            <select name="nhanHieu" class="form-select">
+                <option value="">-- Tất cả --</option>
+                @foreach (var d in dsNhanHieu) { <option value="@d" selected="@(d == nhanHieu)">@d</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-bookmark me-1"></i>Loại sản phẩm</label>
+            <select name="loaiSanPham" class="form-select">
+                <option value="">-- Tất cả --</option>
+                @foreach (var d in dsLoai) { <option value="@d" selected="@(d == loaiSanPham)">@d</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-layers me-1"></i>Chất liệu</label>
+            <select name="chatLieu" class="form-select">
+                <option value="">-- Tất cả --</option>
+                @foreach (var d in dsChatLieu) { <option value="@d" selected="@(d == chatLieu)">@d</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-palette me-1"></i>Màu sắc</label>
+            <select name="mauSac" class="form-select">
+                <option value="">-- Tất cả --</option>
+                @foreach (var d in dsMauSac) { <option value="@d" selected="@(d == mauSac)">@d</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="bi bi-boxes me-1"></i>Tình trạng tồn</label>
+            <select name="tonKho" class="form-select">
+                <option value="">-- Tất cả --</option>
+                <option value="conhang" selected="@(tonKho == "conhang")">Còn hàng (&gt; 5)</option>
+                <option value="saphet" selected="@(tonKho == "saphet")">Sắp hết (1 - 5)</option>
+                <option value="hethang" selected="@(tonKho == "hethang")">Hết hàng (= 0)</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-outline-primary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+        </div>
+    </form>
+</div>
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã SKU</th><th>Hình ảnh</th><th>Tên sản phẩm</th><th>Lô hàng</th><th class="num">Giá tiền</th><th class="num">Tồn</th><th>Chi tiết</th></tr></thead>
+            <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@s.MaCodeSku</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(s.MaMauSanPhamNavigation?.DuongDanHinhAnh))
+                        { <img src="@s.MaMauSanPhamNavigation.DuongDanHinhAnh" class="thumb-48" alt="@s.MaMauSanPhamNavigation?.TenSanPham" loading="lazy" /> }
+                        else { <span class="text-muted"><i class="bi bi-image" style="font-size:26px"></i></span> }
+                    </td>
+                    <td>@s.MaMauSanPhamNavigation?.TenSanPham<br /><small class="text-muted">@s.MaMauSanPhamNavigation?.MaDanhMucNavigation?.TenDanhMuc</small></td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(s.MaLoHangNavigation?.MaCodeLoHang))
+                        { <a asp-action="Index" asp-route-loHang="@s.MaLoHangNavigation.MaCodeLoHang" class="badge bg-light text-decoration-none" title="Lọc theo lô này">@s.MaLoHangNavigation.MaCodeLoHang</a> }
+                        else { <span class="text-muted">—</span> }
+                    </td>
+                    <td class="num fw-bold">@s.GiaNiemYet.ToString("N0") đ</td>
+                    <td class="num">
+                        @s.SoLuong
+                        @if (s.SoLuong == 0) { <span class="badge bg-danger ms-1">Hết hàng</span> }
+                        else if (s.SoLuong <= 5) { <span class="badge bg-warning ms-1">Sắp hết</span> }
+                    </td>
+                    <td><a asp-action="Details" asp-route-id="@s.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết"><i class="bi bi-eye"></i></a></td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="7"><div class="empty-state"><i class="bi bi-box-seam"></i><div>Không tìm thấy sản phẩm nào</div>@if (duocTao) { <a asp-action="Create" class="btn btn-sm btn-primary">Thêm sản phẩm</a> }</div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* Phân trang (giữ nguyên bộ lọc + tìm kiếm) *@
+@{
+    int trang = ViewBag.Trang ?? 1;
+    int totalPage = ViewBag.TotalPage ?? 1;
+    int total = ViewBag.Total ?? 0;
+    string qSearch = Context.Request.Query["search"].ToString();
+    string qLoHang = Context.Request.Query["loHang"].ToString();
+    string qDanhMuc = Context.Request.Query["danhMuc"].ToString();
+    string qNhanHieu = Context.Request.Query["nhanHieu"].ToString();
+    string qLoai = Context.Request.Query["loaiSanPham"].ToString();
+    string qChatLieu = Context.Request.Query["chatLieu"].ToString();
+    string qMauSac = Context.Request.Query["mauSac"].ToString();
+    string qTonKho = Context.Request.Query["tonKho"].ToString();
+}
+@if (totalPage > 1)
+{
+    <nav aria-label="Phân trang sản phẩm">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(trang <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-trang="@(trang - 1)" asp-route-search="@qSearch" asp-route-loHang="@qLoHang" asp-route-danhMuc="@qDanhMuc" asp-route-nhanHieu="@qNhanHieu" asp-route-loaiSanPham="@qLoai" asp-route-chatLieu="@qChatLieu" asp-route-mauSac="@qMauSac" asp-route-tonKho="@qTonKho">Trước</a>
+            </li>
+            @for (int p = Math.Max(1, trang - 2); p <= Math.Min(totalPage, trang + 2); p++)
+            {
+                <li class="page-item @(p == trang ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-trang="@p" asp-route-search="@qSearch" asp-route-loHang="@qLoHang" asp-route-danhMuc="@qDanhMuc" asp-route-nhanHieu="@qNhanHieu" asp-route-loaiSanPham="@qLoai" asp-route-chatLieu="@qChatLieu" asp-route-mauSac="@qMauSac" asp-route-tonKho="@qTonKho">@p</a>
+                </li>
+            }
+            <li class="page-item @(trang >= totalPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-trang="@(trang + 1)" asp-route-search="@qSearch" asp-route-loHang="@qLoHang" asp-route-danhMuc="@qDanhMuc" asp-route-nhanHieu="@qNhanHieu" asp-route-loaiSanPham="@qLoai" asp-route-chatLieu="@qChatLieu" asp-route-mauSac="@qMauSac" asp-route-tonKho="@qTonKho">Sau</a>
+            </li>
+        </ul>
+    </nav>
+}
+<p class="text-center text-muted"><small>Tổng @total sản phẩm · trang @trang/@totalPage</small></p>

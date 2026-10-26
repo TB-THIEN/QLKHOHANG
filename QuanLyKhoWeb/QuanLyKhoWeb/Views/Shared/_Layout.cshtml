@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Web quản lí kho hàng" />
+    <title>@(ViewData["Title"] ?? "Tổng quan") - Kho Hàng</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A6%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Bỏ qua tới nội dung</a>
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    Func<string, string> isActive = (c) => controller.Equals(c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var hoTen = User?.Identity?.IsAuthenticated == true ? User.Identity.Name : "Khách";
+    var vaiTro = User?.FindFirst("VaiTro")?.Value ?? "";
+    var pageTitle = ViewData["Title"]?.ToString() ?? controller;
+    var pageSubtitle = ViewData["Subtitle"]?.ToString();
+}
+<div class="app-wrapper">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+    <!-- Sidebar điều hướng  -->
+    <aside class="app-sidebar" aria-label="Menu chính">
+        <div class="app-logo">
+            <div class="logo-box" aria-hidden="true">K</div>
+            <div><span class="logo-text">Kho Hàng</span></div>
+        </div>
+        <nav class="app-menu">
+            <a asp-controller="TongQuan" asp-action="Index" class="@isActive("TongQuan")">
+                <i class="bi bi-grid-1x2"></i><span class="menu-text">Tổng quan</span>
+            </a>
+            @if (vaiTro == "Quản lý")
+            {
+                <a asp-controller="NhanVien" asp-action="Index" class="@isActive("NhanVien")">
+                    <i class="bi bi-people"></i><span class="menu-text">Nhân viên</span>
+                </a>
+            }
+            @* Nhà cung cấp: Quản lý + NV kho + NV bán hàng (ẩn với NV giao hàng) *@
+            @if (vaiTro != "Nhân viên giao hàng")
+            {
+                <a asp-controller="NhaCungCap" asp-action="Index" class="@isActive("NhaCungCap")">
+                    <i class="bi bi-building"></i><span class="menu-text">Nhà cung cấp</span>
+                </a>
+            }
+            <div class="menu-label">Quản lý kho</div>
+            <a asp-controller="KhuHang" asp-action="Index" class="@isActive("KhuHang")">
+                <i class="bi bi-diagram-3"></i><span class="menu-text">Khu hàng</span>
+            </a>
+            <a asp-controller="DonHang" asp-action="Index" class="@isActive("DonHang")">
+                <i class="bi bi-receipt"></i><span class="menu-text">Đơn hàng</span>
+            </a>
+            <a asp-controller="VanChuyen" asp-action="Index" class="@isActive("VanChuyen")">
+                <i class="bi bi-truck"></i><span class="menu-text">Vận chuyển</span>
+            </a>
+            <a asp-controller="SanPham" asp-action="Index" class="@isActive("SanPham")">
+                <i class="bi bi-box-seam"></i><span class="menu-text">Sản phẩm</span>
+            </a>
+            <a asp-controller="TonKho" asp-action="Index" class="@isActive("TonKho")">
+                <i class="bi bi-boxes"></i><span class="menu-text">Tồn kho &amp; Nhập kho</span>
+            </a>
+            <div class="menu-label">Kinh doanh</div>
+            <a asp-controller="KhuyenMai" asp-action="Index" class="@isActive("KhuyenMai")">
+                <i class="bi bi-ticket-perforated"></i><span class="menu-text">Khuyến mãi</span>
+            </a>
+            <a asp-controller="BaoCao" asp-action="Index" class="@isActive("BaoCao")">
+                <i class="bi bi-bar-chart"></i><span class="menu-text">Báo cáo</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="app-main">
+        <div class="app-topbar">
+            <button class="btn-icon sidebar-toggle" id="sidebarToggle" aria-label="Mở menu"><i class="bi bi-list"></i></button>
+            <!--  Ô tìm kiếm tổng: gợi ý toàn hệ thống, tách biệt với ô lọc của từng trang -->
+            <div class="app-search" id="globalSearchBox" data-url="@Url.Action("GoiY", "TimKiem")">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="text" id="globalSearch" placeholder="Tìm kiếm (mã đơn, SKU, sản phẩm, nhân viên...)" aria-label="Tìm kiếm toàn hệ thống" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="globalSearchResults" aria-autocomplete="list" />
+                <button type="button" class="search-clear" id="searchClear" aria-label="Xóa tìm kiếm">&times;</button>
+                <div class="global-search-results" id="globalSearchResults" role="listbox" aria-label="Gợi ý tìm kiếm" hidden></div>
+            </div>
+            <div class="app-user">
+                <div class="text-end user-meta d-none d-md-block">
+                    <div class="fw-bold" style="font-size:13px">@hoTen</div>
+                    <span class="role-badge">@(string.IsNullOrEmpty(vaiTro) ? "Nhân viên" : vaiTro)</span>
+                </div>
+                <div class="dropdown">
+                    <button class="btn p-0 border-0 d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                        <span class="app-avatar" aria-hidden="true">@(string.IsNullOrEmpty(hoTen) ? "K" : hoTen.Substring(0,1).ToUpper())</span>
+                        <i class="bi bi-chevron-down text-muted d-none d-md-inline" style="font-size:11px"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" asp-controller="NhanVien" asp-action="ThongTinCaNhan"><i class="bi bi-person me-2"></i>Thông tin nhân viên</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="DangXuat" method="post" class="px-3 py-1">
+                                <button type="submit" class="btn btn-link text-decoration-none text-dark p-0"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <main class="app-content" id="main-content" tabindex="-1">
+            <nav class="breadcrumb-app" aria-label="Breadcrumb">
+                <a asp-controller="TongQuan" asp-action="Index">Trang chủ</a>
+                <span aria-hidden="true">/</span><span>@pageTitle</span>
+            </nav>
+            @if (TempData["ThongBao"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="status">@TempData["ThongBao"]<button class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            }
+            @if (TempData["Loi"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">@TempData["Loi"]<button class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button></div>
+            }
+            @RenderBody()
+        </main>
+        <footer class="app-footer">
+            <span>&copy; 2026 Kho Hàng </span>
+        </footer>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+

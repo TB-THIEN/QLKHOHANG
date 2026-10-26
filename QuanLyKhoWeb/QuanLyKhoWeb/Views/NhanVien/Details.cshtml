@@ -1,0 +1,157 @@
+﻿@model QuanLyKhoWeb.Models.Entities.NguoiDung
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+}
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        @if (!string.IsNullOrEmpty(Model.AnhThe))
+        { <img src="@Model.AnhThe" style="width:56px;height:72px;object-fit:cover;border-radius:12px" alt="Ảnh thẻ @Model.HoTen" /> }
+        else
+        { <span class="app-avatar avatar-lg" aria-hidden="true">@(string.IsNullOrEmpty(Model.HoTen) ? "?" : Model.HoTen.Substring(0,1).ToUpper())</span> }
+        <div>
+            <h3 class="app-page-title mb-0">@Model.HoTen</h3>
+            <span class="cell-sub">NV-@Model.MaNguoiDung.ToString("D4") · @Model.MaVaiTroNavigation?.TenVaiTro</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 align-items-start">
+        @if (Model.TrangThaiHoatDong == true) { <span class="badge bg-success">Đang làm</span> } else { <span class="badge bg-secondary">Nghỉ làm</span> }
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+        @if (ViewBag.LaChinhMinh != true)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaNguoiDung" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Sửa hồ sơ</a>
+            <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#resetMk"><i class="bi bi-key me-1"></i>Đặt lại mật khẩu</button>
+        }
+    </div>
+</div>
+<div class="row g-3">
+    <div class="@(ViewBag.LaChinhMinh == true ? "col-12" : "col-md-8")">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-person-vcard"></i>Hồ sơ nhân viên</h6>
+            <dl class="detail-list">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-hash"></i>Mã NV</dt><dd class="mb-0 fw-bold">NV-@Model.MaNguoiDung.ToString("D4")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person"></i>Tên đăng nhập</dt><dd class="mb-0">@Model.TenDangNhap</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-lock"></i>Mật khẩu</dt><dd class="mb-0">**** <span class="cell-sub">(đã mã hóa)</span></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-badge-wc"></i>Họ tên</dt><dd class="mb-0">@Model.HoTen</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person-badge"></i>Vai trò</dt><dd class="mb-0"><span class="badge bg-light">@Model.MaVaiTroNavigation?.TenVaiTro</span></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-telephone"></i>SĐT</dt><dd class="mb-0">@Model.SoDienThoai</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-envelope"></i>Email</dt><dd class="mb-0">@Model.Email</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person-vcard"></i>CCCD</dt><dd class="mb-0">@(Model.Cccd ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-bank"></i>STK ngân hàng</dt><dd class="mb-0">@(Model.StkNganHang ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-bank"></i>Chi nhánh</dt><dd class="mb-0">@(Model.ChiNhanhNganHang ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-geo-alt"></i>Thường trú</dt><dd class="mb-0">@Model.ThuongTru</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-cake2"></i>Ngày sinh</dt><dd class="mb-0">@Model.NgaySinh?.ToString("dd/MM/yyyy")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-gender-ambiguous"></i>Giới tính</dt><dd class="mb-0">@Model.GioiTinh</dd></div>
+            </dl>
+        </div>
+    </div>
+    @if (ViewBag.LaChinhMinh != true)
+    {
+    <div class="col-md-4">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-toggle-on"></i>Trạng thái &amp; vai trò</h6>
+            <form asp-action="DoiTrangThai" method="post" id="frmDoiTt">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.MaNguoiDung" />
+                <label class="form-label" for="txtVaiTroDetail">Vai trò</label>
+                @* Combobox Vai trò: ô nhập + click xổ list 6 dòng + cuộn, gõ để lọc gợi ý, nhập tên mới để tự tạo *@
+                <div class="position-relative mb-2">
+                    <input name="tenVaiTro" id="txtVaiTroDetail" class="form-control" autocomplete="off"
+                           value="@Model.MaVaiTroNavigation?.TenVaiTro"
+                           placeholder="Nhập hoặc bấm để chọn vai trò..." aria-controls="goiYVaiTroDetail" />
+                    @* List gợi ý: CSS .role-suggest-box giới hạn đúng 6 dòng (max-height 228px) + overflow-y:auto để cuộn *@
+                    <div id="goiYVaiTroDetail" class="role-suggest-box" role="listbox"></div>
+                </div>
+                <div class="form-hint mb-2">Bấm vào ô để xem 6 vai trò có sẵn (cuộn xuống để xem thêm). Gõ để lọc gợi ý, hoặc nhập tên mới để tự tạo (trừ vai trò Quản lý).</div>
+                <label class="form-label">Trạng thái làm việc</label>
+                <select name="trangThai" class="form-select mb-2">
+                    @if (Model.TrangThaiHoatDong == true)
+                    {
+                        <option value="true" selected>Đang làm</option>
+                        <option value="false">Nghỉ làm</option>
+                    }
+                    else
+                    {
+                        <option value="true">Đang làm</option>
+                        <option value="false" selected>Nghỉ làm</option>
+                    }
+                </select>
+                <button class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>Cập nhật</button>
+            </form>
+            <div class="form-hint text-center mt-2">Chọn "Nghỉ làm" sẽ khóa đăng nhập và ẩn nhân viên khỏi danh sách (không xóa).</div>
+        </div>
+    </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+// Vai trò: combobox nhập + xổ list 6 dòng + cuộn, gõ để lọc gợi ý (giữ nguyên giá trị gõ để tạo mới khi submit)
+(function () {
+    var txt = document.getElementById('txtVaiTroDetail');
+    if (!txt || typeof window.setupVaiTroAutocomplete !== 'function') return;
+    // showOnFocus=true: click/focus vào ô vẫn xổ toàn bộ vai trò có sẵn
+    window.setupVaiTroAutocomplete('txtVaiTroDetail', 'goiYVaiTroDetail', ['Quản lý']);
+    // Không cho submit vai trò trống (server sẽ giữ vai trò cũ, nhưng chặn ở client rõ ràng hơn)
+    var frm = document.getElementById('frmDoiTt');
+    if (frm) frm.addEventListener('submit', function (e) {
+        txt.value = txt.value.trim();
+        if (!txt.value) { e.preventDefault(); alert('Vui lòng chọn hoặc nhập vai trò.'); txt.focus(); }
+    });
+})();
+</script>
+}
+
+@if (ViewBag.LaChinhMinh != true)
+{
+<!-- Popup đặt lại mật khẩu cho nhân viên -->
+<div class="modal fade" id="resetMk" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title">Đặt lại mật khẩu cho @Model.HoTen?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="DatLaiMatKhau" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaNguoiDung" />
+            <div class="modal-body">
+                <label class="form-label required">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+                <input type="password" name="matKhauMoi" class="form-control" minlength="6" required autocomplete="new-password" />
+                <p class="text-warning mt-2 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Nhân viên phải đổi ngay ở lần đăng nhập kế tiếp.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-warning">Đặt lại mật khẩu</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}
+
+@* Lịch sử đổi thông tin: ai sửa, trường nào, giá trị cũ/mới *@
+@{
+    var lichSu = ViewBag.LichSu as List<dynamic> ?? new List<dynamic>();
+}
+<div class="app-card mt-3">
+    <h6 class="section-title"><i class="bi bi-clock-history"></i>Lịch sử thay đổi thông tin</h6>
+    @if (lichSu.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-app mb-0">
+                <thead><tr><th>Thời gian</th><th>Trường</th><th>Giá trị cũ</th><th>Giá trị mới</th><th>Người thực hiện</th></tr></thead>
+                <tbody>
+                @foreach (var r in lichSu)
+                {
+                    <tr>
+                        <td><small>@(((DateTime)r.thoi_gian).ToString("dd/MM/yyyy HH:mm"))</small></td>
+                        <td>@r.ten_truong</td>
+                        <td>@(r.gia_tri_cu ?? "—")</td>
+                        <td>@(r.gia_tri_moi ?? "—")</td>
+                        <td>@(r.nguoi_thuc_hien ?? "—")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted mb-0">Chưa có thay đổi nào được ghi nhận.</p>
+    }
+</div>

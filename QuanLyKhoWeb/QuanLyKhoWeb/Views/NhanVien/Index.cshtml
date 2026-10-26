@@ -1,0 +1,56 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.NguoiDung>
+@{
+    ViewData["Title"] = "Danh sách nhân viên";
+    ViewData["Subtitle"] = "Chỉ tài khoản Quản lý";
+    var hienNghi = (ViewBag.HienNghi as bool?) ?? false;
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-people me-2 text-primary"></i>Danh sách nhân viên</h3><p class="page-subtitle">Mã NV, vai trò, trạng thái làm việc@(hienNghi ? " (đang hiện cả NV nghỉ làm)" : "")</p></div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (hienNghi)
+        { <a asp-action="Index" asp-route-search="@ViewData["SearchValue"]" class="btn btn-outline-secondary"><i class="bi bi-eye-slash me-1"></i>Ẩn NV nghỉ làm</a> }
+        else
+        { <a asp-action="Index" asp-route-hienNghi="true" asp-route-search="@ViewData["SearchValue"]" class="btn btn-outline-secondary"><i class="bi bi-eye me-1"></i>Hiện NV nghỉ làm</a> }
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm mới nhân viên</a>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã NV</th><th>Vai trò</th><th>Tên</th><th>Trạng thái</th><th>Chi tiết</th></tr></thead>
+            <tbody>
+            @foreach (var nv in Model)
+            {
+                <tr>
+                    <td class="fw-bold">NV-@nv.MaNguoiDung.ToString("D4")</td>
+                    <td><span class="badge bg-light"><i class="bi bi-person-badge me-1"></i>@nv.MaVaiTroNavigation?.TenVaiTro</span></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (!string.IsNullOrEmpty(nv.AnhThe))
+                            { <img src="@nv.AnhThe" class="app-avatar" style="width:32px;height:32px;object-fit:cover" alt="@nv.HoTen" /> }
+                            else
+                            { <span class="app-avatar" style="width:32px;height:32px;font-size:13px" aria-hidden="true">@(string.IsNullOrEmpty(nv.HoTen) ? "?" : nv.HoTen.Substring(0,1).ToUpper())</span> }
+                            <div>@nv.HoTen<br /><small class="text-muted">@nv.TenDangNhap</small></div>
+                        </div>
+                    </td>
+                    <td>
+                        @if (nv.TrangThaiHoatDong == true)
+                        { <span class="badge bg-success">Đang làm</span> }
+                        else
+                        { <span class="badge bg-secondary">Nghỉ làm</span> }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@nv.MaNguoiDung" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem @nv.HoTen">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="5"><div class="empty-state"><i class="bi bi-people"></i><div>Chưa có nhân viên nào</div><a asp-action="Create" class="btn btn-sm btn-primary">Thêm nhân viên đầu tiên</a></div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

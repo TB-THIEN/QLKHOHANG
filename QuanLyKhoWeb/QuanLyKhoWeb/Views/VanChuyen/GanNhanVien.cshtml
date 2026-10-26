@@ -1,0 +1,153 @@
+﻿@model QuanLyKhoWeb.Models.Entities.VanDon
+@{
+    ViewData["Title"] = "Chi tiết vận đơn";
+    var nvList = ViewBag.NvGiaoHang as List<QuanLyKhoWeb.Models.Entities.NguoiDung> ?? new();
+    var dh = Model.MaDonHangNavigation;
+    var vaiTro = User.FindFirst("VaiTro")?.Value ?? "";
+    var duocXacNhan = vaiTro == "Quản lý" || vaiTro == "Nhân viên giao hàng" || vaiTro == "Nhân viên bán hàng";
+    var daGiao = Model.TrangThai == "DA_GIAO";
+}
+<div class="page-header">
+    <div>
+        <h3 class="app-page-title"><i class="bi bi-truck me-2 text-primary"></i>Chi tiết vận đơn — @dh.MaCodeDonHang</h3>
+        <p class="page-subtitle">@Model.MaCodeVanDon</p>
+    </div>
+    <div class="d-flex gap-2 align-items-start flex-wrap">
+        @if (daGiao) { <span class="badge bg-success">Đã giao</span> }
+        else if (Model.TrangThai == "CHUA_GIAO") { <span class="badge bg-warning text-dark">Chưa giao</span> }
+        else { <span class="badge bg-info">Chưa hoàn thành</span> }
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+    </div>
+</div>
+
+@if (daGiao)
+{
+    <div class="alert alert-success"><i class="bi bi-lock me-1"></i>Vận đơn đã giao nên được khóa: không thể thay đổi thông tin hay trạng thái.</div>
+}
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <!-- Toàn bộ thông tin đơn (Hình 2.3/3.3) - chỉ xem, không sửa -->
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-receipt"></i>Thông tin đơn hàng (chỉ xem)</h6>
+            <fieldset disabled>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label">Mã đơn (tự sinh)</label><input class="form-control" value="@dh.MaCodeDonHang" /></div>
+                    <div class="col-md-6"><label class="form-label">Ngày đặt</label><input class="form-control" value="@dh.NgayDatHang" /></div>
+                    <div class="col-12">
+                        <label class="form-label">Sản phẩm</label>
+                        <table class="table table-sm table-app"><thead><tr><th>Tên</th><th class="num">SL</th><th class="num">Giá</th></tr></thead>
+                        <tbody>
+                        @foreach (var ct in dh.ChiTietDonHangs)
+                        {
+                            var hinh = ct.MaSkuNavigation?.MaMauSanPhamNavigation?.DuongDanHinhAnh;
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (!string.IsNullOrEmpty(hinh)) { <img src="@hinh" class="thumb-44" alt="" loading="lazy" /> }
+                                        <span><span class="cell-main">@ct.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</span> <span class="cell-sub">(@ct.MaSkuNavigation?.MaCodeSku)</span></span>
+                                    </div>
+                                </td>
+                                <td class="num">@ct.SoLuong</td><td class="num">@ct.DonGia.ToString("N0")</td>
+                            </tr>
+                        }
+                        </tbody></table>
+                    </div>
+                    <div class="col-md-6"><label class="form-label">Thanh tiền</label><input class="form-control fw-bold" value="@dh.ThanhTien.ToString("N0") đ" /></div>
+                    <div class="col-md-6"><label class="form-label">Ghi chú đơn</label><input class="form-control" value="@dh.GhiChu" /></div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-person-badge"></i>Thông tin giao hàng</h6>
+            @if (daGiao)
+            {
+                <dl class="detail-list mb-0">
+                    <div class="detail-row"><dt class="dl-label">Người nhận</dt><dd class="mb-0">@dh.TenKhachHangGiao</dd></div>
+                    <div class="detail-row"><dt class="dl-label">SĐT</dt><dd class="mb-0">@dh.SdtKhachHangGiao</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Địa chỉ</dt><dd class="mb-0">@dh.DiaChiGiaoHang</dd></div>
+                    <div class="detail-row"><dt class="dl-label">NV giao</dt><dd class="mb-0">@(Model.MaNhanVienGiaoHangNavigation?.HoTen ?? "—")</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Ghi chú</dt><dd class="mb-0">@(Model.GhiChu ?? "—")</dd></div>
+                </dl>
+            }
+            else
+            {
+                <form asp-action="GanNhanVien" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.MaVanDon" />
+                    <div class="mb-2">
+                        <label class="form-label required">Tên người nhận</label>
+                        <input name="tenKhachHang" value="@dh.TenKhachHangGiao" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label required">Số điện thoại</label>
+                        <input name="sdtKhachHang" value="@dh.SdtKhachHangGiao" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label required">Địa chỉ giao</label>
+                        <input name="diaChiGiaoHang" value="@dh.DiaChiGiaoHang" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label required">Nhân viên giao</label>
+                        <select name="maNvGiao" class="form-select">
+                            <option value="">-- Chọn nhân viên --</option>
+                            @foreach (var nv in nvList)
+                            {
+                                @if (Model.MaNhanVienGiaoHang == nv.MaNguoiDung)
+                                { <option value="@nv.MaNguoiDung" selected>@nv.HoTen</option> }
+                                else
+                                { <option value="@nv.MaNguoiDung">@nv.HoTen</option> }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Ghi chú vận đơn</label>
+                        <textarea name="ghiChu" class="form-control" rows="2">@Model.GhiChu</textarea>
+                    </div>
+                    <button class="btn btn-primary w-100"><i class="bi bi-save me-1"></i>Lưu thông tin</button>
+                </form>
+                @if (Model.TrangThai == "CHUA_GIAO")
+                {
+                    @if (duocXacNhan)
+                    {
+                        <button type="button" class="btn btn-success w-100 mt-2" data-bs-toggle="modal" data-bs-target="#xacNhanGiao"><i class="bi bi-check2-circle me-1"></i>Xác nhận đã giao</button>
+                    }
+                    <p class="text-muted small mb-0 mt-2"><i class="bi bi-info-circle me-1"></i>Sau khi xác nhận, vận đơn khóa ở trạng thái <b>Đã giao</b> và không thể thay đổi thông tin hay trạng thái.</p>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0 mt-2"><i class="bi bi-info-circle me-1"></i>Lưu thông tin để chuyển vận đơn sang trạng thái <b>Chưa giao</b>.</p>
+                }
+            }
+            <a asp-action="Index" class="btn btn-link w-100 mt-2">Quay lại vận đơn</a>
+        </div>
+    </div>
+</div>
+
+@if (!daGiao && Model.TrangThai == "CHUA_GIAO" && duocXacNhan)
+{
+<div class="modal fade" id="xacNhanGiao" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-check2-circle text-primary me-2"></i>Xác nhận đã giao @Model.MaCodeVanDon?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="CapNhatTrangThai" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaVanDon" />
+            <input type="hidden" name="trangThai" value="DA_GIAO" />
+            <div class="modal-body">
+                <dl class="detail-list">
+                    <div class="detail-row"><dt class="dl-label">Đơn hàng</dt><dd class="mb-0 fw-bold">@dh.MaCodeDonHang</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Người nhận</dt><dd class="mb-0">@dh.TenKhachHangGiao</dd></div>
+                    <div class="detail-row"><dt class="dl-label">NV giao</dt><dd class="mb-0">@(Model.MaNhanVienGiaoHangNavigation?.HoTen ?? "—")</dd></div>
+                </dl>
+                <p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Xác nhận xong vận đơn khóa ở trạng thái <b>Đã giao</b>, không thay đổi lại được.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Để sau</button>
+                <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Xác nhận đã giao</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}

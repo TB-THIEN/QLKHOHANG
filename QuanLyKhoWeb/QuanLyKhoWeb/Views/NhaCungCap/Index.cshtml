@@ -1,0 +1,56 @@
+@model List<QuanLyKhoWeb.Models.Entities.NhaCungCap>
+@{
+    ViewData["Title"] = "Nhà cung cấp";
+    ViewData["Subtitle"] = "Nguồn nhập hàng cho kho";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-building me-2 text-primary"></i>Danh sách nhà cung cấp</h3><p class="page-subtitle">Nguồn nhập hàng cho kho</p></div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm nhà cung cấp</a>
+</div>
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã NCC</th><th>Tên nhà cung cấp</th><th>Số điện thoại</th><th>Email</th><th>Địa chỉ</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var n in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@n.MaCodeNcc</td>
+                    <td>@n.TenNhaCungCap</td>
+                    <td>@(n.SoDienThoai ?? "—")</td>
+                    <td>@(n.Email ?? "—")</td>
+                    <td>@(n.DiaChi ?? "—")</td>
+                    <td>@if (n.TrangThaiHoatDong == true) { <span class="badge bg-success">Đang hợp tác</span> } else { <span class="badge bg-secondary">Ngừng</span> }</td>
+                    <td class="d-flex gap-1">
+                        <a asp-action="Details" asp-route-id="@n.MaNhaCungCap" class="btn btn-sm btn-outline-primary" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                        <a asp-action="Edit" asp-route-id="@n.MaNhaCungCap" class="btn btn-sm btn-outline-secondary" title="Sửa"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-ncc-@n.MaNhaCungCap" title="Xóa"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="7"><div class="empty-state"><i class="bi bi-building"></i><div>Chưa có nhà cung cấp nào</div><a asp-action="Create" class="btn btn-sm btn-primary">Thêm nhà cung cấp đầu tiên</a></div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@foreach (var n in Model)
+{
+<div class="modal fade" id="xoa-ncc-@n.MaNhaCungCap" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title">Xóa nhà cung cấp @n.MaCodeNcc?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="Xoa" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@n.MaNhaCungCap" />
+            <div class="modal-body">
+                <p class="mb-0">Bạn có chắc muốn xóa <b>@n.TenNhaCungCap</b>?</p>
+                <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Chỉ xóa được nhà cung cấp chưa có phiếu nhập kho nào.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}

@@ -1,0 +1,457 @@
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\appsettings.Development.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\appsettings.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.staticwebassets.runtime.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.staticwebassets.endpoints.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.exe
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.deps.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.runtimeconfig.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.pdb
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Dapper.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\EntityFramework.SqlServer.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\EntityFramework.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Humanizer.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Build.Framework.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.CSharp.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.Workspaces.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.Extensions.Abstractions.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.Internal.Logging.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Design.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.SqlServer.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.SqlServer.Server.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.VisualStudio.SolutionPersistence.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Mono.TextTemplating.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Newtonsoft.Json.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.CodeDom.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.AttributedModel.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Convention.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Hosting.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Runtime.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.TypedParts.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Configuration.ConfigurationManager.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\unix\lib\net9.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win\lib\net9.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-arm64\native\sni.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x64\native\sni.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x86\native\sni.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.csproj.AssemblyReference.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.AssemblyInfoInputs.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.AssemblyInfo.cs
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.csproj.CoreCompileInputs.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.RazorAssemblyInfo.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.RazorAssemblyInfo.cs
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjimswa.dswa.cache.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\scopedcss\bundle\QuanLyKhoWeb.styles.css
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\scopedcss\projectbundle\QuanLyKhoWeb.bundle.scp.css
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kmag5ysm0o-{0}-b9sayid5wm-b9sayid5wm.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jdasoadql8-{0}-61n19gt1b8-61n19gt1b8.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kco3h0sdg8-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\fm5jiosg6v-{0}-bqjiyaj88i-bqjiyaj88i.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\uqit2n6kgh-{0}-c2jlpeoesf-c2jlpeoesf.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\2ehbxzv3xu-{0}-erw9l3u2r3-erw9l3u2r3.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\nx7xzigoes-{0}-aexeepp0ev-aexeepp0ev.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jisqugk7dg-{0}-d7shbmvgxk-d7shbmvgxk.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ftj2n7l0bv-{0}-ausgxo2sd3-ausgxo2sd3.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\p2idf6vjrz-{0}-k8d9w2qqmf-k8d9w2qqmf.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\m2lijrfmt8-{0}-cosvhxvwiu-cosvhxvwiu.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jak4c1a544-{0}-ub07r2b239-ub07r2b239.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\aqjqoamjfk-{0}-fvhpjtyr6v-fvhpjtyr6v.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\j1y58804x4-{0}-b7pk76d08c-b7pk76d08c.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\1s3kybzrri-{0}-fsbi9cje9m-fsbi9cje9m.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\iqxzm1mp1w-{0}-rzd6atqjts-rzd6atqjts.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qleifxofj7-{0}-ee0r1s7dh0-ee0r1s7dh0.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\xrc0s50fpw-{0}-dxx9fxp4il-dxx9fxp4il.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\3xqxdd1cg0-{0}-jd9uben2k1-jd9uben2k1.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\1ob7odr0e9-{0}-khv3u5hwcm-khv3u5hwcm.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ynwp1uv7g1-{0}-r4e9w2rdcm-r4e9w2rdcm.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\vlcjcwtsze-{0}-lcd1t2u6c8-lcd1t2u6c8.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ekxp1ii3ii-{0}-c2oey78nd0-c2oey78nd0.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\dxj4hsg2ye-{0}-tdbxkamptv-tdbxkamptv.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9ex2iny7mv-{0}-j5mq2jizvt-j5mq2jizvt.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\aerfs1extd-{0}-06098lyss8-06098lyss8.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\fnmmxa06ps-{0}-nvvlpmu67g-nvvlpmu67g.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\k6yow9peok-{0}-s35ty4nyc5-s35ty4nyc5.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\h70iw2gl6l-{0}-pj5nd1wqec-pj5nd1wqec.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\rejt6g5nyt-{0}-46ein0sx1k-46ein0sx1k.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\si26k1o2lx-{0}-v0zj4ognzu-v0zj4ognzu.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kfxmz5i0bu-{0}-37tfw0ft22-37tfw0ft22.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\xktrzrh7bf-{0}-hrwsygsryq-hrwsygsryq.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\7irele0asa-{0}-pk9g2wxc8p-pk9g2wxc8p.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\tvhrrfd4la-{0}-ft3s53vfgj-ft3s53vfgj.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\418wgdfs6m-{0}-6cfz1n2cew-6cfz1n2cew.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\0p8pqsqqqb-{0}-6pdc2jztkx-6pdc2jztkx.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qd3f0a1g5b-{0}-493y06b0oq-493y06b0oq.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\lrqrt5d432-{0}-iovd86k7lj-iovd86k7lj.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9pj2fub6hj-{0}-vr1egmr9el-vr1egmr9el.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\99ppxkyxic-{0}-kbrnm935zg-kbrnm935zg.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\z4dw7s5a0y-{0}-jj8uyg4cgr-jj8uyg4cgr.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\yviqjllm07-{0}-y7v9cxd14o-y7v9cxd14o.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qia0elc8da-{0}-notf2xhcfb-notf2xhcfb.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\r09903f4px-{0}-h1s4sie4z3-h1s4sie4z3.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kawvjy3poj-{0}-63fj8s7r0e-63fj8s7r0e.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\id6co92fv6-{0}-0j3bgjxly4-0j3bgjxly4.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\wv5rkv2sy8-{0}-47otxtyo56-47otxtyo56.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\gbyq5fca3u-{0}-4v8eqarkd7-4v8eqarkd7.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\mnz02y3dwv-{0}-356vix0kms-356vix0kms.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\6irg62nw0h-{0}-83jwlth58m-83jwlth58m.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\51u4bi4gjj-{0}-mrlpezrjn3-mrlpezrjn3.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\bplpzoovho-{0}-lzl9nlhx6b-lzl9nlhx6b.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\mf1iiw9c8d-{0}-ag7o75518u-ag7o75518u.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\z19am1sihz-{0}-x0q3zqp4vz-x0q3zqp4vz.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\k7pu53f42y-{0}-0i3buxo5is-0i3buxo5is.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9diq5wc2fy-{0}-o1o13a6vjx-o1o13a6vjx.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\p1qsjn433y-{0}-ttgo8qnofa-ttgo8qnofa.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\pv6e9q4157-{0}-2z0ns9nrw6-2z0ns9nrw6.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\voohnqh7in-{0}-muycvpuwrr-muycvpuwrr.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\0y9bvc6jps-{0}-87fc7y1x7t-87fc7y1x7t.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\eu21qb33c6-{0}-mlv21k5csn-mlv21k5csn.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\vm7l0npj9d-{0}-mrkcqxfm5n-mrkcqxfm5n.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\stnkhvplqe-{0}-mrkcqxfm5n-mrkcqxfm5n.gz
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.json.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.development.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.endpoints.json
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\swae.build.ex.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKh.3A011CF7.Up2Date
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\refint\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.pdb
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.genruntimeconfig.cache
+C:\Users\admin\Documents\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\ref\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\appsettings.Development.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\appsettings.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.staticwebassets.runtime.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.staticwebassets.endpoints.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.exe
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.deps.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.runtimeconfig.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\QuanLyKhoWeb.pdb
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Dapper.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\EntityFramework.SqlServer.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\EntityFramework.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Humanizer.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Build.Framework.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.CSharp.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.Workspaces.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.Extensions.Abstractions.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Data.SqlClient.Internal.Logging.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Design.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.SqlServer.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.SqlServer.Server.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Microsoft.VisualStudio.SolutionPersistence.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Mono.TextTemplating.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\Newtonsoft.Json.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.CodeDom.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.AttributedModel.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Convention.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Hosting.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.Runtime.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Composition.TypedParts.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Configuration.ConfigurationManager.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\cs\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\de\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\es\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\fr\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\it\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ja\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ko\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pl\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\pt-BR\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\ru\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\tr\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hans\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\zh-Hant\Microsoft.Data.SqlClient.resources.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\unix\lib\net9.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win\lib\net9.0\Microsoft.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-arm64\native\sni.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x64\native\sni.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win-x86\native\sni.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\bin\Debug\net10.0\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.csproj.AssemblyReference.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.AssemblyInfoInputs.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.AssemblyInfo.cs
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.csproj.CoreCompileInputs.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.RazorAssemblyInfo.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.RazorAssemblyInfo.cs
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjimswa.dswa.cache.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\scopedcss\bundle\QuanLyKhoWeb.styles.css
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kmag5ysm0o-{0}-b9sayid5wm-b9sayid5wm.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jdasoadql8-{0}-61n19gt1b8-61n19gt1b8.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\dglsfoa3r8-{0}-26f9b7qkas-26f9b7qkas.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\fm5jiosg6v-{0}-bqjiyaj88i-bqjiyaj88i.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\uqit2n6kgh-{0}-c2jlpeoesf-c2jlpeoesf.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\2ehbxzv3xu-{0}-erw9l3u2r3-erw9l3u2r3.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\nx7xzigoes-{0}-aexeepp0ev-aexeepp0ev.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jisqugk7dg-{0}-d7shbmvgxk-d7shbmvgxk.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ftj2n7l0bv-{0}-ausgxo2sd3-ausgxo2sd3.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\p2idf6vjrz-{0}-k8d9w2qqmf-k8d9w2qqmf.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\m2lijrfmt8-{0}-cosvhxvwiu-cosvhxvwiu.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\jak4c1a544-{0}-ub07r2b239-ub07r2b239.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\aqjqoamjfk-{0}-fvhpjtyr6v-fvhpjtyr6v.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\j1y58804x4-{0}-b7pk76d08c-b7pk76d08c.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\1s3kybzrri-{0}-fsbi9cje9m-fsbi9cje9m.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\iqxzm1mp1w-{0}-rzd6atqjts-rzd6atqjts.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qleifxofj7-{0}-ee0r1s7dh0-ee0r1s7dh0.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\xrc0s50fpw-{0}-dxx9fxp4il-dxx9fxp4il.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\3xqxdd1cg0-{0}-jd9uben2k1-jd9uben2k1.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\1ob7odr0e9-{0}-khv3u5hwcm-khv3u5hwcm.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ynwp1uv7g1-{0}-r4e9w2rdcm-r4e9w2rdcm.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\vlcjcwtsze-{0}-lcd1t2u6c8-lcd1t2u6c8.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\ekxp1ii3ii-{0}-c2oey78nd0-c2oey78nd0.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\dxj4hsg2ye-{0}-tdbxkamptv-tdbxkamptv.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9ex2iny7mv-{0}-j5mq2jizvt-j5mq2jizvt.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\aerfs1extd-{0}-06098lyss8-06098lyss8.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\fnmmxa06ps-{0}-nvvlpmu67g-nvvlpmu67g.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\k6yow9peok-{0}-s35ty4nyc5-s35ty4nyc5.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\h70iw2gl6l-{0}-pj5nd1wqec-pj5nd1wqec.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\rejt6g5nyt-{0}-46ein0sx1k-46ein0sx1k.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\si26k1o2lx-{0}-v0zj4ognzu-v0zj4ognzu.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kfxmz5i0bu-{0}-37tfw0ft22-37tfw0ft22.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\xktrzrh7bf-{0}-hrwsygsryq-hrwsygsryq.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\7irele0asa-{0}-pk9g2wxc8p-pk9g2wxc8p.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\tvhrrfd4la-{0}-ft3s53vfgj-ft3s53vfgj.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\418wgdfs6m-{0}-6cfz1n2cew-6cfz1n2cew.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\0p8pqsqqqb-{0}-6pdc2jztkx-6pdc2jztkx.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qd3f0a1g5b-{0}-493y06b0oq-493y06b0oq.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\lrqrt5d432-{0}-iovd86k7lj-iovd86k7lj.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9pj2fub6hj-{0}-vr1egmr9el-vr1egmr9el.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\99ppxkyxic-{0}-kbrnm935zg-kbrnm935zg.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\z4dw7s5a0y-{0}-jj8uyg4cgr-jj8uyg4cgr.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\yviqjllm07-{0}-y7v9cxd14o-y7v9cxd14o.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\qia0elc8da-{0}-notf2xhcfb-notf2xhcfb.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\r09903f4px-{0}-h1s4sie4z3-h1s4sie4z3.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kawvjy3poj-{0}-63fj8s7r0e-63fj8s7r0e.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\id6co92fv6-{0}-0j3bgjxly4-0j3bgjxly4.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\wv5rkv2sy8-{0}-47otxtyo56-47otxtyo56.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\gbyq5fca3u-{0}-4v8eqarkd7-4v8eqarkd7.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\mnz02y3dwv-{0}-356vix0kms-356vix0kms.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\6irg62nw0h-{0}-83jwlth58m-83jwlth58m.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\51u4bi4gjj-{0}-mrlpezrjn3-mrlpezrjn3.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\bplpzoovho-{0}-lzl9nlhx6b-lzl9nlhx6b.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\mf1iiw9c8d-{0}-ag7o75518u-ag7o75518u.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\z19am1sihz-{0}-x0q3zqp4vz-x0q3zqp4vz.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\k7pu53f42y-{0}-0i3buxo5is-0i3buxo5is.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\9diq5wc2fy-{0}-o1o13a6vjx-o1o13a6vjx.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\p1qsjn433y-{0}-ttgo8qnofa-ttgo8qnofa.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\pv6e9q4157-{0}-2z0ns9nrw6-2z0ns9nrw6.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\voohnqh7in-{0}-muycvpuwrr-muycvpuwrr.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\0y9bvc6jps-{0}-87fc7y1x7t-87fc7y1x7t.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\eu21qb33c6-{0}-mlv21k5csn-mlv21k5csn.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.json.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.development.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\staticwebassets.build.endpoints.json
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\swae.build.ex.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKh.3A011CF7.Up2Date
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\refint\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.pdb
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\QuanLyKhoWeb.genruntimeconfig.cache
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\ref\QuanLyKhoWeb.dll
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kjzci790tb-{0}-h7vqfj9kob-h7vqfj9kob.gz
+C:\Users\admin\Documents\Default Project\QuanLyKhoWeb\QuanLyKhoWeb\obj\Debug\net10.0\compressed\kco3h0sdg8-{0}-iumk57wv0n-iumk57wv0n.gz

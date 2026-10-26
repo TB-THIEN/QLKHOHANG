@@ -1,0 +1,76 @@
+﻿@model List<dynamic>
+@{
+    ViewData["Title"] = "Báo cáo";
+    ViewData["Subtitle"] = "Doanh thu theo ngày / tháng / năm";
+    var nhom = (ViewBag.NhomTheo as string) ?? "NGAY";
+    int page = ViewBag.Page ?? 1, totalPage = ViewBag.TotalPage ?? 1;
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-bar-chart me-2 text-primary"></i>Báo cáo doanh thu</h3><p class="page-subtitle">Lọc ngày, nhóm theo ngày/tháng/năm, xuất Excel</p></div>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalXuat"><i class="bi bi-download me-1"></i>Xuất báo cáo</button>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#0088ff,#00c6ff)"><i class="bi bi-receipt"></i></div><div><div class="stat-label">Đơn đã bán (kỳ lọc)</div><div class="stat-value">@ViewBag.TongDon</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#00b14f,#4bd980)"><i class="bi bi-cash-stack"></i></div><div><div class="stat-label">Doanh thu</div><div class="stat-value">@(((decimal)ViewBag.TongDoanhThu).ToString("N0")) đ</div></div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon" style="background:linear-gradient(135deg,#ff9017,#ffbd59)"><i class="bi bi-trophy"></i></div><div><div class="stat-label">Top bán chạy</div><a asp-action="TopSanPham" class="fw-bold text-decoration-none">Xem chi tiết <i class="bi bi-arrow-right"></i></a></div></div></div>
+</div>
+
+<div class="app-card mb-3">
+    <div class="d-flex align-items-center gap-2 mb-2 text-muted" style="font-size:12.5px"><i class="bi bi-funnel"></i> Lọc theo thời gian</div>
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3"><label class="form-label">Từ ngày</label><input type="date" name="tuNgay" value="@ViewBag.TuNgay" class="form-control" /></div>
+        <div class="col-md-3"><label class="form-label">Đến ngày</label><input type="date" name="denNgay" value="@ViewBag.DenNgay" class="form-control" /></div>
+        <div class="col-md-3">
+            <label class="form-label">Nhóm theo</label>
+            <select name="nhomTheo" class="form-select">
+                @if (nhom == "NGAY") { <option value="NGAY" selected>Ngày</option> } else { <option value="NGAY">Ngày</option> }
+                @if (nhom == "THANG") { <option value="THANG" selected>Tháng</option> } else { <option value="THANG">Tháng</option> }
+                @if (nhom == "NAM") { <option value="NAM" selected>Năm</option> } else { <option value="NAM">Năm</option> }
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-outline-primary"><i class="bi bi-search me-1"></i>Lọc</button>
+        </div>
+    </form>
+</div>
+
+<div class="app-card">
+    <h6 class="fw-bold"><i class="bi bi-table me-1 text-primary"></i>Chi tiết doanh thu</h6>
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mốc thời gian</th><th class="num">Số đơn</th><th class="num">Doanh thu</th></tr></thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                string moc = nhom == "THANG" ? $"{r.thang}/{r.nam}" : nhom == "NAM" ? $"{r.nam}" : ((DateTime)r.moc_thoi_gian).ToString("dd/MM/yyyy");
+                <tr><td>@moc</td><td class="num">@r.so_luong_don</td><td class="num fw-bold">@(((decimal)r.doanh_thu).ToString("N0")) đ</td></tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="3"><div class="empty-state"><i class="bi bi-bar-chart"></i><div>Không có dữ liệu kỳ này, thử đổi khoảng ngày</div></div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+    @if (totalPage > 1)
+    {
+        <nav class="mt-2"><ul class="pagination">
+            @for (int i = 1; i <= totalPage; i++)
+            {
+                <li class="page-item @(i==page?"active":"")"><a class="page-link" asp-action="Index" asp-route-tuNgay="@ViewBag.TuNgay" asp-route-denNgay="@ViewBag.DenNgay" asp-route-nhomTheo="@nhom" asp-route-page="@i">@i</a></li>
+            }
+        </ul></nav>
+    }
+</div>
+
+<!-- Popup xuất báo cáo -->
+<div class="modal fade" id="modalXuat" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-download me-1 text-success"></i>Xuất báo cáo</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><p class="mb-0">Xuất danh sách doanh thu theo thời gian đã lọc ra file Excel?</p></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <a class="btn btn-success" asp-action="XuatExcel" asp-route-tuNgay="@ViewBag.TuNgay" asp-route-denNgay="@ViewBag.DenNgay" asp-route-nhomTheo="@nhom"><i class="bi bi-check2-circle me-1"></i>Xuất báo cáo</a>
+        </div>
+    </div></div>
+</div>
+
+

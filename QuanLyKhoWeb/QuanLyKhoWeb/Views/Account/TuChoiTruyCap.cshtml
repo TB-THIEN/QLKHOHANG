@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Từ chối truy cập";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Từ chối truy cập - Kho Hàng</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body>
+<main class="login-wrap">
+    <div class="login-card text-center">
+        <div class="login-brand mx-auto" style="background:linear-gradient(135deg,var(--app-danger),#ff7a6e)" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+        <h1 class="fw-bold mb-1 mt-2" style="font-size:20px">Không có quyền truy cập</h1>
+        <p class="text-muted mb-4">Chỉ tài khoản <strong>Quản lý</strong> mới xem được trang này.</p>
+        <a asp-controller="TongQuan" asp-action="Index" class="btn btn-primary w-100"><i class="bi bi-house me-1"></i>Về tổng quan</a>
+    </div>
+</main>
+</body>
+</html>
+

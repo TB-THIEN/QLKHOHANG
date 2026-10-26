@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Tạo phiếu nhập";
+    var nccs = ViewBag.Nccs as List<QuanLyKhoWeb.Models.Entities.NhaCungCap> ?? new();
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-plus-circle me-2 text-primary"></i>Tạo phiếu nhập kho</h3><p class="page-subtitle">Mã phiếu tự sinh, tạo xong tự cộng tồn kho</p></div>
+    <a asp-action="PhieuNhap" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+<form asp-action="TaoPhieu" method="post" id="frmNhap">
+    @Html.AntiForgeryToken()
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="app-card">
+                <h6 class="section-title"><i class="bi bi-box-seam"></i>Dòng hàng <span class="text-lowercase fw-normal">(bắt buộc ít nhất 1)</span></h6>
+                <div class="position-relative mb-2">
+                    <input id="txtSku" class="form-control" placeholder="Tìm SKU / tên sản phẩm để thêm..." autocomplete="off" />
+                    <div id="kqSku" class="list-group position-absolute w-100 shadow-sm" style="z-index:10"></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-app" id="tblItems">
+                        <thead><tr><th>Sản phẩm</th><th style="width:100px">SL kế hoạch</th><th style="width:100px">SL thực nhận</th><th style="width:140px">Đơn giá nhập</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <span class="text-danger">@if (ViewData.ModelState.TryGetValue("SoLuongKeHoaches", out var loiSl) && loiSl.Errors.Count > 0) { @loiSl.Errors[0].ErrorMessage }</span>
+                <div class="form-hint">Số lượng thực nhận là số được cộng vào kho ngay khi tạo phiếu.</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="app-card" style="position:sticky;top:76px">
+                <div class="mb-2"><label class="form-label">Mã phiếu</label><input class="form-control" value="Tự động sinh (PN-yyyyMMdd-###)" readonly /></div>
+                <div class="mb-2">
+                    <label class="form-label required">Nhà cung cấp</label>
+                    <select name="maNhaCungCap" class="form-select" required>
+                        <option value="">-- Chọn nhà cung cấp --</option>
+                        @foreach (var n in nccs) { <option value="@n.MaNhaCungCap">@n.MaCodeNcc - @n.TenNhaCungCap</option> }
+                    </select>
+                </div>
+                <div class="mb-2"><label class="form-label">Ghi chú</label><textarea name="ghiChu" class="form-control" rows="2"></textarea></div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2"><span class="text-muted">Tạm tính</span><b id="tamTinh" class="fs-5 text-primary">0 đ</b></div>
+                <button class="btn btn-primary w-100 mt-3"><i class="bi bi-check2-circle me-1"></i>Tạo phiếu nhập</button>
+                <a asp-action="PhieuNhap" class="btn btn-link w-100">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+let items = [];
+const fmt = n => n.toLocaleString('vi-VN') + ' đ';
+const txt = document.getElementById('txtSku'), kq = document.getElementById('kqSku');
+// Bấm vào ô hoặc xóa trắng -> hiện list món hàng trong shop để lướt chọn
+async function taiList(term) {
+  const res = await fetch('/TonKho/TimSku?term=' + encodeURIComponent(term));
+  return await res.json();
+}
+txt.addEventListener('focus', async () => { veList(await taiList('')); });
+txt.addEventListener('input', async () => {
+  const t = txt.value.trim();
+  if (!t) { veList(await taiList('')); return; }
+  const res = await fetch('/TonKho/TimSku?term=' + encodeURIComponent(t));
+  veList(await res.json());
+});
+function veList(list) {
+  kq.innerHTML = '';
+  if (list.length === 0) { kq.innerHTML = '<span class="list-group-item text-muted">Không tìm thấy món nào</span>'; return; }
+  list.forEach(sp => {
+    const b = document.createElement('button');
+    b.type='button'; b.className='list-group-item list-group-item-action';
+    b.textContent = `${sp.ten} (${sp.maCodeSku}) - tồn ${sp.ton}`;
+    b.onclick = () => { themDong(sp); kq.innerHTML=''; txt.value=''; };
+    kq.appendChild(b);
+  });
+}
+function themDong(sp) {
+  if (items.find(x => x.maSku === sp.maSku)) return;
+  items.push({...sp, slKh: 0, slTn: 0, dg: 0});
+  render();
+}
+function render() {
+  const tb = document.querySelector('#tblItems tbody');
+  tb.innerHTML = '';
+  if (items.length === 0) {
+    tb.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Chưa có dòng hàng — tìm và chọn sản phẩm ở ô trên</td></tr>';
+    document.getElementById('tamTinh').textContent = fmt(0);
+    return;
+  }
+  let tong = 0;
+  items.forEach((it, idx) => {
+    tong += it.dg * it.slTn;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${it.ten}<br/><small class="text-muted">${it.maCodeSku}</small>
+      <input type="hidden" name="MaSkus" value="${it.maSku}"/></td>
+      <td><input type="number" name="SoLuongKeHoaches" value="${it.slKh}" min="0" step="1" class="form-control form-control-sm" onchange="doiKh(${idx}, this.value)"/></td>
+      <td><input type="number" name="SoLuongThucNhans" value="${it.slTn}" min="0" step="1" class="form-control form-control-sm" onchange="doiTn(${idx}, this.value)"/></td>
+      <td><input type="text" inputmode="numeric" name="DonGiaNhaps" value="${it.dg}" class="form-control form-control-sm money" onchange="doiDg(${idx}, this.value)"/></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="xoaDong(${idx})"><i class="bi bi-trash"></i></button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('tamTinh').textContent = fmt(tong);
+}
+window.doiKh = (i, v) => { items[i].slKh = Math.max(0, parseInt(v) || 0); render(); };
+window.doiTn = (i, v) => { items[i].slTn = Math.max(0, parseInt(v) || 0); render(); };
+window.doiDg = (i, v) => { items[i].dg = Math.max(0, parseFloat(String(v).replace(/\./g, '')) || 0); render(); };
+window.xoaDong = i => { items.splice(i,1); render(); };
+render();
+</script>
+}

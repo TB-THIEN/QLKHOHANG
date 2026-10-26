@@ -1,0 +1,399 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.KhuHangIndexVm
+@{
+    ViewData["Title"] = "Khu hàng";
+    ViewData["Subtitle"] = "Sơ đồ khu - kệ - hàng hóa";
+    // Nhân viên giao hàng chỉ được xem sơ đồ, không được tạo/sửa/xóa khu-kệ-hàng
+    var duocTao = (User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-diagram-3 me-2 text-primary"></i>Khu hàng</h3><p class="page-subtitle">Bấm tên khu / kệ để mở rộng – thu gọn</p></div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnMoTatCa"><i class="bi bi-arrows-expand me-1"></i>Mở tất cả</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnThuTatCa"><i class="bi bi-arrows-collapse me-1"></i>Thu gọn tất cả</button>
+    </div>
+</div>
+
+<!-- Tìm kiếm hàng hóa trong toàn bộ kho -->
+<div class="app-card mb-3">
+    <form method="get" asp-action="Index" class="d-flex gap-2 flex-wrap align-items-center">
+        <div class="flex-grow-1" style="max-width:420px">
+            <input name="search" value="@Model.Search" class="form-control" placeholder="Tìm hàng hóa theo tên hoặc mã SKU..." />
+        </div>
+        <button class="btn btn-primary"><i class="bi bi-search me-1"></i>Tìm hàng hóa</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Search)) { <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a> }
+    </form>
+    @if (!string.IsNullOrWhiteSpace(Model.Search))
+    {
+        <div class="mt-3">
+            <h6 class="fw-bold mb-2"><i class="bi bi-search text-primary me-1"></i>Kết quả cho "@Model.Search" (@Model.KetQua.Count mặt hàng)</h6>
+            @if (Model.KetQua.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-app mb-0">
+                        <thead><tr><th>Hình ảnh</th><th>Hàng hóa</th><th class="num">Giá</th><th class="num">Tồn kho</th><th>Vị trí trong kho</th></tr></thead>
+                        <tbody>
+                        @foreach (var sp in Model.KetQua)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(sp.HinhAnh))
+                                    { <img src="@sp.HinhAnh" class="thumb-44" alt="@sp.TenSanPham" loading="lazy" /> }
+                                    else { <span class="text-muted"><i class="bi bi-image" style="font-size:24px"></i></span> }
+                                </td>
+                                <td><span class="cell-main">@sp.TenSanPham</span><br /><small class="text-muted">@sp.MaCodeSku</small></td>
+                                <td class="num">@sp.GiaNiemYet.ToString("N0") đ</td>
+                                <td class="num">@sp.SoLuongTon</td>
+                                <td>
+                                    @if (sp.ViTri.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var vt in sp.ViTri) { <span class="badge bg-light text-dark">@vt</span> }
+                                        </div>
+                                    }
+                                    else { <span class="text-muted">Chưa xếp khu/kệ</span> }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else { <p class="text-muted mb-0"><i class="bi bi-inbox me-1"></i>Không tìm thấy hàng hóa nào khớp từ khóa.</p> }
+        </div>
+    }
+</div>
+
+<!-- Tạo khu hàng: ô đặt tên + nút Xác nhận bên cạnh -->
+@if (duocTao)
+{
+<div class="app-card mb-3">
+    <h6 class="fw-bold"><i class="bi bi-plus-square me-1 text-primary"></i>Tạo khu hàng</h6>
+    <form asp-action="TaoKhu" method="post" class="d-flex gap-2 flex-wrap">
+        @Html.AntiForgeryToken()
+        <input name="tenKhu" class="form-control" placeholder="Ví dụ: Khu A, Khu B, Khu C..." style="max-width:320px" required maxlength="50" />
+        <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Xác nhận</button>
+    </form>
+</div>
+}
+
+@foreach (var khu in Model.Khus)
+{
+    <div class="app-card mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h5 class="fw-bold mb-0">
+                <button type="button" class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#khu-body-@khu.MaKhuVuc" aria-expanded="true" aria-controls="khu-body-@khu.MaKhuVuc">
+                    <i class="bi bi-caret-right-fill caret"></i><i class="bi bi-diagram-3 text-primary"></i><span>@khu.TenKhuVuc</span>
+                    <span class="badge bg-light ms-1">@khu.KeHangs.Count kệ</span>
+                </button>
+            </h5>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                @if (duocTao)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-khu-@khu.MaKhuVuc" title="Xóa @khu.TenKhuVuc" aria-label="Xóa @khu.TenKhuVuc"><i class="bi bi-trash"></i></button>
+                }
+            </div>
+        </div>
+
+        <div class="collapse show" id="khu-body-@khu.MaKhuVuc" data-persist="khu-@khu.MaKhuVuc">
+        @if (duocTao)
+        {
+        <!-- Tạo kệ hàng trong khu -->
+        <form asp-action="TaoKe" method="post" class="d-flex gap-2 mb-2 flex-wrap">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="maKhuVuc" value="@khu.MaKhuVuc" />
+            <input name="tenKe" class="form-control" placeholder="Tên kệ, ví dụ: Kệ 1A, 1B..." style="max-width:280px" required maxlength="50" />
+            <button class="btn btn-outline-primary"><i class="bi bi-check2-circle me-1"></i>Xác nhận</button>
+        </form>
+        <div class="form-hint mb-3">Kệ không bắt buộc — có thể xếp hàng trực tiếp vào khu ở bên dưới.</div>
+        }
+
+        <!-- Hàng xếp trực tiếp vào khu (chưa xếp kệ) -->
+        <div class="border rounded p-3 mb-2" style="border-color:var(--app-border-soft);background:#fbfcfe">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="margin:0 0 10px">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-box-seam text-primary me-1"></i>Hàng trong khu (chưa xếp kệ)
+                    <span class="badge bg-light ms-1">@khu.TonKhoKhus.Count mặt hàng</span>
+                </h6>
+            </div>
+
+            @if (khu.TonKhoKhus.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-app mb-2">
+                        <thead><tr><th>Hình ảnh</th><th>Tên sản phẩm</th><th class="num">Giá</th><th class="num">SL trong khu</th><th>Chức năng</th></tr></thead>
+                        <tbody>
+                        @foreach (var t in khu.TonKhoKhus)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(t.MaSkuNavigation?.MaMauSanPhamNavigation?.DuongDanHinhAnh))
+                                    { <img src="@t.MaSkuNavigation.MaMauSanPhamNavigation.DuongDanHinhAnh" class="thumb-44" alt="@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham" loading="lazy" /> }
+                                    else { <span class="text-muted"><i class="bi bi-image" style="font-size:24px"></i></span> }
+                                </td>
+                                <td>@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham<br /><small class="text-muted">@t.MaSkuNavigation?.MaCodeSku</small></td>
+                                <td class="num">@((t.MaSkuNavigation?.GiaNiemYet ?? 0).ToString("N0")) đ</td>
+                                <td class="num">@t.SoLuong</td>
+                                <td class="d-flex gap-1">
+                                    <a asp-controller="SanPham" asp-action="Details" asp-route-id="@t.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm"><i class="bi bi-eye"></i></a>
+                                    @if (duocTao)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-khoi-khu-@khu.MaKhuVuc-@t.MaSku" title="Xóa sản phẩm ra khỏi khu"><i class="bi bi-trash"></i></button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small mb-2"><i class="bi bi-inbox me-1"></i>Chưa có hàng xếp trực tiếp vào khu.</p>
+            }
+
+            @if (duocTao)
+            {
+            <!-- Thêm hàng trực tiếp vào khu: tìm sản phẩm + số lượng -->
+            <div class="mt-1" data-kethemmahang="khu-@khu.MaKhuVuc">
+                <input class="form-control form-control-sm mb-1 txt-tim-sp" placeholder="Tìm sản phẩm để thêm vào @khu.TenKhuVuc (chưa xếp kệ)..." style="max-width:340px" />
+                <div class="ketqua-tim list-group mb-1" style="max-width:340px"></div>
+                <form asp-action="ThemHangVaoKhu" method="post" class="frm-them-hang d-flex gap-2 align-items-center flex-wrap" style="display:none !important">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maKhuVuc" value="@khu.MaKhuVuc" />
+                    <input type="hidden" name="maSku" class="inp-maSku" />
+                    <span class="small thongtin-sp"></span>
+                    <label class="small text-muted mb-0">Số lượng</label>
+                    <input type="number" name="soLuong" class="form-control form-control-sm" value="1" min="1" step="1" style="max-width:90px" required />
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-check2-circle me-1"></i>Xác nhận</button>
+                </form>
+            </div>
+            }
+        </div>
+
+        @foreach (var ke in khu.KeHangs)
+        {
+            <div class="border rounded p-3 mb-2" style="border-color:var(--app-border-soft);background:#fbfcfe">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="margin:0 0 10px">
+                    <button type="button" class="collapse-toggle ke-toggle" data-bs-toggle="collapse" data-bs-target="#ke-body-@ke.MaKeHang" aria-expanded="true" aria-controls="ke-body-@ke.MaKeHang">
+                        <i class="bi bi-caret-right-fill caret"></i><i class="bi bi-hdd-rack text-primary"></i><span>@ke.TenKeHang</span>
+                        <span class="badge bg-light ms-1">@ke.TonKhoKeHangs.Count mặt hàng</span>
+                    </button>
+                    @if (duocTao)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" data-bs-toggle="modal" data-bs-target="#xoa-ke-@ke.MaKeHang" title="Xóa @ke.TenKeHang" aria-label="Xóa @ke.TenKeHang"><i class="bi bi-trash"></i></button>
+                    }
+                </div>
+                <div class="collapse show" id="ke-body-@ke.MaKeHang" data-persist="ke-@ke.MaKeHang">
+
+                @if (ke.TonKhoKeHangs.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-app mb-2">
+                            <thead><tr><th>Hình ảnh</th><th>Tên sản phẩm</th><th class="num">Giá</th><th class="num">SL trên kệ</th><th>Chức năng</th></tr></thead>
+                            <tbody>
+                            @foreach (var t in ke.TonKhoKeHangs)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(t.MaSkuNavigation?.MaMauSanPhamNavigation?.DuongDanHinhAnh))
+                                        { <img src="@t.MaSkuNavigation.MaMauSanPhamNavigation.DuongDanHinhAnh" class="thumb-44" alt="@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham" loading="lazy" /> }
+                                        else { <span class="text-muted"><i class="bi bi-image" style="font-size:24px"></i></span> }
+                                    </td>
+                                    <td>@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham<br /><small class="text-muted">@t.MaSkuNavigation?.MaCodeSku</small></td>
+                                    <td class="num">@((t.MaSkuNavigation?.GiaNiemYet ?? 0).ToString("N0")) đ</td>
+                                    <td class="num">@t.SoLuong</td>
+                                    <td class="d-flex gap-1">
+                                        <a asp-controller="SanPham" asp-action="Details" asp-route-id="@t.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm"><i class="bi bi-eye"></i></a>
+                                        @if (duocTao)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-khoi-ke-@ke.MaKeHang-@t.MaSku" title="Xóa sản phẩm ra khỏi kệ"><i class="bi bi-trash"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-2"><i class="bi bi-inbox me-1"></i>Kệ trống.</p>
+                }
+
+                @if (duocTao)
+                {
+                <!-- Thêm hàng: ô tìm kiếm + số lượng + nút xác nhận (mất nút khi xóa tên) -->
+                <div class="mt-2" data-kethemmahang="@ke.MaKeHang">
+                    <input class="form-control form-control-sm mb-1 txt-tim-sp" placeholder="Tìm sản phẩm để thêm vào @ke.TenKeHang..." style="max-width:340px" />
+                    <div class="ketqua-tim list-group mb-1" style="max-width:340px"></div>
+                    <form asp-action="ThemHangVaoKe" method="post" class="frm-them-hang d-flex gap-2 align-items-center flex-wrap" style="display:none !important">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="maKeHang" value="@ke.MaKeHang" />
+                        <input type="hidden" name="maSku" class="inp-maSku" />
+                        <span class="small thongtin-sp"></span>
+                        <label class="small text-muted mb-0" for="sl-@ke.MaKeHang">Số lượng</label>
+                        <input type="number" name="soLuong" id="sl-@ke.MaKeHang" class="form-control form-control-sm" value="1" min="1" step="1" style="max-width:90px" required />
+                        <button class="btn btn-sm btn-primary btn-xacnhan"><i class="bi bi-check2-circle me-1"></i>Xác nhận</button>
+                    </form>
+                </div>
+                }
+                </div>
+            </div>
+
+            <!-- Popup xác nhận xóa sản phẩm ra khỏi kệ (chỉ gỡ vị trí xếp, không xóa sản phẩm) -->
+            @foreach (var t in ke.TonKhoKeHangs)
+            {
+            <div class="modal fade" id="xoa-khoi-ke-@ke.MaKeHang-@t.MaSku" tabindex="-1">
+                <div class="modal-dialog"><div class="modal-content">
+                    <div class="modal-header"><h6 class="modal-title">Xóa khỏi @ke.TenKeHang?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                    <form asp-action="XoaHangKhoiKe" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="maKeHang" value="@ke.MaKeHang" />
+                        <input type="hidden" name="maSku" value="@t.MaSku" />
+                        <div class="modal-body">
+                            <p class="mb-0">Xóa <b>@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</b> (@t.MaSkuNavigation?.MaCodeSku, đang có @t.SoLuong trên kệ) ra khỏi <b>@ke.TenKeHang</b>?</p>
+                            <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Chỉ gỡ vị trí xếp trên kệ, sản phẩm và tổng tồn kho được giữ nguyên.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+                        </div>
+                    </form>
+                </div></div>
+            </div>
+            }
+
+            <!-- Popup xác nhận xóa kệ -->
+            <div class="modal fade" id="xoa-ke-@ke.MaKeHang" tabindex="-1">
+                <div class="modal-dialog"><div class="modal-content">
+                    <div class="modal-header"><h6 class="modal-title">Xóa @ke.TenKeHang?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                    <form asp-action="XoaKe" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="maKeHang" value="@ke.MaKeHang" />
+                        <div class="modal-body">
+                            <p class="mb-0">Bạn có chắc muốn xóa <b>@ke.TenKeHang</b>?</p>
+                            @if (ke.TonKhoKeHangs.Any()) { <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Kệ còn hàng nên hệ thống sẽ từ chối xóa.</p> }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+                        </div>
+                    </form>
+                </div></div>
+            </div>
+        }
+
+        <!-- Popup xóa sản phẩm khỏi khu (chỉ gỡ vị trí xếp) -->
+        @foreach (var t in khu.TonKhoKhus)
+        {
+        <div class="modal fade" id="xoa-khoi-khu-@khu.MaKhuVuc-@t.MaSku" tabindex="-1">
+            <div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header"><h6 class="modal-title">Xóa khỏi @khu.TenKhuVuc?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                <form asp-action="XoaHangKhoiKhu" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="maKhuVuc" value="@khu.MaKhuVuc" />
+                    <input type="hidden" name="maSku" value="@t.MaSku" />
+                    <div class="modal-body">
+                        <p class="mb-0">Xóa <b>@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</b> (@t.MaSkuNavigation?.MaCodeSku, đang có @t.SoLuong trong khu) ra khỏi <b>@khu.TenKhuVuc</b>?</p>
+                        <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Chỉ gỡ vị trí xếp trong khu, sản phẩm và tổng tồn kho được giữ nguyên.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+                    </div>
+                </form>
+            </div></div>
+        </div>
+        }
+        </div>
+    </div>
+
+    <!-- Popup xác nhận xóa khu -->
+    <div class="modal fade" id="xoa-khu-@khu.MaKhuVuc" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">Xóa @khu.TenKhuVuc?</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+            <form asp-action="XoaKhu" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="maKhuVuc" value="@khu.MaKhuVuc" />
+                <div class="modal-body">
+                    <p class="mb-0">Bạn có chắc muốn xóa <b>@khu.TenKhuVuc</b>?</p>
+                    @if (khu.KeHangs.Any() || khu.TonKhoKhus.Any()) { <p class="text-warning mt-1 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Khu còn @khu.KeHangs.Count kệ và @khu.TonKhoKhus.Count mặt hàng xếp trực tiếp nên hệ thống sẽ từ chối xóa.</p> }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+}
+@if (!Model.Khus.Any()) { <div class="empty-state"><i class="bi bi-diagram-3"></i><div>@(string.IsNullOrWhiteSpace(Model.Search) ? "Chưa có khu hàng nào. Hãy tạo khu đầu tiên ở ô phía trên." : "Không có khu/kệ nào chứa hàng khớp từ khóa. Xem kết quả tìm kiếm phía trên.")</div></div> }
+
+@section Scripts {
+<script>
+// Mở rộng / thu gọn khu & kệ + nhớ trạng thái (localStorage)
+(function () {
+  var boxes = document.querySelectorAll('.collapse[data-persist]');
+  boxes.forEach(function (el) {
+    var key = 'khuhang-' + el.dataset.persist;
+    var thuGon = localStorage.getItem(key) === '0';
+    el.classList.toggle('show', !thuGon);
+    document.querySelectorAll('[data-bs-target="#' + el.id + '"]').forEach(function (t) {
+      t.classList.toggle('collapsed', thuGon);
+      t.setAttribute('aria-expanded', String(!thuGon));
+    });
+    el.addEventListener('shown.bs.collapse', function () { localStorage.setItem(key, '1'); });
+    el.addEventListener('hidden.bs.collapse', function () { localStorage.setItem(key, '0'); });
+  });
+  function datTatCa(mo) {
+    boxes.forEach(function (el) {
+      bootstrap.Collapse.getOrCreateInstance(el, { toggle: false })[mo ? 'show' : 'hide']();
+    });
+  }
+  document.getElementById('btnMoTatCa').addEventListener('click', function () { datTatCa(true); });
+  document.getElementById('btnThuTatCa').addEventListener('click', function () { datTatCa(false); });
+})();
+document.querySelectorAll('.txt-tim-sp').forEach(txt => {
+  const wrap = txt.closest('[data-kethemmahang]');
+  const kq = wrap.querySelector('.ketqua-tim');
+  const frm = wrap.querySelector('.frm-them-hang');
+  const inpSku = wrap.querySelector('.inp-maSku');
+  const info = wrap.querySelector('.thongtin-sp');
+  async function taiVe(term) {
+    const res = await fetch('/KhuHang/TimSanPham?term=' + encodeURIComponent(term));
+    const list = await res.json();
+    veList(list);
+  }
+  // Bấm vào ô hoặc xóa trắng -> hiện list món hàng trong shop để lướt chọn
+  txt.addEventListener('focus', () => { taiVe(''); });
+  txt.addEventListener('input', async () => {
+    const term = txt.value.trim();
+    // Xóa tên -> mất nút Xác nhận, hiện lại list đầy đủ
+    if (!term) { frm.style.setProperty('display','none','important'); taiVe(''); return; }
+    taiVe(term);
+  });
+  function veList(list) {
+    kq.innerHTML = '';
+    if (list.length === 0) { kq.innerHTML = '<span class="list-group-item text-muted">Không tìm thấy món nào</span>'; return; }
+    list.forEach(sp => {
+      const a = document.createElement('button');
+      a.type='button'; a.className='list-group-item list-group-item-action d-flex gap-2 align-items-center';
+      // Hiện đúng ảnh sản phẩm nếu có, không thì icon hộp mặc định
+      const anh = sp.hinh
+        ? `<img src="${sp.hinh}" class="thumb-44" alt="" />`
+        : `<span style="width:36px;height:36px;background:#f0f1f3;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="bi bi-box"></i></span>`;
+      a.innerHTML = `${anh}<span><b>${sp.ten}</b><br/><small class="text-muted">${sp.maCodeSku}</small></span>`;
+      a.onclick = () => {
+        inpSku.value = sp.maSku;
+        info.textContent = sp.ten + ' (' + sp.maCodeSku + ')';
+        frm.style.display = 'flex';
+        kq.innerHTML = '';
+      };
+      kq.appendChild(a);
+    });
+  }
+});
+</script>
+}
+
+

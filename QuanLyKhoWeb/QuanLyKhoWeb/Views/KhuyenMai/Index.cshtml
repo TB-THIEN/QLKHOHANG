@@ -1,0 +1,50 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.KhuyenMai>
+@{
+    ViewData["Title"] = "Khuyến mãi";
+    ViewData["Subtitle"] = "Mã giảm giá đơn hàng";
+    var duocTao = (User.FindFirst("VaiTro")?.Value ?? "") != "Nhân viên giao hàng";
+}
+<div class="page-header">
+    <div><h3 class="app-page-title"><i class="bi bi-ticket-perforated me-2 text-primary"></i>Danh sách khuyến mãi</h3><p class="page-subtitle">Giảm % hoặc tiền cố định cho đơn hàng</p></div>
+    @if (duocTao) { <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Tạo mã khuyến mãi</a> }
+</div>
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table table-app table-hover mb-0">
+            <thead><tr><th>Mã</th><th>Tên</th><th>Giảm</th><th class="num">Đơn tối thiểu</th><th>Đã dùng / Giới hạn</th><th>Hiệu lực</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var k in Model)
+            {
+                var phanTram = k.SoLanSuDungToiDa.HasValue && k.SoLanSuDungToiDa > 0
+                    ? Math.Min(100, (int)Math.Round(k.SoLanDaDung * 100.0 / k.SoLanSuDungToiDa.Value)) : 0;
+                <tr>
+                    <td class="fw-bold text-primary">@k.MaCodeKhuyenMai</td>
+                    <td>@k.TenKhuyenMai</td>
+                    <td>@(k.LoaiGiamGia == "PERCENT" ? k.GiaTriGiam + "%" : k.GiaTriGiam.ToString("N0") + "đ")</td>
+                    <td class="num">@((k.GiaTriDonToiThieu ?? 0).ToString("N0")) đ</td>
+                    <td style="min-width:140px">
+                        <div class="d-flex justify-content-between" style="font-size:12.5px"><span>@k.SoLanDaDung</span><span class="text-muted">@(k.SoLanSuDungToiDa?.ToString() ?? "∞")</span></div>
+                        @if (k.SoLanSuDungToiDa.HasValue)
+                        {
+                            <div class="progress" style="height:5px"><div class="progress-bar bg-primary" style="width:@(phanTram)%"></div></div>
+                        }
+                    </td>
+                    <td><small>@k.NgayBatDau.ToString("dd/MM/yyyy") - @k.NgayKetThuc.ToString("dd/MM/yyyy")</small></td>
+                    <td>@if (k.TrangThaiHoatDong == true) { <span class="badge bg-success">Đang chạy</span> } else { <span class="badge bg-secondary">Tắt</span> }</td>
+                    <td class="d-flex gap-1">
+                        <a asp-action="Details" asp-route-id="@k.MaKhuyenMai" class="btn btn-sm btn-outline-primary" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                        @if (duocTao)
+                        {
+                            <a asp-action="Edit" asp-route-id="@k.MaKhuyenMai" class="btn btn-sm btn-outline-secondary" title="Sửa"><i class="bi bi-pencil"></i></a>
+                            <form asp-action="DoiTrangThai" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@k.MaKhuyenMai" /><button class="btn btn-sm btn-outline-secondary" title="Bật / tắt mã"><i class="bi bi-arrow-repeat"></i></button></form>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any()) { <tr><td colspan="8"><div class="empty-state"><i class="bi bi-ticket-perforated"></i><div>Chưa có mã khuyến mãi nào</div>@if (duocTao) { <a asp-action="Create" class="btn btn-sm btn-primary">Tạo mã đầu tiên</a> }</div></td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
