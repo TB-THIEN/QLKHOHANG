@@ -8,6 +8,7 @@ using System.Threading.RateLimiting;
 using QuanLyKhoWeb.Authorization;
 using QuanLyKhoWeb.Data;
 using QuanLyKhoWeb.Services;
+using QuanLyKhoWeb.Services.Ai;
 using QuanLyKhoWeb.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,12 +29,31 @@ builder.Services.AddScoped<QuanLyKhoWeb.Services.Interfaces.IDbConnectionFactory
 builder.Services.AddScoped<INguoiDungService, NguoiDungService>();
 builder.Services.AddScoped<IDonHangService, DonHangService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<INhanVienService, NhanVienService>();
+
+// Trợ lý AI: khóa API đọc từ user-secrets (Ai:ApiKey), không nằm trong appsettings.json.
+builder.Services.Configure<AiCauHinh>(builder.Configuration.GetSection(AiCauHinh.SectionName));
+builder.Services.AddHttpClient<GeminiClient>((sp, http) =>
+{
+    var cauHinh = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AiCauHinh>>().Value;
+    http.Timeout = TimeSpan.FromSeconds(Math.Max(10, cauHinh.TimeoutGiay));
+});
+builder.Services.AddScoped<KhoCongCu>();
+builder.Services.AddScoped<KhoHanhDongCho>();
+builder.Services.AddScoped<AiTroLy>();
 
 // Chống dò mật khẩu / spam OTP.
 // - Giới hạn theo IP ở tầng middleware (dưới đây)
 // - Khóa theo tài khoản sau 5 lần sai (BaoVeDangNhap, dùng trong AccountController)
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<BaoVeDangNhap>();
+
+// Cho phép gửi token chống giả mạo qua header để các lời gọi fetch() JSON
+// (khung chat trợ lý) vẫn được ValidateAntiForgeryToken bảo vệ.
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -66,6 +86,21 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0
         }));
 
+    // Trợ lý AI: 20 lượt / 5 phút / tài khoản đăng nhập (không dùng IP vì cùng văn phòng
+    // có thể chung một IP). Chưa đăng nhập thì chia theo IP để vẫn có chặn.
+    options.AddPolicy("ai", httpContext =>
+    {
+        var nguoiDung = httpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var khoa = string.IsNullOrEmpty(nguoiDung) ? "ip:" + LayIp(httpContext) : "nd:" + nguoiDung;
+
+        return RateLimitPartition.GetFixedWindowLimiter(khoa, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(5),
+            QueueLimit = 0
+        });
+    });
+
     options.OnRejected = async (context, token) =>
     {
         var response = context.HttpContext.Response;
@@ -77,7 +112,8 @@ builder.Services.AddRateLimiter(options =>
         response.Headers.RetryAfter = giayCho.ToString();
 
         // Nút "Gửi mã" gọi bằng fetch() nên phải trả JSON; các form khác trả trang thông báo
-        if (context.HttpContext.Request.Path.StartsWithSegments("/Account/GuiMa"))
+        if (context.HttpContext.Request.Path.StartsWithSegments("/Account/GuiMa")
+            || context.HttpContext.Request.Path.StartsWithSegments("/TroLy"))
         {
             response.ContentType = "application/json; charset=utf-8";
             await response.WriteAsync(JsonSerializer.Serialize(new

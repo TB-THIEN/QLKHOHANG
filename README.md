@@ -54,13 +54,46 @@ xác thực bằng cookie, phân quyền theo vai trò và gửi OTP qua SMTP đ
    dotnet user-secrets set "Smtp:From" "your@gmail.com"
    ```
 
-4. Chạy:
+4. Cấu hình trợ lý AI (tuỳ chọn). Lấy khóa ở [Google AI Studio](https://aistudio.google.com/apikey),
+   **không ghi vào `appsettings.json`**:
+
+   ```powershell
+   dotnet user-secrets set "Ai:ApiKey" "<khóa API>"
+   ```
+
+   Model mặc định là `gemini-3.5-flash-lite`; đổi bằng `Ai:Model` nếu tài khoản của bạn
+   dùng model khác. Không có khóa thì khung chat vẫn hiện nhưng báo "chưa cấu hình".
+
+5. Chạy:
 
    ```powershell
    dotnet run --project .\QuanLyKhoWeb\QuanLyKhoWeb
    ```
 
    Mở `https://localhost:7151` (hoặc `http://localhost:5213`).
+
+   > Cấu hình đọc từ user-secrets chỉ có tác dụng khi `ASPNETCORE_ENVIRONMENT=Development`.
+   > Nếu chạy bằng `dotnet run` không kèm profile, hãy đặt biến môi trường này trước.
+
+## Trợ lý AI
+
+Khung chat nổi ở góc phải dưới, **chỉ Quản lý** thấy. Trợ lý hiện hỗ trợ thêm nhân viên
+và tra cứu nhân viên.
+
+Cách hoạt động: model không ghi thẳng vào cơ sở dữ liệu. Khi đủ dữ liệu, nó gọi công cụ
+`tao_nhan_vien`, công cụ này chỉ kiểm tra hợp lệ rồi tạo **bản nháp** trong bộ nhớ đệm
+(hết hạn sau 10 phút, gắn với tài khoản đang đăng nhập). Quản lý phải bấm **Xác nhận**
+thì mới thực sự gọi `sp_TaoNhanVien`.
+
+- Mật khẩu do hệ thống sinh ngẫu nhiên và chỉ hiện **một lần** ngay sau khi tạo; nhân viên
+  buộc đổi ở lần đăng nhập đầu (`phai_doi_mat_khau = 1`).
+- Model chỉ được dùng 3 công cụ cố định: `liet_ke_vai_tro`, `tim_nhan_vien`, `tao_nhan_vien`.
+- Giới hạn 20 lượt / 5 phút / tài khoản (`Program.cs`, policy `"ai"`).
+- Quy tắc kiểm tra dữ liệu nằm ở `Services/NhanVienService.cs`, dùng chung cho cả form
+  Thêm nhân viên và trợ lý AI.
+
+Mã liên quan: `Services/Ai/`, `Controllers/TroLyController.cs`, `Views/Shared/_TroLyAi.cshtml`,
+`wwwroot/js/tro-ly-ai.js`, `wwwroot/css/tro-ly-ai.css`.
 
 ## Tài khoản mặc định
 
