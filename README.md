@@ -24,7 +24,7 @@ xác thực bằng cookie, phân quyền theo vai trò và gửi OTP qua SMTP đ
 ## Yêu cầu
 
 - .NET SDK 10.0
-- SQL Server (mặc định `localhost\SQLEXPRESS`, xác thực Windows)
+- SQL Server (mặc định `localhost\SQLEXPRESS`)
 
 ## Cài đặt
 
