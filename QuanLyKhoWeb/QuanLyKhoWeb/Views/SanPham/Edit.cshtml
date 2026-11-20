@@ -1,0 +1,179 @@
+@model QuanLyKhoWeb.Models.ViewModels.SanPhamEditVm
+@{
+    ViewData["Title"] = "Sửa sản phẩm";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-pencil"></i>Sửa sản phẩm</h1>
+        <p class="page-subtitle">Mã SKU <span class="sku">@Model.MaCodeSku</span> được giữ nguyên sau khi sửa.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.MaSku" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" class="form-layout" id="frmSuaSanPham">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="MaSku" />
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">@Model.MaCodeSku</span>
+                <span class="cell-sub">Mã SKU và lô hàng chốt từ lúc tạo</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-lock"></i>Thông tin chốt từ lúc tạo</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label class="form-label">Mã SKU</label>
+                            <input asp-for="MaCodeSku" class="form-control" readonly />
+                            <span class="form-hint">Không thay đổi kể cả khi sửa thông tin khác.</span>
+                        </div>
+                        <div>
+                            <label class="form-label">Lô hàng</label>
+                            <input asp-for="LoHang" class="form-control" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-tag"></i>Thông tin cơ bản</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="TenSanPham" class="form-label required"></label>
+                            <input asp-for="TenSanPham" class="form-control" pattern="[^0-9]*" title="Tên sản phẩm không được chứa số" />
+                            <span asp-validation-for="TenSanPham" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="DanhMuc" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="DanhMuc" class="form-control" id="txtDm" autocomplete="off" placeholder="Chọn hoặc gõ để tìm danh mục…" />
+                                <div id="goiYDm" class="role-suggest-box"></div>
+                            </div>
+                            <span class="form-hint">Nhập tên mới để hệ thống tự tạo danh mục.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-bookmark"></i>Phân loại và hình ảnh</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="NhanHieu" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="NhanHieu" class="form-control" id="txtNh" autocomplete="off" placeholder="Chọn hoặc gõ nhãn hiệu…" />
+                                <div id="goiYNh" class="role-suggest-box"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label asp-for="LoaiSanPham" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="LoaiSanPham" class="form-control" id="txtLoai" autocomplete="off" placeholder="Chọn hoặc gõ loại sản phẩm…" />
+                                <div id="goiYLoai" class="role-suggest-box"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label asp-for="ChatLieu" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="ChatLieu" class="form-control" id="txtChatLieu" autocomplete="off" placeholder="Chọn hoặc gõ chất liệu…" />
+                                <div id="goiYChatLieu" class="role-suggest-box"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label asp-for="MauSac" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="MauSac" class="form-control" id="txtMauSac" autocomplete="off" placeholder="Chọn hoặc gõ màu sắc…" />
+                                <div id="goiYMauSac" class="role-suggest-box"></div>
+                            </div>
+                        </div>
+                        <div class="span-full">
+                            <label asp-for="HinhAnhMoi" class="form-label"></label>
+                            <div class="d-flex gap-3 align-items-center flex-wrap">
+                                @if (!string.IsNullOrEmpty(Model.HinhAnhHienTai))
+                                { <img src="@Model.HinhAnhHienTai" class="thumb-48" alt="Ảnh hiện tại" /> }
+                                else { <span class="cell-sub">Chưa có ảnh</span> }
+                                <input asp-for="HinhAnhMoi" class="form-control flex-grow-1" style="max-width:340px" accept="image/*" />
+                            </div>
+                            <span class="form-hint">Không chọn ảnh mới thì giữ nguyên ảnh cũ.</span>
+                            <span asp-validation-for="HinhAnhMoi" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-cash-stack"></i>Giá và tồn kho</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="GiaTien" class="form-label required"></label>
+                            <input asp-for="GiaTien" type="text" inputmode="numeric" class="form-control money" />
+                            <span asp-validation-for="GiaTien" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoLuong" class="form-label required"></label>
+                            <input asp-for="SoLuong" type="number" min="0" step="1" class="form-control" />
+                            <span class="form-hint">Sửa số lượng thủ công sẽ được ghi vào nhật ký tồn kho.</span>
+                            <span asp-validation-for="SoLuong" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-file-text"></i>Mô tả</h6>
+                    <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+            <a asp-action="Details" asp-route-id="@Model.MaSku" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-upc-scan"></i>Mã SKU</div>
+            <div class="summary-body">
+                <div class="sku-preview">@Model.MaCodeSku</div>
+                <div class="summary-row"><dt>Lô hàng</dt><dd>@(string.IsNullOrEmpty(Model.LoHang) ? "—" : Model.LoHang)</dd></div>
+                <div class="summary-row"><dt>Tồn hiện tại</dt><dd>@Model.SoLuong</dd></div>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+                <a asp-action="Details" asp-route-id="@Model.MaSku" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-info-circle"></i><span>Mã SKU do hệ thống cấp khi lưu và không đổi khi sửa tên, danh mục, chất liệu hay màu sắc.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        window.setupAutocomplete('txtDm', 'goiYDm', {
+          url: term => '/SanPham/GoiY?loai=danhmuc&term=' + encodeURIComponent(term),
+          icon: 'bi-grid', allowCreate: true, showOnFocus: true, createText: term => 'Tạo danh mục mới "' + term + '"'
+        });
+        window.setupAutocomplete('txtNh', 'goiYNh', {
+          url: term => '/SanPham/GoiY?loai=nhanhieu&term=' + encodeURIComponent(term),
+          icon: 'bi-award', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtLoai', 'goiYLoai', {
+          url: term => '/SanPham/GoiY?loai=loai&term=' + encodeURIComponent(term),
+          icon: 'bi-bookmark', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtChatLieu', 'goiYChatLieu', {
+          url: term => '/SanPham/GoiY?loai=chatlieu&term=' + encodeURIComponent(term),
+          icon: 'bi-layers', allowCreate: false, showOnFocus: true
+        });
+        window.setupAutocomplete('txtMauSac', 'goiYMauSac', {
+          url: term => '/SanPham/GoiY?loai=mausac&term=' + encodeURIComponent(term),
+          icon: 'bi-palette', allowCreate: false, showOnFocus: true
+        });
+    </script>
+}

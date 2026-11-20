@@ -1,0 +1,175 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.NhanVienCreateVm
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-person-plus"></i>Thêm nhân viên</h1>
+        <p class="page-subtitle">Cấp tài khoản đăng nhập và hồ sơ cơ bản. Nhân viên tự bổ sung phần còn lại sau lần đăng nhập đầu.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="form-layout" id="frmNv">
+    @Html.AntiForgeryToken()
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">Tài khoản mới</span>
+                <span class="cell-sub">Bắt buộc đổi mật khẩu ở lần đăng nhập đầu</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-key"></i>Tài khoản đăng nhập</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="HoTen" class="form-label required"></label>
+                            <input asp-for="HoTen" class="form-control" id="hoTen" placeholder="VD: Nguyễn Văn A" pattern="[^0-9]*" title="Họ tên không được chứa số" />
+                            <span asp-validation-for="HoTen" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="TenVaiTro" class="form-label required"></label>
+                            <div class="position-relative">
+                                <input asp-for="TenVaiTro" id="txtVaiTro" class="form-control" autocomplete="off"
+                                       placeholder="Chọn hoặc gõ vai trò…" aria-expanded="false" aria-controls="goiYVaiTro" />
+                                <div id="goiYVaiTro" class="role-suggest-box" role="listbox"></div>
+                            </div>
+                            <span class="form-hint">Bấm để xem vai trò có sẵn. Gõ tên mới để tự tạo, trừ vai trò Quản lý.</span>
+                            <span asp-validation-for="TenVaiTro" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="TenDangNhap" class="form-label required"></label>
+                            <input asp-for="TenDangNhap" class="form-control" id="txtTenDn" placeholder="VD: nguyenvana" />
+                            <div id="canhBaoTrung" class="text-danger small mt-1" style="display:none">Tên đăng nhập đã tồn tại.</div>
+                            <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="MatKhau" class="form-label required"></label>
+                            <input asp-for="MatKhau" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                            <span class="form-hint">Nhân viên phải đổi mật khẩu ở lần đăng nhập đầu.</span>
+                            <span asp-validation-for="MatKhau" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="TrangThaiHoatDong" class="form-label">Trạng thái</label>
+                            <select asp-for="TrangThaiHoatDong" class="form-select" id="ttNv">
+                                <option value="true">Đang làm</option>
+                                <option value="false">Nghỉ làm</option>
+                            </select>
+                            <span class="form-hint">Chọn "Nghỉ làm" để ẩn khỏi danh sách mà không xóa tài khoản.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-person-vcard"></i>Thông tin cá nhân <span class="text-muted" style="font-weight:400">— không bắt buộc</span></h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" placeholder="VD: 0901234567" />
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="VD: a@email.com" />
+                        </div>
+                        <div>
+                            <label asp-for="Cccd" class="form-label"></label>
+                            <input asp-for="Cccd" class="form-control" placeholder="12 chữ số" maxlength="12" inputmode="numeric" />
+                            <span asp-validation-for="Cccd" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="AnhThe" class="form-label"></label>
+                            <input asp-for="AnhThe" class="form-control" accept="image/*" />
+                            <span asp-validation-for="AnhThe" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="StkNganHang" class="form-label"></label>
+                            <input asp-for="StkNganHang" class="form-control" placeholder="VD: 0123456789" />
+                        </div>
+                        <div>
+                            <label asp-for="ChiNhanhNganHang" class="form-label"></label>
+                            <input asp-for="ChiNhanhNganHang" class="form-control" placeholder="VD: Vietcombank Quận 1" />
+                        </div>
+                        <div class="span-2">
+                            <label asp-for="ThuongTru" class="form-label">Thường trú</label>
+                            <input asp-for="ThuongTru" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="NgaySinh" class="form-label">Ngày sinh</label>
+                            <input asp-for="NgaySinh" type="date" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="GioiTinh" class="form-label">Giới tính</label>
+                            <select asp-for="GioiTinh" class="form-select"><option value="">Chọn</option><option>Nam</option><option>Nữ</option><option>Khác</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Lưu nhân viên</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-person-badge"></i>Tài khoản sắp tạo</div>
+            <div class="summary-body">
+                <dl class="m-0">
+                    <div class="summary-row"><dt>Họ tên</dt><dd id="sumHoTen">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Tên đăng nhập</dt><dd id="sumDn">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Vai trò</dt><dd id="sumVaiTro">Chưa chọn</dd></div>
+                    <div class="summary-row"><dt>Trạng thái</dt><dd id="sumTt">Đang làm</dd></div>
+                </dl>
+            </div>
+            <div class="summary-actions">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu nhân viên</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-shield-lock"></i><span>Mật khẩu được mã hóa khi lưu. Nhân viên bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('txtTenDn').addEventListener('blur', async (e) => {
+            const v = e.target.value;
+            if (!v) return;
+            const res = await fetch('/NhanVien/KiemTraTrungTen?tenDangNhap=' + encodeURIComponent(v));
+            const data = await res.json();
+            document.getElementById('canhBaoTrung').style.display = data.trung ? 'block' : 'none';
+        });
+        (function () {
+            var txt = document.getElementById('txtVaiTro');
+            if (!txt || typeof window.setupVaiTroAutocomplete !== 'function') return;
+            window.setupVaiTroAutocomplete('txtVaiTro', 'goiYVaiTro', ['Quản lý']);
+            document.getElementById('frmNv').addEventListener('submit', function () {
+                txt.value = txt.value.trim();
+            });
+        })();
+        (function () {
+            const hoTen = document.getElementById('hoTen'), dn = document.getElementById('txtTenDn'),
+                  vaiTro = document.getElementById('txtVaiTro'), tt = document.getElementById('ttNv');
+            const sumHoTen = document.getElementById('sumHoTen'), sumDn = document.getElementById('sumDn'),
+                  sumVaiTro = document.getElementById('sumVaiTro'), sumTt = document.getElementById('sumTt');
+            function capNhat() {
+                sumHoTen.textContent = hoTen.value.trim() || 'Chưa nhập';
+                sumDn.textContent = dn.value.trim() || 'Chưa nhập';
+                sumVaiTro.textContent = vaiTro.value.trim() || 'Chưa chọn';
+                sumTt.textContent = tt.value === 'true' ? 'Đang làm' : 'Nghỉ làm';
+            }
+            [hoTen, dn, vaiTro].forEach(el => el.addEventListener('input', capNhat));
+            tt.addEventListener('change', capNhat);
+            capNhat();
+        })();
+    </script>
+}

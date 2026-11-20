@@ -1,0 +1,95 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.DoiMatKhauVm
+@{
+    ViewData["Title"] = "Đổi mật khẩu";
+    var batBuoc = ViewBag.BatBuocDoi == true;
+}
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <span class="app-avatar avatar-lg" aria-hidden="true"><i class="bi bi-key"></i></span>
+        <div>
+            <h1 class="app-page-title mb-0">Đổi mật khẩu</h1>
+            @if (batBuoc)
+            {
+                <span class="role-badge">Bắt buộc đổi ở lần đăng nhập đầu</span>
+            }
+            else
+            {
+                <p class="page-subtitle mb-0">Nhập mật khẩu hiện tại để xác nhận trước khi đặt mật khẩu mới.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="app-card" style="max-width:560px">
+    @if (batBuoc)
+    {
+        <div class="callout callout--warning mb-3"><i class="bi bi-exclamation-triangle"></i><span>Tài khoản mới được cấp phải đổi mật khẩu trước khi sử dụng các chức năng khác.</span></div>
+    }
+    <form asp-action="DoiMatKhau" method="post" autocomplete="off">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="MatKhauHienTai" class="form-label required"></label>
+            <div class="icon-field has-toggle">
+                <i class="bi bi-lock field-icon"></i>
+                <input asp-for="MatKhauHienTai" class="form-control" id="pw0" placeholder="Nhập mật khẩu hiện tại" />
+                <button type="button" class="pw-toggle" data-for="pw0" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+            </div>
+            <span asp-validation-for="MatKhauHienTai" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MatKhauMoi" class="form-label required"></label>
+            <div class="icon-field has-toggle">
+                <i class="bi bi-shield-lock field-icon"></i>
+                <input asp-for="MatKhauMoi" class="form-control" id="pw1" placeholder="Tối thiểu 6 ký tự" />
+                <button type="button" class="pw-toggle" data-for="pw1" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+            </div>
+            <span asp-validation-for="MatKhauMoi" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="XacNhanMatKhau" class="form-label required"></label>
+            <div class="icon-field has-toggle">
+                <i class="bi bi-shield-check field-icon"></i>
+                <input asp-for="XacNhanMatKhau" class="form-control" id="pw2" placeholder="Nhập lại mật khẩu mới" />
+                <button type="button" class="pw-toggle" data-for="pw2" aria-label="Hiện mật khẩu" hidden><i class="bi bi-eye"></i></button>
+            </div>
+            <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Đổi mật khẩu</button>
+            @if (!batBuoc)
+            {
+                <a asp-action="ThongTinCaNhan" class="btn btn-outline-secondary">Quay lại</a>
+            }
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    (function () {
+      document.querySelectorAll('.pw-toggle').forEach(function (tg) {
+        var pw = document.getElementById(tg.getAttribute('data-for'));
+        if (!pw) return;
+        function sync() {
+          var has = pw.value.length > 0;
+          tg.hidden = !has;
+          if (!has && pw.type === 'text') { pw.type = 'password'; tg.innerHTML = '<i class="bi bi-eye"></i>'; }
+        }
+        pw.addEventListener('input', sync);
+        sync();
+        tg.addEventListener('click', function () {
+          var show = pw.type === 'password';
+          pw.type = show ? 'text' : 'password';
+          tg.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+          pw.focus();
+        });
+      });
+    })();
+    </script>
+}

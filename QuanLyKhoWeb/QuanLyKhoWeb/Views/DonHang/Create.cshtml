@@ -1,0 +1,176 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.DonHangCreateVm
+@{
+    ViewData["Title"] = "Tạo đơn hàng";
+    var kms = ViewBag.KhuyenMais as List<QuanLyKhoWeb.Models.Entities.KhuyenMai> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-plus-lg"></i>Tạo đơn hàng</h1>
+        <p class="page-subtitle">Chọn sản phẩm, nhập thông tin khách và kiểm tra tạm tính trước khi lưu.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+<form asp-action="Create" method="post" id="frmDon" class="form-layout">
+    @Html.AntiForgeryToken()
+    <div class="form-main">
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">Đơn mới</span>
+                <span class="cell-sub">Tồn kho trừ ngay khi tạo đơn</span>
+            </div>
+            <div class="form-sheet__body">
+        <div class="form-block">
+            <h6 class="section-title"><i class="bi bi-box-seam"></i>Sản phẩm <span class="text-muted" style="font-weight:400">— chọn ít nhất một</span></h6>
+            <div class="position-relative mb-3">
+                <input id="txtSku" class="form-control" placeholder="Tìm SKU hoặc tên sản phẩm để thêm…" autocomplete="off" />
+                <div id="kqSku" class="list-group position-absolute w-100" style="z-index:10"></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-app" id="tblItems">
+                    <thead><tr><th>Sản phẩm</th><th class="num">Đơn giá</th><th style="width:110px">SL</th><th></th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <span class="text-danger">@if (ViewData.ModelState.TryGetValue("SoLuongs", out var loiSl) && loiSl.Errors.Count > 0) { @loiSl.Errors[0].ErrorMessage }</span>
+        </div>
+
+        <div class="form-block">
+            <h6 class="section-title"><i class="bi bi-person"></i>Thông tin khách hàng</h6>
+            <div class="form-grid">
+                <div>
+                    <label class="form-label required">Tên khách hàng</label>
+                    <input asp-for="TenKhachHangGiao" class="form-control" placeholder="Nhập tên khách" pattern="[^0-9]*" title="Tên khách hàng không được chứa số" />
+                    <span asp-validation-for="TenKhachHangGiao" class="text-danger"></span>
+                </div>
+                <div>
+                    <label class="form-label required">Số điện thoại</label>
+                    <input asp-for="SdtKhachHangGiao" class="form-control" placeholder="Nhập số điện thoại" />
+                    <span asp-validation-for="SdtKhachHangGiao" class="text-danger"></span>
+                </div>
+                <div class="span-full">
+                    <label class="form-label required">Địa chỉ giao</label>
+                    <input asp-for="DiaChiGiaoHang" class="form-control" placeholder="Nhập địa chỉ giao" />
+                    <span asp-validation-for="DiaChiGiaoHang" class="text-danger"></span>
+                </div>
+                <div>
+                    <label class="form-label">Hình thức nhận hàng</label>
+                    <select asp-for="HinhThucNhanHang" class="form-select">
+                        <option value="GIAO_HANG">Giao hàng (tự tạo vận đơn)</option>
+                        <option value="TAI_SHOP">Nhận tại shop</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Phí vận chuyển</label>
+                    <input asp-for="PhiVanChuyen" type="text" inputmode="numeric" class="form-control money" />
+                </div>
+                <div class="span-full">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea asp-for="GhiChu" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-receipt"></i>Tóm tắt đơn</div>
+            <div class="summary-body">
+                <div>
+                    <label class="form-label">Mã đơn</label>
+                    <input class="form-control" value="Tự động sinh sau khi lưu" readonly />
+                </div>
+                <div>
+                    <label asp-for="MaKhuyenMai" class="form-label"><i class="bi bi-ticket-perforated me-1"></i>Mã giảm giá</label>
+                    <select asp-for="MaKhuyenMai" class="form-select">
+                        <option value="">Không dùng mã</option>
+                        @foreach (var k in kms)
+                        {
+                            <option value="@k.MaKhuyenMai">@k.MaCodeKhuyenMai — @k.TenKhuyenMai (@(k.LoaiGiamGia == "PERCENT" ? k.GiaTriGiam + "%" : k.GiaTriGiam.ToString("N0") + "đ"))</option>
+                        }
+                    </select>
+                    <span asp-validation-for="MaKhuyenMai" class="text-danger"></span>
+                </div>
+                <div class="summary-total">
+                    <span>Tạm tính</span>
+                    <strong id="tamTinh">0 đ</strong>
+                </div>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Tạo đơn hàng</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-info-circle"></i><span>Đơn giao hàng sẽ tự tạo vận đơn. Tồn kho bị trừ ngay khi đơn được tạo.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+<script>
+let items = [];
+const fmt = n => n.toLocaleString('vi-VN') + ' đ';
+async function timSku(term) {
+  const res = await fetch('/DonHang/TimSku?term=' + encodeURIComponent(term));
+  return await res.json();
+}
+const txt = document.getElementById('txtSku'), kq = document.getElementById('kqSku');
+txt.addEventListener('focus', () => { hienList(''); });
+txt.addEventListener('input', async () => {
+  const t = txt.value.trim();
+  if (!t) { hienList(''); return; }
+  const list = await timSku(t);
+  veList(list);
+});
+async function hienList(term) {
+  const list = await timSku(term);
+  veList(list);
+}
+function veList(list) {
+  kq.innerHTML = '';
+  if (list.length === 0) { kq.innerHTML = '<span class="list-group-item text-muted">Không tìm thấy món nào</span>'; return; }
+  list.forEach(sp => {
+    const b = document.createElement('button');
+    b.type='button'; b.className='list-group-item list-group-item-action';
+    b.textContent = `${sp.ten} (${sp.maCodeSku}) — ${fmt(sp.giaTien)} — còn ${sp.soLuong}`;
+    b.onclick = () => { themDong(sp); kq.innerHTML=''; txt.value=''; };
+    kq.appendChild(b);
+  });
+}
+function themDong(sp) {
+  if (items.find(x => x.maSku === sp.maSku)) return;
+  items.push({...sp, sl: 1});
+  render();
+}
+function render() {
+  const tb = document.querySelector('#tblItems tbody');
+  tb.innerHTML = '';
+  if (items.length === 0) {
+    tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Chưa có sản phẩm. Tìm và chọn sản phẩm ở ô phía trên.</td></tr>';
+    document.getElementById('tamTinh').textContent = fmt(0);
+    return;
+  }
+  let tong = 0;
+  items.forEach((it, idx) => {
+    tong += it.giaTien * it.sl;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="cell-main">${it.ten}</div><div class="cell-sub">${it.maCodeSku}</div>
+      <input type="hidden" name="MaSkus" value="${it.maSku}"/></td>
+      <td class="num">${fmt(it.giaTien)}</td>
+      <td><input type="number" name="SoLuongs" value="${it.sl}" min="1" step="1" max="${it.soLuong}" class="form-control form-control-sm" onchange="doiSl(${idx}, this.value)"/></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="xoaDong(${idx})" aria-label="Bỏ sản phẩm"><i class="bi bi-trash"></i></button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('tamTinh').textContent = fmt(tong);
+}
+window.doiSl = (i, v) => { items[i].sl = Math.max(1, parseInt(v) || 1); render(); };
+window.xoaDong = i => { items.splice(i,1); render(); };
+render();
+</script>
+}

@@ -1,0 +1,377 @@
+@model QuanLyKhoWeb.Models.ViewModels.BaoCaoVm
+@{
+    ViewData["Title"] = "Báo cáo";
+    ViewData["Subtitle"] = "Doanh thu, đơn hàng và sản phẩm bán chạy theo tháng";
+    var cheDo = Model.CheDo;
+    var nam = Model.Nam;
+    int page = (int)(ViewBag.Page ?? 1);
+    var thangChon = Model.Thang;
+
+    decimal kpiDoanhThu = (decimal)(ViewBag.KpiDoanhThu ?? 0m);
+    int kpiSoDon = (int)(ViewBag.KpiSoDon ?? 0);
+    int kpiSoSP = (int)(ViewBag.KpiTopSoSP ?? 0);
+    int kpiSoLuongSP = (int)(ViewBag.KpiTopSoLuong ?? 0);
+
+    // Giá trị từng tháng của chế độ đang xem
+    var giaTri = cheDo switch
+    {
+        "donhang" => Model.DonHangThang.Select(t => (double)t.TongDon).ToList(),
+        "top" => Model.TopSanPham.Take(12).Select(p => (double)p.SoLuong).ToList(),
+        _ => Model.DoanhThuThang.Select(t => (double)t.DoanhThu).ToList()
+    };
+    var nhanThang = cheDo == "top"
+        ? Model.TopSanPham.Take(12).Select(p => "SP" + (Model.TopSanPham.IndexOf(p) + 1)).ToList()
+        : Enumerable.Range(1, 12).Select(m => "T" + m).ToList();
+    double maxGiaTri = giaTri.Count > 0 ? giaTri.Max() : 0;
+    if (maxGiaTri <= 0) maxGiaTri = 1;
+
+    // Đơn vị trục Y: triệu đồng hoặc số đơn
+    double maxTrieu = cheDo == "donhang" ? Math.Ceiling(maxGiaTri / 4) : Math.Round(maxGiaTri / 1_000_000, 1);
+    if (maxTrieu <= 0) maxTrieu = 1;
+    string DonVi(double v) => cheDo == "donhang" ? v.ToString("0.#") : v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " Tr";
+    string Nhan(double v) => cheDo == "donhang" ? v.ToString("N0") + " đơn" : (v / 1_000_000).ToString("N1", System.Globalization.CultureInfo.InvariantCulture) + " Tr";
+
+    var dsHienThi = Model.TopSanPham.Skip((page - 1) * 20).Take(20).ToList();
+    int tongSoDong = cheDo switch
+    {
+        "donhang" => thangChon is int t2
+            ? Model.DonHangChiTiet.Count + Model.PhieuNhapChiTiet.Count
+            : Model.DonHangThang.Count(x => x.TongDon > 0),
+        "top" => Model.TopSanPham.Count,
+        _ => thangChon is int t3 ? Model.DonHangChiTiet.Count : Model.DoanhThuThang.Count(x => x.SoDon > 0)
+    };
+    int tongSoTrang = Math.Max(1, (int)Math.Ceiling(tongSoDong / 20.0));
+    string UrlChiTiet(int thang) => Url.Action("Index", new { xem = cheDo, nam = nam, thang = thang, page = 1, search = ViewData["SearchValue"] as string })!;
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-bar-chart"></i>Báo cáo</h1>
+        <p class="page-subtitle">Chọn loại báo cáo, bấm vào cột tháng để xem chi tiết riêng tháng đó.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-end">
+        <form method="get" class="d-flex gap-2 align-items-center flex-nowrap">
+            <input type="hidden" name="xem" value="@cheDo" />
+            @if (thangChon is int tForm) { <input type="hidden" name="thang" value="@tForm" /> }
+            <label class="form-label mb-0 text-nowrap" for="selNam">Năm</label>
+            <select id="selNam" name="nam" class="form-select" style="width:auto" onchange="this.form.submit()">
+                @foreach (var y in Model.DanhSachNam) { <option value="@y" selected="@(y == nam)">Năm @y</option> }
+            </select>
+        </form>
+        <a class="btn btn-success text-nowrap" asp-action="XuatExcel" asp-route-xem="@cheDo" asp-route-nam="@nam" asp-route-thang="@(thangChon)">
+            <i class="bi bi-file-earmark-excel"></i>Xuất báo cáo Excel
+        </a>
+    </div>
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm trong báo cáo</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "baocao",
+        Controller = "BaoCao",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã đơn, khách hàng, nhân viên, sản phẩm, nhà cung cấp…",
+        ThamSoThem = new() {
+            ["xem"] = cheDo,
+            ["nam"] = nam.ToString(),
+            ["thang"] = thangChon?.ToString()
+        }
+    })" />
+    @if (!string.IsNullOrWhiteSpace(ViewData["SearchValue"] as string) && thangChon == null && cheDo != "top")
+    {
+        <div class="form-hint mt-2"><i class="bi bi-info-circle"></i>Từ khóa lọc bảng chi tiết của một tháng. Bấm vào tháng trên biểu đồ hoặc bảng bên dưới để xem chi tiết.</div>
+    }
+</div>
+
+<div class="report-modes mb-3">
+    <a asp-action="Index" asp-route-xem="doanhthu" asp-route-nam="@nam" class="report-mode @(cheDo == "doanhthu" ? "is-active" : "")" aria-pressed="@(cheDo == "doanhthu" ? "true" : "false")">
+        <span class="report-mode-icon"><i class="bi bi-cash-stack"></i></span>
+        <span class="report-mode-text">
+            <span class="report-mode-label">Doanh thu</span>
+            <span class="report-mode-value">@kpiDoanhThu.ToString("N0") đ</span>
+            <span class="report-mode-meta">@(kpiSoDon) đơn hoàn tất trong năm @(nam)</span>
+        </span>
+        <span class="report-mode-mark"><i class="bi bi-bar-chart-line"></i></span>
+    </a>
+    <a asp-action="Index" asp-route-xem="donhang" asp-route-nam="@nam" class="report-mode @(cheDo == "donhang" ? "is-active" : "")" aria-pressed="@(cheDo == "donhang" ? "true" : "false")">
+        <span class="report-mode-icon"><i class="bi bi-receipt"></i></span>
+        <span class="report-mode-text">
+            <span class="report-mode-label">Đơn hàng</span>
+            <span class="report-mode-value">@kpiSoDon đơn</span>
+            <span class="report-mode-meta">Toàn bộ đơn phát sinh trong năm @(nam)</span>
+        </span>
+        <span class="report-mode-mark"><i class="bi bi-bar-chart-line"></i></span>
+    </a>
+    <a asp-action="Index" asp-route-xem="top" asp-route-nam="@nam" class="report-mode @(cheDo == "top" ? "is-active" : "")" aria-pressed="@(cheDo == "top" ? "true" : "false")">
+        <span class="report-mode-icon"><i class="bi bi-trophy"></i></span>
+        <span class="report-mode-text">
+            <span class="report-mode-label">Top bán chạy</span>
+            <span class="report-mode-value">@kpiSoSP sản phẩm</span>
+            <span class="report-mode-meta">@kpiSoLuongSP sản phẩm đã bán trong năm</span>
+        </span>
+        <span class="report-mode-mark"><i class="bi bi-bar-chart-line"></i></span>
+    </a>
+</div>
+
+<div class="app-card mb-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+        <div>
+            <h6 class="section-title mb-1">
+                <i class="bi bi-bar-chart-line"></i>
+                @(cheDo == "donhang" ? "Số đơn hàng theo tháng" : cheDo == "top" ? "Sản lượng bán theo tháng" : "Doanh thu theo tháng") · năm @(nam)
+            </h6>
+            <p class="chart-caption">
+                Bấm vào cột tháng để xem chi tiết riêng tháng đó.
+                @if (thangChon is int tCaption)
+                {
+                    <span class="chart-caption-active">Đang xem tháng @tCaption.</span>
+                    <a asp-action="Index" asp-route-xem="@cheDo" asp-route-nam="@nam">Xem cả 12 tháng</a>
+                }
+            </p>
+        </div>
+        <span class="badge bg-primary">
+            @if (cheDo == "donhang") { <text>@Model.DonHangThang.Sum(x => x.TongDon) đơn trong năm</text> }
+            else if (cheDo == "top") { <text>@Model.TopSanPham.Sum(x => x.SoLuong) sản phẩm đã bán</text> }
+            else { <text>Tổng: @Model.DoanhThuCaNam.ToString("N0") đ</text> }
+        </span>
+    </div>
+
+    <div class="css-chart-wrapper">
+        <div class="css-chart-grid" aria-hidden="true">
+            <div class="css-grid-line"><span class="css-grid-val">@DonVi(maxTrieu)</span></div>
+            <div class="css-grid-line"><span class="css-grid-val">@DonVi(maxTrieu * 0.75)</span></div>
+            <div class="css-grid-line"><span class="css-grid-val">@DonVi(maxTrieu * 0.5)</span></div>
+            <div class="css-grid-line"><span class="css-grid-val">@DonVi(maxTrieu * 0.25)</span></div>
+            <div class="css-grid-line"><span class="css-grid-val">0</span></div>
+        </div>
+        <div class="css-bar-chart-container">
+            @for (int i = 0; i < giaTri.Count; i++)
+            {
+                var coGiaTri = giaTri[i] > 0;
+                var phanTram = coGiaTri ? Math.Max(5, Math.Round(giaTri[i] / maxGiaTri * 100)) : 0;
+                var laThangDangChon = thangChon is int sel && cheDo != "top" && sel == i + 1;
+                var laThangCoDuLieu = cheDo != "top";
+                <a href="@(laThangCoDuLieu ? UrlChiTiet(i + 1) : "#")"
+                   class="css-bar-col @(laThangDangChon ? "is-selected" : "")"
+                   aria-label="@(nhanThang[i]): @Nhan(giaTri[i])"
+                   title="@(laThangCoDuLieu ? $"Bấm để xem chi tiết {nhanThang[i]} năm {nam} ({Nhan(giaTri[i])})" : $"{nhanThang[i]}: {Nhan(giaTri[i])}")">
+                    <div class="css-bar-track">
+                        <div class="css-bar-fill @(coGiaTri ? "has-value" : "is-zero")" style="height:@phanTram%">
+                            @if (coGiaTri)
+                            {
+                                <div class="css-bar-tooltip-val"><span class="css-val-badge">@Nhan(giaTri[i])</span></div>
+                            }
+                        </div>
+                    </div>
+                    <div class="css-bar-label">@nhanThang[i]</div>
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)">
+            <i class="bi bi-table"></i>
+            @if (cheDo == "top") { <text>Bảng xếp hạng sản phẩm · năm @(nam)</text> }
+            else if (thangChon is int tt) { <text>Chi tiết tháng @(tt)/@(nam)</text> }
+            else { <text>Tổng hợp 12 tháng · năm @(nam)</text> }
+        </h6>
+        <span class="cell-sub">@tongSoDong dòng · trang @(page)/@tongSoTrang</span>
+    </div>
+
+    <div class="table-responsive">
+        @if (cheDo == "top")
+        {
+            <table class="table table-app mb-0">
+                <thead><tr><th style="width:60px">Hạng</th><th>Ảnh</th><th>Sản phẩm</th><th class="num">SL bán</th><th class="num">Doanh thu</th></tr></thead>
+                <tbody>
+                @{ int hang = (page - 1) * 20; }
+                @foreach (var p in dsHienThi)
+                {
+                    hang++;
+                    <tr>
+                        <td>@if (hang <= 3) { <span class="sku" style="font-weight:600">@hang</span> } else { <span class="cell-sub">@hang</span> }</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(p.HinhAnh)) { <img src="@p.HinhAnh" class="thumb-44" alt="" loading="lazy" /> }
+                            else { <span class="text-muted"><i class="bi bi-image" style="font-size:22px"></i></span> }
+                        </td>
+                        <td>
+                            <div class="cell-main">@p.TenSanPham</div>
+                            <div class="cell-sub">@p.MaCodeSku</div>
+                        </td>
+                        <td class="num fw-semibold">@p.SoLuong</td>
+                        <td class="num">@p.DoanhThu.ToString("N0") đ</td>
+                    </tr>
+                }
+                @if (!dsHienThi.Any())
+                {
+                    <tr><td colspan="5"><div class="empty-state"><i class="bi bi-trophy"></i><div>Chưa có dữ liệu bán hàng trong năm @(nam)</div></div></td></tr>
+                }
+                </tbody>
+            </table>
+        }
+        else if (cheDo == "donhang" && thangChon is int thangDh)
+        {
+            <table class="table table-app mb-0">
+                <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Nhân viên</th><th class="num">SL</th><th class="num">Thanh tiền</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                @foreach (var d in Model.DonHangChiTiet.Skip((page - 1) * 20).Take(20))
+                {
+                    <tr>
+                        <td><span class="sku">@d.MaCodeDonHang</span></td>
+                        <td><div class="cell-main">@d.KhachHang</div><div class="cell-sub">@d.DienThoai</div></td>
+                        <td class="cell-sub">@d.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="cell-sub">@d.NhanVien</td>
+                        <td class="num">@d.SoLuong</td>
+                        <td class="num fw-semibold">@d.ThanhTien.ToString("N0") đ</td>
+                        <td>
+                            <span class="badge @(d.TrangThai == "Hoàn tất" ? "bg-success" : d.TrangThai == "Đã hủy" ? "bg-secondary" : "bg-info") badge-dot">@d.TrangThai</span>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.DonHangChiTiet.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i><div>Không có đơn hàng trong tháng @(thangDh)/@(nam)</div></div></td></tr>
+                }
+                </tbody>
+            </table>
+        }
+        else if (cheDo == "doanhthu" && thangChon is int thangDt)
+        {
+            <table class="table table-app mb-0">
+                <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th class="num">Tổng hàng</th><th class="num">Giảm giá</th><th class="num">Thanh tiền</th><th>Thanh toán</th></tr></thead>
+                <tbody>
+                @foreach (var d in Model.DonHangChiTiet.Skip((page - 1) * 20).Take(20))
+                {
+                    <tr>
+                        <td><span class="sku">@d.MaCodeDonHang</span></td>
+                        <td><div class="cell-main">@d.KhachHang</div><div class="cell-sub">@d.DienThoai</div></td>
+                        <td class="cell-sub">@d.NgayDat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="num">@d.TongHang.ToString("N0") đ</td>
+                        <td class="num">@(d.GiamGia > 0 ? "-" + d.GiamGia.ToString("N0") + " đ" : "—")</td>
+                        <td class="num fw-semibold">@d.ThanhTien.ToString("N0") đ</td>
+                        <td><span class="badge @(d.ThanhToan == "Đã thanh toán" ? "bg-success" : "bg-warning") badge-dot">@d.ThanhToan</span></td>
+                    </tr>
+                }
+                @if (!Model.DonHangChiTiet.Any())
+                {
+                    <tr><td colspan="7"><div class="empty-state"><i class="bi bi-cash-stack"></i><div>Không có doanh thu trong tháng @(thangDt)/@(nam)</div></div></td></tr>
+                }
+                </tbody>
+            </table>
+        }
+        else if (cheDo == "doanhthu")
+        {
+            <table class="table table-app mb-0">
+                <thead><tr><th>Tháng</th><th class="num">Số đơn</th><th class="num">Tổng số hàng</th><th class="num">Doanh thu</th><th>Tỷ trọng</th><th></th></tr></thead>
+                <tbody>
+                @{ decimal tongNam = Model.DoanhThuCaNam; }
+                @foreach (var t in Model.DoanhThuThang.Skip((page - 1) * 20).Take(20))
+                {
+                    var tyTrong = tongNam > 0 ? Math.Round(t.DoanhThu / tongNam * 100, 1) : 0;
+                    <tr>
+                        <td><a asp-action="Index" asp-route-xem="doanhthu" asp-route-nam="@nam" asp-route-thang="@t.Thang" class="cell-main text-decoration-none">Tháng @t.Thang</a></td>
+                        <td class="num">@t.SoDon</td>
+                        <td class="num">@t.TongSoHang</td>
+                        <td class="num fw-semibold">@t.DoanhThu.ToString("N0") đ</td>
+                        <td>
+                            <div class="ratio-cell">
+                                <span class="cell-sub">@tyTrong%</span>
+                                <span class="ratio-track"><span class="ratio-fill" style="width:@(tyTrong)%"></span></span>
+                            </div>
+                        </td>
+                        <td><a asp-action="Index" asp-route-xem="doanhthu" asp-route-nam="@nam" asp-route-thang="@t.Thang" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-right"></i>Chi tiết</a></td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td class="cell-main">Tổng cộng</td>
+                        <td class="num">@Model.DoanhThuThang.Sum(x => x.SoDon)</td>
+                        <td class="num">@Model.DoanhThuThang.Sum(x => x.TongSoHang)</td>
+                        <td class="num fw-semibold">@Model.DoanhThuCaNam.ToString("N0") đ</td>
+                        <td>100%</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+        else
+        {
+            <table class="table table-app mb-0">
+                <thead><tr><th>Tháng</th><th class="num">Tổng đơn</th><th class="num">Hoàn tất</th><th class="num">Chờ xử lý</th><th class="num">Đã hủy</th><th class="num">Giá trị đơn</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var t in Model.DonHangThang.Skip((page - 1) * 20).Take(20))
+                {
+                    <tr>
+                        <td><a asp-action="Index" asp-route-xem="donhang" asp-route-nam="@nam" asp-route-thang="@t.Thang" class="cell-main text-decoration-none">Tháng @t.Thang</a></td>
+                        <td class="num fw-semibold">@t.TongDon</td>
+                        <td class="num"><span class="badge bg-success badge-dot">@t.HoanTat</span></td>
+                        <td class="num"><span class="badge bg-info badge-dot">@t.ChoXuLy</span></td>
+                        <td class="num"><span class="badge bg-secondary badge-dot">@t.DaHuy</span></td>
+                        <td class="num">@t.GiaTri.ToString("N0") đ</td>
+                        <td><a asp-action="Index" asp-route-xem="donhang" asp-route-nam="@nam" asp-route-thang="@t.Thang" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-right"></i>Chi tiết</a></td>
+                    </tr>
+                }
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td class="cell-main">Tổng cộng</td>
+                        <td class="num">@Model.DonHangThang.Sum(x => x.TongDon)</td>
+                        <td class="num">@Model.DonHangThang.Sum(x => x.HoanTat)</td>
+                        <td class="num">@Model.DonHangThang.Sum(x => x.ChoXuLy)</td>
+                        <td class="num">@Model.DonHangThang.Sum(x => x.DaHuy)</td>
+                        <td class="num">@Model.DonHangThang.Sum(x => x.GiaTri).ToString("N0") đ</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+    </div>
+
+    @if (tongSoTrang > 1)
+    {
+        <nav class="mt-3" aria-label="Phân trang báo cáo">
+            <ul class="pagination justify-content-center flex-wrap">
+                <li class="page-item @(page <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-xem="@cheDo" asp-route-nam="@nam" asp-route-thang="@(thangChon)" asp-route-search="@ViewData["SearchValue"]" asp-route-page="@(page - 1)">Trước</a>
+                </li>
+                @for (int i = Math.Max(1, page - 2); i <= Math.Min(tongSoTrang, page + 2); i++)
+                {
+                    <li class="page-item @(i == page ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-xem="@cheDo" asp-route-nam="@nam" asp-route-thang="@(thangChon)" asp-route-search="@ViewData["SearchValue"]" asp-route-page="@i">@i</a>
+                    </li>
+                }
+                <li class="page-item @(page >= tongSoTrang ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-xem="@cheDo" asp-route-nam="@nam" asp-route-thang="@(thangChon)" asp-route-search="@ViewData["SearchValue"]" asp-route-page="@(page + 1)">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+@if (thangChon is int thangNhap && (cheDo == "doanhthu" || cheDo == "donhang") && Model.PhieuNhapChiTiet.Any())
+{
+    <div class="app-card mt-3">
+        <h6 class="section-title"><i class="bi bi-box-arrow-in-down"></i>Nhập kho tháng @(thangNhap)/@(nam)</h6>
+        <div class="table-responsive">
+            <table class="table table-app mb-0">
+                <thead><tr><th>Mã phiếu</th><th>Nhà cung cấp</th><th>Ngày nhập</th><th class="num">Số lượng</th><th class="num">Giá trị nhập</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                @foreach (var p in Model.PhieuNhapChiTiet)
+                {
+                    <tr>
+                        <td><span class="sku">@p.MaCodePhieuNhap</span></td>
+                        <td class="cell-main">@p.NhaCungCap</td>
+                        <td class="cell-sub">@p.NgayNhap.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="num">@p.SoLuong</td>
+                        <td class="num fw-semibold">@p.TongTien.ToString("N0") đ</td>
+                        <td><span class="badge @(p.TrangThai == "Hoàn tất" ? "bg-success" : "bg-light") badge-dot">@p.TrangThai</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

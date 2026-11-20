@@ -1,0 +1,164 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.KhuyenMaiCreateVm
+@{
+    ViewData["Title"] = "Tạo mã khuyến mãi";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-plus-lg"></i>Tạo mã khuyến mãi</h1>
+        <p class="page-subtitle">Mã được cấp tự động. Đặt mức giảm, điều kiện đơn tối thiểu và thời gian hiệu lực.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Create" method="post" class="form-layout" id="frmKm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="MaCodeKhuyenMai" value="@ViewBag.MaTuSinh" />
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">@ViewBag.MaTuSinh</span>
+                <span class="cell-sub">Mã tự sinh khi lưu</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-tag"></i>Thông tin mã</h6>
+                    <div class="form-grid">
+                        <div class="span-full">
+                            <label asp-for="TenKhuyenMai" class="form-label required"></label>
+                            <input asp-for="TenKhuyenMai" class="form-control" id="tenKm" placeholder="VD: Giảm đơn từ 500K" pattern="[^0-9]*" title="Tên mã không được chứa số" />
+                            <span asp-validation-for="TenKhuyenMai" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-cash-coin"></i>Giá trị giảm</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="LoaiGiamGia" class="form-label required"></label>
+                            <select asp-for="LoaiGiamGia" id="selLoai" class="form-select"><option value="PERCENT">Phần trăm giảm (%)</option><option value="FIXED_AMOUNT">Số tiền giảm (đ)</option></select>
+                        </div>
+                        <div>
+                            <label asp-for="GiaTriGiam" class="form-label required"></label>
+                            <input asp-for="GiaTriGiam" id="numGiaTri" type="text" inputmode="numeric" class="form-control money" placeholder="Bắt buộc" />
+                            <span class="form-hint" id="hintGiaTri">Số nguyên từ 1 đến 100.</span>
+                            <span asp-validation-for="GiaTriGiam" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="GiaTriDonToiThieu" class="form-label required"></label>
+                            <input asp-for="GiaTriDonToiThieu" id="numDonToiThieu" type="text" inputmode="numeric" class="form-control money" placeholder="0 nếu không có điều kiện" />
+                            <span class="form-hint">Đơn dưới mức này sẽ không áp dụng được.</span>
+                            <span asp-validation-for="GiaTriDonToiThieu" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-calendar-range"></i>Thời gian và giới hạn sử dụng</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="SoLanSuDungToiDa" class="form-label required"></label>
+                            <input asp-for="SoLanSuDungToiDa" id="numLuot" type="number" min="1" step="1" class="form-control" placeholder="VD: 100" />
+                            <span asp-validation-for="SoLanSuDungToiDa" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NgayBatDau" class="form-label required"></label>
+                            <input asp-for="NgayBatDau" id="ngayBd" type="date" class="form-control" />
+                            <span asp-validation-for="NgayBatDau" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NgayKetThuc" class="form-label required"></label>
+                            <input asp-for="NgayKetThuc" id="ngayKt" type="date" class="form-control" />
+                            <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu mã</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-ticket-perforated"></i>Mã sắp tạo</div>
+            <div class="summary-body">
+                <div class="sku-preview">@ViewBag.MaTuSinh</div>
+                <dl class="m-0">
+                    <div class="summary-row"><dt>Chương trình</dt><dd id="sumTen">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Mức giảm</dt><dd id="sumGiam">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Đơn tối thiểu</dt><dd id="sumToiThieu">0 đ</dd></div>
+                    <div class="summary-row"><dt>Hiệu lực</dt><dd id="sumHieuLuc">Chưa chọn</dd></div>
+                    <div class="summary-row"><dt>Giới hạn</dt><dd id="sumLuot">Chưa nhập</dd></div>
+                </dl>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu mã</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-info-circle"></i><span>Mã đã được dùng trong đơn hàng sẽ không xóa được, nhằm giữ lịch sử bán hàng.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sel = document.getElementById('selLoai'), num = document.getElementById('numGiaTri'),
+                hint = document.getElementById('hintGiaTri');
+            function soThat() { return parseFloat(num.value.replace(/\./g, '')); }
+            function sync() {
+                if (sel.value === 'PERCENT') {
+                    num.classList.remove('money');
+                    if (num.value && (soThat() < 1 || soThat() > 100 || !Number.isInteger(soThat()))) num.value = '';
+                    hint.textContent = 'Số nguyên từ 1 đến 100.';
+                } else {
+                    if (!num.classList.contains('money')) num.classList.add('money');
+                    hint.textContent = 'Số tiền giảm (đ), lớn hơn 0.';
+                }
+                capNhat();
+            }
+            sel.addEventListener('change', sync);
+
+            // Tóm tắt trực tiếp
+            var tenKm = document.getElementById('tenKm'), donToiThieu = document.getElementById('numDonToiThieu'),
+                ngayBd = document.getElementById('ngayBd'), ngayKt = document.getElementById('ngayKt'),
+                luot = document.getElementById('numLuot');
+            var sumTen = document.getElementById('sumTen'), sumGiam = document.getElementById('sumGiam'),
+                sumToiThieu = document.getElementById('sumToiThieu'), sumHieuLuc = document.getElementById('sumHieuLuc'),
+                sumLuot = document.getElementById('sumLuot');
+            function fmtNgay(v) {
+                if (!v) return '';
+                var d = new Date(v);
+                if (isNaN(d)) return v;
+                return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+            }
+            function capNhat() {
+                sumTen.textContent = tenKm.value.trim() || 'Chưa nhập';
+                if (!num.value.trim()) sumGiam.textContent = 'Chưa nhập';
+                else sumGiam.textContent = sel.value === 'PERCENT' ? (num.value.trim() + '%') : (num.value.trim() + ' đ');
+                sumToiThieu.textContent = donToiThieu.value.trim() ? donToiThieu.value.trim() + ' đ' : '0 đ';
+                sumHieuLuc.textContent = (ngayBd.value || ngayKt.value)
+                    ? (fmtNgay(ngayBd.value) || '…') + ' – ' + (fmtNgay(ngayKt.value) || '…')
+                    : 'Chưa chọn';
+                sumLuot.textContent = luot.value ? luot.value + ' lượt' : 'Chưa nhập';
+            }
+            [tenKm, num, donToiThieu, ngayBd, ngayKt, luot].forEach(function (el) {
+                el.addEventListener('input', capNhat);
+                el.addEventListener('change', capNhat);
+            });
+            capNhat();
+            sync();
+        })();
+    </script>
+}

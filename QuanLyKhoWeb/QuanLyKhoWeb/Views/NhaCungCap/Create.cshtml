@@ -1,0 +1,108 @@
+@model QuanLyKhoWeb.Models.Entities.NhaCungCap
+@{
+    ViewData["Title"] = "Thêm nhà cung cấp";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-plus-lg"></i>Thêm nhà cung cấp</h1>
+        <p class="page-subtitle">Mã nhà cung cấp được cấp tự động, bạn chỉ cần nhập thông tin liên hệ.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Create" method="post" class="form-layout" id="frmNcc">
+    @Html.AntiForgeryToken()
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">@ViewBag.MaTuSinh</span>
+                <span class="cell-sub">Mã được cấp tự động khi lưu</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-building"></i>Thông tin nhà cung cấp</h6>
+                    <div class="form-grid">
+                        <div class="span-2">
+                            <label asp-for="TenNhaCungCap" class="form-label required">Tên nhà cung cấp</label>
+                            <input asp-for="TenNhaCungCap" class="form-control" id="tenNcc" placeholder="VD: Công ty TNHH An Phát" pattern="[^0-9]*" title="Tên nhà cung cấp không được chứa số" />
+                            <span asp-validation-for="TenNhaCungCap" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" id="sdtNcc" placeholder="VD: 0901234567" />
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" id="emailNcc" placeholder="VD: lienhe@anphat.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="TrangThaiHoatDong" class="form-label">Trạng thái</label>
+                            <select asp-for="TrangThaiHoatDong" class="form-select" id="ttNcc">
+                                <option value="true">Đang hợp tác</option>
+                                <option value="false">Ngừng hợp tác</option>
+                            </select>
+                            <span class="form-hint">Ngừng hợp tác sẽ ẩn khỏi danh sách chọn khi tạo phiếu nhập.</span>
+                        </div>
+                        <div class="span-full">
+                            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                            <input asp-for="DiaChi" class="form-control" placeholder="VD: 123 Lê Lợi, Quận 1, TP. Hồ Chí Minh" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu nhà cung cấp</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-hash"></i>Mã nhà cung cấp</div>
+            <div class="summary-body">
+                <div class="sku-preview">@ViewBag.MaTuSinh</div>
+                <dl class="m-0">
+                    <div class="summary-row"><dt>Tên</dt><dd id="sumTen">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Điện thoại</dt><dd id="sumSdt">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Email</dt><dd id="sumEmail">Chưa nhập</dd></div>
+                    <div class="summary-row"><dt>Trạng thái</dt><dd id="sumTt">Đang hợp tác</dd></div>
+                </dl>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu nhà cung cấp</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-info-circle"></i><span>Mã được sinh tự động khi lưu. Nhà cung cấp đã phát sinh phiếu nhập sẽ không xóa được.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const ten = document.getElementById('tenNcc'), sdt = document.getElementById('sdtNcc'),
+                  email = document.getElementById('emailNcc'), tt = document.getElementById('ttNcc');
+            const sumTen = document.getElementById('sumTen'), sumSdt = document.getElementById('sumSdt'),
+                  sumEmail = document.getElementById('sumEmail'), sumTt = document.getElementById('sumTt');
+            function capNhat() {
+                sumTen.textContent = ten.value.trim() || 'Chưa nhập';
+                sumSdt.textContent = sdt.value.trim() || 'Chưa nhập';
+                sumEmail.textContent = email.value.trim() || 'Chưa nhập';
+                sumTt.textContent = tt.value === 'true' ? 'Đang hợp tác' : 'Ngừng hợp tác';
+            }
+            [ten, sdt, email].forEach(el => el.addEventListener('input', capNhat));
+            tt.addEventListener('change', capNhat);
+            capNhat();
+        })();
+    </script>
+}

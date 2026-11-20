@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Tổng quan";
+}
+@{
+}
+<script>window.location.replace('@Url.Action("Index", "TongQuan")');</script>
+<div class="empty-state">
+    <i class="bi bi-grid-1x2"></i>
+    <div>Đang chuyển đến trang Tổng quan…</div>
+    <a asp-controller="TongQuan" asp-action="Index" class="btn btn-sm btn-primary">Đến Tổng quan ngay</a>
+</div>

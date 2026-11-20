@@ -1,0 +1,118 @@
+﻿@model QuanLyKhoWeb.Models.Entities.SanPhamSku
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    var m = Model.MaMauSanPhamNavigation;
+    var duocSua = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaSanPham(User);
+}
+@functions {
+    string GiaiMaSku(string sku)
+    {
+        var p = (sku ?? "").Split('-');
+        if (p.Length != 4 || p[3].Length < 7) return "";
+        var thang = "đợt tháng " + p[3].Substring(2, 2) + "/20" + p[3].Substring(0, 2);
+        return $"{p[0]} (nhóm hàng) — {p[1]} (tên SP) — {p[2]} (chất liệu + màu) — {thang}, số {p[3].Substring(4)}";
+    }
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-box-seam"></i>@(m?.TenSanPham ?? Model.MaCodeSku)</h1>
+        <p class="page-subtitle"><span class="sku">@Model.MaCodeSku</span> · @m?.MaDanhMucNavigation?.TenDanhMuc</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if (Model.SoLuong == 0) { <span class="badge bg-danger badge-dot">Hết hàng</span> }
+        else if (Model.SoLuong <= 5) { <span class="badge bg-warning badge-dot">Sắp hết</span> }
+        else { <span class="badge bg-success badge-dot">Còn hàng</span> }
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+        @if (duocSua)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaSku" class="btn btn-primary"><i class="bi bi-pencil"></i>Sửa</a>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoaSp"><i class="bi bi-trash"></i>Xóa</button>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="app-card text-center">
+            @if (!string.IsNullOrEmpty(m?.DuongDanHinhAnh))
+            { <img src="@m.DuongDanHinhAnh" class="img-fluid rounded" style="border:1px solid var(--kho-line)" alt="@m?.TenSanPham" /> }
+            else { <div class="empty-state" style="padding:44px 12px"><i class="bi bi-image"></i><div>Chưa có ảnh</div></div> }
+            <div class="mt-3 text-start">
+                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--kho-line)">
+                    <span class="cell-sub">Giá tiền</span>
+                    <strong>@Model.GiaTien.ToString("N0") đ</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <span class="cell-sub">Tồn kho</span>
+                    <strong style="font-size:20px">@Model.SoLuong</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-card-list"></i>Thông số sản phẩm</h6>
+            <dl class="detail-list">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-hash"></i>Mã SKU</dt><dd class="mb-0"><span class="sku">@Model.MaCodeSku</span><div class="cell-sub mt-1">@GiaiMaSku(Model.MaCodeSku)</div></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-box"></i>Lô hàng</dt><dd class="mb-0">@(Model.MaLoHangNavigation?.MaCodeLoHang ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-tag"></i>Tên sản phẩm</dt><dd class="mb-0">@m?.TenSanPham</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-grid"></i>Danh mục</dt><dd class="mb-0">@m?.MaDanhMucNavigation?.TenDanhMuc</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-award"></i>Nhãn hiệu</dt><dd class="mb-0">@m?.NhanHieu</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-bookmark"></i>Loại</dt><dd class="mb-0">@m?.LoaiSanPham</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-layers"></i>Chất liệu</dt><dd class="mb-0">@(m?.ChatLieu ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-palette"></i>Màu sắc</dt><dd class="mb-0">@(m?.MauSac ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-file-text"></i>Mô tả</dt><dd class="mb-0">@m?.MoTa</dd></div>
+                <div class="detail-row">
+                    <dt class="dl-label"><i class="bi bi-qr-code"></i>Mã QR</dt>
+                    <dd class="mb-0">
+                        <div id="qrSku" class="d-inline-block align-middle"></div>
+                        <div class="cell-sub mt-1">In và dán lên kiện hàng để quét nhanh.</div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+@if (duocSua)
+{
+<div class="modal fade" id="xoaSp" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-trash"></i>Xóa sản phẩm @Model.MaCodeSku</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="Xoa" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaSku" />
+            <div class="modal-body">
+                <div class="confirm-record">
+                    <i class="bi bi-box-seam"></i>
+                    <div>
+                        <div class="confirm-record__name">@(m?.TenSanPham ?? Model.MaCodeSku)</div>
+                        <div class="confirm-record__meta">@Model.MaCodeSku · tồn @Model.SoLuong</div>
+                    </div>
+                </div>
+                <p class="mb-2">Bạn sắp xóa sản phẩm này. Thao tác không thể hoàn tác.</p>
+                <div class="callout callout--warning"><i class="bi bi-exclamation-triangle"></i><span>Sẽ xóa kèm vị trí kệ, phiếu nhập và nhật ký tồn của sản phẩm. Không xóa được nếu sản phẩm đã nằm trong đơn hàng.</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xóa sản phẩm</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}
+
+@section Scripts {
+    <script src="~/lib/qrcode.min.js"></script>
+    <script>
+        (function () {
+            var el = document.getElementById('qrSku');
+            if (!el) return;
+            try {
+                new QRCode(el, { text: '@Model.MaCodeSku', width: 96, height: 96, correctLevel: QRCode.CorrectLevel.M });
+            } catch (e) {
+                el.innerHTML = '<small class="text-muted">Không tải được thư viện QR (cần mạng). Mã SKU: @Model.MaCodeSku</small>';
+            }
+        })();
+    </script>
+}

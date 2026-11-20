@@ -1,0 +1,108 @@
+@model List<QuanLyKhoWeb.Models.Entities.NhaCungCap>
+@{
+    ViewData["Title"] = "Nhà cung cấp";
+    ViewData["Subtitle"] = "Nguồn nhập hàng cho kho";
+    // Chỉ Quản lý được thêm/sửa/xóa; các vai trò khác chỉ xem
+    var duocSua = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaNhaCungCap(User);
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-building"></i>Nhà cung cấp</h1>
+        <p class="page-subtitle">Danh bạ đối tác cung cấp hàng. Chỉ xóa được nhà cung cấp chưa phát sinh phiếu nhập.</p>
+    </div>
+    @if (duocSua) { <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Thêm nhà cung cấp</a> }
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm nhà cung cấp</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "ncc",
+        Controller = "NhaCungCap",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã NCC, tên, điện thoại, email, địa chỉ…"
+    })" />
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách nhà cung cấp</h6>
+        <span class="cell-sub">@Model.Count đối tác</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Mã NCC</th><th>Nhà cung cấp</th><th>Liên hệ</th><th>Địa chỉ</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var n in Model)
+            {
+                <tr>
+                    <td><span class="sku">@n.MaCodeNcc</span></td>
+                    <td class="cell-main">@n.TenNhaCungCap</td>
+                    <td>
+                        <div>@(n.SoDienThoai ?? "—")</div>
+                        <div class="cell-sub">@(n.Email ?? "Chưa có email")</div>
+                    </td>
+                    <td class="cell-sub" style="max-width:280px">@(n.DiaChi ?? "—")</td>
+                    <td>
+                        @if (n.TrangThaiHoatDong == true) { <span class="badge bg-success badge-dot">Đang hợp tác</span> }
+                        else { <span class="badge bg-secondary badge-dot">Ngừng hợp tác</span> }
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="Details" asp-route-id="@n.MaNhaCungCap" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem @n.TenNhaCungCap"><i class="bi bi-eye"></i></a>
+                            @if (duocSua)
+                            {
+                                <a asp-action="Edit" asp-route-id="@n.MaNhaCungCap" class="btn btn-sm btn-outline-secondary" title="Sửa" aria-label="Sửa @n.TenNhaCungCap"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-ncc-@n.MaNhaCungCap" title="Xóa" aria-label="Xóa @n.TenNhaCungCap"><i class="bi bi-trash"></i></button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <i class="bi bi-building"></i>
+                        <div>Chưa có nhà cung cấp nào</div>
+                        <p class="page-subtitle mx-auto" style="max-width:42ch">Thêm đối tác đầu tiên để bắt đầu ghi nhận phiếu nhập kho.</p>
+                        @if (duocSua) { <a asp-action="Create" class="btn btn-primary">Thêm nhà cung cấp</a> }
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (duocSua)
+{
+@foreach (var n in Model)
+{
+<div class="modal fade" id="xoa-ncc-@n.MaNhaCungCap" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-trash"></i>Xóa nhà cung cấp @n.MaCodeNcc</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="Xoa" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@n.MaNhaCungCap" />
+            <div class="modal-body">
+                <div class="confirm-record">
+                    <i class="bi bi-building"></i>
+                    <div>
+                        <div class="confirm-record__name">@n.TenNhaCungCap</div>
+                        <div class="confirm-record__meta">@n.MaCodeNcc · @(n.SoDienThoai ?? "chưa có SĐT")</div>
+                    </div>
+                </div>
+                <p class="mb-2">Bạn sắp xóa nhà cung cấp này. Thao tác không thể hoàn tác.</p>
+                <div class="callout callout--warning"><i class="bi bi-exclamation-triangle"></i><span>Chỉ xóa được nhà cung cấp chưa có phiếu nhập kho nào.</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xóa nhà cung cấp</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}
+}

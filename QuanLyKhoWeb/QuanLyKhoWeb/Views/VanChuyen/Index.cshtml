@@ -1,0 +1,222 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.VanDon>
+@{
+    ViewData["Title"] = "Vận chuyển";
+    ViewData["Subtitle"] = "Vận đơn tự tạo từ đơn giao hàng";
+    var nvList = ViewBag.NvGiaoHang as List<QuanLyKhoWeb.Models.Entities.NguoiDung> ?? new();
+    // Điều phối (đổi người giao, xóa vận đơn): Quản lý + NV bán hàng
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaVanChuyen(User);
+    // Xác nhận đã giao: Quản lý + NV bán hàng + NV giao hàng (server chỉ cho đơn của mình)
+    var duocXacNhan = QuanLyKhoWeb.Authorization.QuyenNguoiDung.XacNhanGiao(User);
+    // NV giao hàng không thấy bộ lọc nhân viên (danh sách đã tự lọc theo chính họ)
+    var laGiaoHang = ViewBag.LaGiaoHang as bool? ?? false;
+    var canXacNhan = Model.Where(v => duocXacNhan && v.TrangThai == "CHUA_GIAO").ToList();
+    var coTheXoa = Model.Where(v => duocTao && v.TrangThai == "DA_GIAO").ToList();
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-truck"></i>Vận chuyển</h1>
+        <p class="page-subtitle">Theo dõi vận đơn chưa giao và đã giao. Đơn giao hàng tự sinh vận đơn khi được tạo.</p>
+    </div>
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm vận đơn</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "vanchuyen",
+        Controller = "VanChuyen",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã vận đơn, mã đơn, khách hàng, nhân viên giao…",
+        ThamSoThem = new() {
+            ["tuNgay"] = ViewBag.TuNgay as string,
+            ["denNgay"] = ViewBag.DenNgay as string,
+            ["maNvGiao"] = ViewBag.MaNvGiao?.ToString()
+        }
+    })" />
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-funnel"></i>Lọc vận đơn</h6>
+    <form method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="search" value="@ViewData["SearchValue"]" />
+        <div class="col-6 col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" name="tuNgay" value="@ViewBag.TuNgay" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" name="denNgay" value="@ViewBag.DenNgay" class="form-control" />
+        </div>
+        @if (!laGiaoHang)
+        {
+            <div class="col-md-3">
+                <label class="form-label">Nhân viên giao</label>
+                <select name="maNvGiao" class="form-select">
+                    <option value="">Tất cả</option>
+                    @foreach (var nv in nvList)
+                    {
+                        @if (ViewBag.MaNvGiao == nv.MaNguoiDung)
+                        { <option value="@nv.MaNguoiDung" selected>@nv.HoTen</option> }
+                        else
+                        { <option value="@nv.MaNguoiDung">@nv.HoTen</option> }
+                    }
+                </select>
+            </div>
+        }
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-primary"><i class="bi bi-search"></i>Lọc</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+        </div>
+    </form>
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách vận đơn</h6>
+        <span class="cell-sub">@Model.Count vận đơn</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Đơn hàng</th><th>Hàng hóa</th><th class="num">SL</th><th>Khách hàng</th><th>Nhân viên giao</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var v in Model)
+            {
+                var tenHang = string.Join(", ", v.MaDonHangNavigation.ChiTietDonHangs.Select(c => c.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham));
+                if (tenHang.Length > 80) tenHang = tenHang.Substring(0, 80) + "…";
+                var tongSl = v.MaDonHangNavigation.ChiTietDonHangs.Sum(c => c.SoLuong);
+                <tr>
+                    <td>
+                        <span class="sku">@v.MaDonHangNavigation.MaCodeDonHang</span>
+                        <div class="cell-sub mt-1">@v.MaCodeVanDon</div>
+                    </td>
+                    <td style="max-width:280px"><span class="cell-main">@tenHang</span></td>
+                    <td class="num">@tongSl</td>
+                    <td>@v.MaDonHangNavigation.TenKhachHangGiao</td>
+                    <td>
+                        @if (v.MaNhanVienGiaoHangNavigation == null)
+                        {
+                            <span class="text-muted">Chưa gán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success"><i class="bi bi-person-check"></i>@v.MaNhanVienGiaoHangNavigation.HoTen</span>
+                            @if (duocTao && v.TrangThai != "DA_GIAO")
+                            {
+                                <a asp-action="GanNhanVien" asp-route-id="@v.MaVanDon" class="btn btn-sm btn-link">Đổi</a>
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (v.TrangThai == "CHUA_HOAN_THANH")
+                        {
+                            <a asp-action="GanNhanVien" asp-route-id="@v.MaVanDon" class="badge bg-warning text-decoration-none"><i class="bi bi-exclamation-circle"></i>Chưa hoàn thành</a>
+                        }
+                        else if (v.TrangThai == "DA_GIAO") { <span class="badge bg-success badge-dot">Đã giao</span> }
+                        else { <span class="badge bg-warning badge-dot">Chưa giao</span> }
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="GanNhanVien" asp-route-id="@v.MaVanDon" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem vận đơn @v.MaCodeVanDon"><i class="bi bi-eye"></i></a>
+                            @if (duocXacNhan && v.TrangThai == "CHUA_GIAO")
+                            {
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#giao-@v.MaVanDon"><i class="bi bi-check2"></i>Đã giao</button>
+                            }
+                            @if (duocTao && v.TrangThai == "DA_GIAO")
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-@v.MaVanDon" title="Xóa vận đơn" aria-label="Xóa vận đơn @v.MaCodeVanDon"><i class="bi bi-trash"></i></button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <i class="bi bi-truck"></i>
+                        <div>Chưa có vận đơn nào</div>
+                        <p class="page-subtitle mx-auto" style="max-width:44ch">Đơn hàng chọn hình thức giao hàng sẽ tự tạo vận đơn tại đây.</p>
+                        @if (QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User))
+                        {
+                            <a asp-controller="DonHang" asp-action="Create" class="btn btn-primary">Tạo đơn giao hàng</a>
+                        }
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* Modal đặt ngoài bảng để không bị ảnh hưởng bởi vùng cuộn *@
+@foreach (var v in canXacNhan)
+{
+    var tongSl = v.MaDonHangNavigation.ChiTietDonHangs.Sum(c => c.SoLuong);
+    <div class="modal fade" id="giao-@v.MaVanDon" tabindex="-1" aria-labelledby="giaoTen-@v.MaVanDon" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="giaoTen-@v.MaVanDon"><i class="bi bi-check2-circle"></i>Xác nhận đã giao @v.MaCodeVanDon</h6>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="detail-list">
+                    <div class="detail-row"><dt class="dl-label">Đơn hàng</dt><dd class="mb-0"><span class="sku">@v.MaDonHangNavigation.MaCodeDonHang</span></dd></div>
+                    <div class="detail-row"><dt class="dl-label">Khách hàng</dt><dd class="mb-0">@v.MaDonHangNavigation.TenKhachHangGiao</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Số lượng</dt><dd class="mb-0">@tongSl sản phẩm</dd></div>
+                    <div class="detail-row"><dt class="dl-label">NV giao</dt><dd class="mb-0">@(v.MaNhanVienGiaoHangNavigation?.HoTen ?? "—")</dd></div>
+                </dl>
+                @if (v.MaNhanVienGiaoHangNavigation == null)
+                {
+                    <div class="callout callout--warning mt-3"><i class="bi bi-exclamation-triangle"></i><span>Chưa gán nhân viên giao. <a asp-action="GanNhanVien" asp-route-id="@v.MaVanDon">Gán ngay</a> trước khi xác nhận.</span></div>
+                }
+                else
+                {
+                    <div class="callout mt-3"><i class="bi bi-info-circle"></i><span>Sau khi xác nhận, vận đơn khóa ở trạng thái <b>Đã giao</b> và không thay đổi lại được.</span></div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Để sau</button>
+                @if (v.MaNhanVienGiaoHangNavigation != null)
+                {
+                    <form asp-action="CapNhatTrangThai" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@v.MaVanDon" />
+                        <input type="hidden" name="trangThai" value="DA_GIAO" />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Xác nhận đã giao</button>
+                    </form>
+                }
+            </div>
+        </div></div>
+    </div>
+}
+
+@foreach (var v in coTheXoa)
+{
+    <div class="modal fade" id="xoa-@v.MaVanDon" tabindex="-1" aria-labelledby="xoaTen-@v.MaVanDon" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+            <div class="modal-header">
+                <h6 class="modal-title" id="xoaTen-@v.MaVanDon"><i class="bi bi-trash"></i>Xóa vận đơn @v.MaCodeVanDon</h6>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form asp-action="Xoa" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@v.MaVanDon" />
+                <div class="modal-body">
+                    <div class="confirm-record">
+                        <i class="bi bi-truck"></i>
+                        <div>
+                            <div class="confirm-record__name">@v.MaCodeVanDon</div>
+                            <div class="confirm-record__meta">Đơn @v.MaDonHangNavigation.MaCodeDonHang · @v.MaDonHangNavigation.TenKhachHangGiao</div>
+                        </div>
+                    </div>
+                    <p class="mb-2">Chỉ dọn bản ghi vận chuyển. Đơn hàng vẫn giữ trạng thái <b>hoàn tất</b>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa vận đơn</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+}

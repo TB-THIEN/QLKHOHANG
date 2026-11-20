@@ -1,0 +1,179 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.DonHang>
+@{
+    ViewData["Title"] = "Đơn hàng";
+    ViewData["Subtitle"] = "Mã tự sinh, hủy có xác nhận";
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User);
+    var duocHuy = QuanLyKhoWeb.Authorization.QuyenNguoiDung.HuyDon(User);
+    var hinhThuc = (ViewBag.HinhThuc as string) ?? "";
+    var coTheHuy = Model.Where(d => duocHuy && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED").ToList();
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-receipt"></i>Đơn hàng</h1>
+        <p class="page-subtitle">Theo dõi đơn theo thời gian. Hủy đơn sẽ hoàn lại tồn kho tương ứng.</p>
+    </div>
+    @if (duocTao) { <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Tạo đơn hàng</a> }
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm đơn hàng</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "donhang",
+        Controller = "DonHang",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã đơn, tên khách, số điện thoại, địa chỉ…",
+        ThamSoThem = new() {
+            ["tuNgay"] = ViewBag.TuNgay as string,
+            ["denNgay"] = ViewBag.DenNgay as string,
+            ["hinhThuc"] = hinhThuc
+        }
+    })" />
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-funnel"></i>Lọc theo thời gian</h6>
+    <form method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="search" value="@ViewData["SearchValue"]" />
+        <div class="col-6 col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" name="tuNgay" value="@ViewBag.TuNgay" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" name="denNgay" value="@ViewBag.DenNgay" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Hình thức nhận</label>
+            <select name="hinhThuc" class="form-select">
+                <option value="">Tất cả</option>
+                <option value="TAI_SHOP" selected="@(hinhThuc == "TAI_SHOP")">Nhận tại shop</option>
+                <option value="GIAO_HANG" selected="@(hinhThuc == "GIAO_HANG")">Giao hàng</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-primary"><i class="bi bi-search"></i>Lọc</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+        </div>
+        <div class="col-12 d-flex gap-2 flex-wrap align-items-center">
+            <span class="cell-sub me-1">Chọn nhanh</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(0)">Hôm nay</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(7)">7 ngày</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="locNhanh(30)">30 ngày</button>
+        </div>
+    </form>
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách đơn</h6>
+        <span class="cell-sub">@Model.Count đơn trong kỳ</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Mã đơn</th><th>Sản phẩm</th><th class="num">SL</th><th class="num">Tổng tiền</th><th>Nhân viên</th><th>Hình thức</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var d in Model)
+            {
+                var tongSl = d.ChiTietDonHangs.Sum(c => c.SoLuong);
+                var first = d.ChiTietDonHangs.FirstOrDefault();
+                var conLai = d.ChiTietDonHangs.Count - 1;
+                <tr>
+                    <td>
+                        <span class="sku">@d.MaCodeDonHang</span>
+                        <div class="cell-sub mt-1">@d.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")</div>
+                        <div class="mt-1">
+                            @if (d.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
+                            else if (d.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+                            else { <span class="badge bg-info badge-dot">Đã xác nhận</span> }
+                        </div>
+                    </td>
+                    <td style="max-width:300px">
+                        @if (first != null)
+                        {
+                            <div class="cell-main">@first.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</div>
+                            <div class="cell-sub">@first.MaSkuNavigation?.MaCodeSku</div>
+                            @if (conLai > 0)
+                            {
+                                <span class="badge bg-light mt-1" title="@string.Join(", ", d.ChiTietDonHangs.Skip(1).Select(c => c.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham))">+@conLai sản phẩm khác</span>
+                            }
+                        }
+                    </td>
+                    <td class="num">@tongSl</td>
+                    <td class="num fw-semibold">@d.ThanhTien.ToString("N0") đ</td>
+                    <td class="cell-sub">@(d.MaNhanVienNavigation?.HoTen ?? "—")</td>
+                    <td>
+                        @if (d.HinhThucNhanHang == "GIAO_HANG") { <span class="badge bg-info">Giao hàng</span> }
+                        else { <span class="badge bg-light">Nhận tại shop</span> }
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="Details" asp-route-id="@d.MaDonHang" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem đơn @d.MaCodeDonHang"><i class="bi bi-eye"></i></a>
+                            @if (duocHuy && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED")
+                            {
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#huy-@d.MaDonHang" title="Hủy đơn" aria-label="Hủy đơn @d.MaCodeDonHang"><i class="bi bi-x-circle"></i></button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <i class="bi bi-receipt"></i>
+                        <div>Chưa có đơn hàng trong kỳ lọc</div>
+                        <p class="page-subtitle mx-auto" style="max-width:42ch">Đổi khoảng thời gian, hoặc tạo đơn hàng mới.</p>
+                        @if (duocTao) { <a asp-action="Create" class="btn btn-primary">Tạo đơn hàng</a> }
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* Modal đặt ngoài bảng để không bị ảnh hưởng bởi vùng cuộn của table-responsive *@
+@foreach (var d in coTheHuy)
+{
+    <div class="modal fade" id="huy-@d.MaDonHang" tabindex="-1" aria-labelledby="huyTen-@d.MaDonHang" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+            <div class="modal-header">
+                <h6 class="modal-title" id="huyTen-@d.MaDonHang"><i class="bi bi-exclamation-triangle"></i>Hủy đơn @d.MaCodeDonHang</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form asp-action="Huy" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@d.MaDonHang" />
+                <div class="modal-body">
+                    <div class="confirm-record">
+                        <i class="bi bi-receipt"></i>
+                        <div>
+                            <div class="confirm-record__name">@d.MaCodeDonHang</div>
+                            <div class="confirm-record__meta">@d.NgayDatHang?.ToString("dd/MM/yyyy HH:mm") · @d.ThanhTien.ToString("N0") đ</div>
+                        </div>
+                    </div>
+                    <p class="mb-2">Đơn hàng sẽ chuyển sang trạng thái đã hủy và tồn kho được hoàn lại.</p>
+                    <label class="form-label">Lý do hủy (không bắt buộc)</label>
+                    <input name="lyDoHuy" class="form-control" placeholder="VD: Khách đổi ý" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Giữ đơn</button>
+                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+}
+
+@section Scripts {
+<script>
+function locNhanh(soNgay) {
+  const den = new Date(); const tu = new Date();
+  tu.setDate(den.getDate() - soNgay);
+  const f = d => d.toISOString().slice(0,10);
+  window.location = `/DonHang?tuNgay=${f(tu)}&denNgay=${f(den)}`;
+}
+</script>
+}

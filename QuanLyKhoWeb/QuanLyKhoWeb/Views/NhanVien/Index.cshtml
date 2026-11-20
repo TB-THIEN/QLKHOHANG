@@ -1,0 +1,85 @@
+﻿@model List<QuanLyKhoWeb.Models.Entities.NguoiDung>
+@{
+    ViewData["Title"] = "Nhân viên";
+    ViewData["Subtitle"] = "Tài khoản và vai trò";
+    var hienNghi = (ViewBag.HienNghi as bool?) ?? false;
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-people"></i>Nhân viên</h1>
+        <p class="page-subtitle">Tài khoản đăng nhập, vai trò và trạng thái làm việc@(hienNghi ? " — đang hiện cả nhân viên nghỉ làm" : "").</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (hienNghi)
+        { <a asp-action="Index" asp-route-search="@ViewData["SearchValue"]" class="btn btn-outline-secondary"><i class="bi bi-eye-slash"></i>Ẩn người nghỉ làm</a> }
+        else
+        { <a asp-action="Index" asp-route-hienNghi="true" asp-route-search="@ViewData["SearchValue"]" class="btn btn-outline-secondary"><i class="bi bi-eye"></i>Hiện người nghỉ làm</a> }
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Thêm nhân viên</a>
+    </div>
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm nhân viên</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "nhanvien",
+        Controller = "NhanVien",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm họ tên, tên đăng nhập, email, SĐT, CCCD…",
+        ThamSoThem = new() { ["hienNghi"] = hienNghi ? "true" : "" }
+    })" />
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách nhân viên</h6>
+        <span class="cell-sub">@Model.Count tài khoản</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Mã NV</th><th>Nhân viên</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var nv in Model)
+            {
+                <tr>
+                    <td><span class="sku">NV-@nv.MaNguoiDung.ToString("D4")</span></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (!string.IsNullOrEmpty(nv.AnhThe))
+                            { <img src="@nv.AnhThe" class="app-avatar" style="width:32px;height:32px;object-fit:cover" alt="@nv.HoTen" /> }
+                            else
+                            { <span class="app-avatar" style="width:32px;height:32px;font-size:12px" aria-hidden="true">@(string.IsNullOrEmpty(nv.HoTen) ? "?" : nv.HoTen.Substring(0,1).ToUpper())</span> }
+                            <div>
+                                <div class="cell-main">@nv.HoTen</div>
+                                <div class="cell-sub">@nv.TenDangNhap</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-light"><i class="bi bi-person-badge"></i>@nv.MaVaiTroNavigation?.TenVaiTro</span></td>
+                    <td>
+                        @if (nv.TrangThaiHoatDong == true) { <span class="badge bg-success badge-dot">Đang làm</span> }
+                        else { <span class="badge bg-secondary badge-dot">Nghỉ làm</span> }
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="Details" asp-route-id="@nv.MaNguoiDung" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem @nv.HoTen"><i class="bi bi-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="bi bi-people"></i>
+                        <div>Chưa có nhân viên nào</div>
+                        <p class="page-subtitle mx-auto" style="max-width:42ch">Tạo tài khoản đầu tiên để nhân viên có thể đăng nhập và nhận việc.</p>
+                        <a asp-action="Create" class="btn btn-primary">Thêm nhân viên</a>
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

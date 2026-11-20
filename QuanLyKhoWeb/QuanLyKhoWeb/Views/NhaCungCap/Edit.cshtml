@@ -1,0 +1,81 @@
+@model QuanLyKhoWeb.Models.Entities.NhaCungCap
+@{
+    ViewData["Title"] = "Sửa nhà cung cấp";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-pencil"></i>Sửa nhà cung cấp</h1>
+        <p class="page-subtitle"><span class="sku">@Model.MaCodeNcc</span> · @Model.TenNhaCungCap</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Edit" method="post" class="form-layout" id="frmSuaNcc">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.MaNhaCungCap" />
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">@Model.MaCodeNcc</span>
+                <span class="cell-sub">Mã tự sinh, không được sửa</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-building"></i>Thông tin nhà cung cấp</h6>
+                    <div class="form-grid">
+                        <div class="span-2">
+                            <label asp-for="TenNhaCungCap" class="form-label required">Tên nhà cung cấp</label>
+                            <input asp-for="TenNhaCungCap" class="form-control" pattern="[^0-9]*" title="Tên nhà cung cấp không được chứa số" />
+                            <span asp-validation-for="TenNhaCungCap" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="VD: lienhe@anphat.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="TrangThaiHoatDong" class="form-label">Trạng thái</label>
+                            <select asp-for="TrangThaiHoatDong" class="form-select">
+                                <option value="true">Đang hợp tác</option>
+                                <option value="false">Ngừng hợp tác</option>
+                            </select>
+                            <span class="form-hint">Ngừng hợp tác sẽ ẩn khỏi danh sách chọn khi tạo phiếu nhập.</span>
+                        </div>
+                        <div class="span-full">
+                            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                            <input asp-for="DiaChi" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-info-circle"></i>Lưu ý khi sửa</div>
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-receipt"></i><span>Nhà cung cấp đã có <b>@Model.PhieuNhapKhos.Count</b> phiếu nhập. Đổi trạng thái sang "Ngừng hợp tác" sẽ chặn chọn đối tác này khi lập phiếu mới.</span></div>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

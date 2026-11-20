@@ -1,0 +1,16 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Đã có lỗi xảy ra";
+}
+<div class="app-card" style="max-width:560px;margin:32px auto">
+    <div class="empty-state">
+        <i class="bi bi-exclamation-octagon" style="background:var(--kho-danger-soft);color:var(--kho-danger)"></i>
+        <div>Đã có lỗi xảy ra</div>
+        <p class="page-subtitle mx-auto mb-0" style="max-width:44ch">Thao tác không thực hiện được. Thử lại một lần nữa; nếu vẫn lỗi, báo cho quản trị viên kèm mã yêu cầu bên dưới.</p>
+        @if (Model.ShowRequestId)
+        {
+            <p class="cell-sub mt-3 mb-0">Mã yêu cầu: <span class="sku">@Model.RequestId</span></p>
+        }
+        <a asp-controller="TongQuan" asp-action="Index" class="btn btn-primary"><i class="bi bi-house"></i>Về tổng quan</a>
+    </div>
+</div>

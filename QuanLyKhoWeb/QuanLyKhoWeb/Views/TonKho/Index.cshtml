@@ -1,0 +1,227 @@
+@model List<QuanLyKhoWeb.Models.Entities.SanPhamSku>
+@{
+    ViewData["Title"] = "Tồn kho";
+    ViewData["Subtitle"] = "Tồn theo SKU và vị trí kệ";
+    var loc = (ViewBag.Loc as string) ?? "TATCA";
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.NhapKho(User);
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-boxes"></i>Tồn kho</h1>
+        <p class="page-subtitle">Số lượng hiện có theo từng SKU và vị trí kệ. Quét mã để cộng nhanh một đơn vị vào kho.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalXuatTonKho"><i class="bi bi-download"></i>Xuất báo cáo</button>
+        @if (duocTao) { <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalQuet"><i class="bi bi-qr-code-scan"></i>Quét mã</button> }
+    </div>
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm hàng trong kho</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "tonkho",
+        Controller = "TonKho",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã SKU, tên sản phẩm, khu hoặc kệ đang chứa…",
+        ThamSoThem = new() { ["loc"] = loc }
+    })" />
+</div>
+
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+    <div class="segmented" role="group" aria-label="Chế độ xem tồn kho">
+        <a asp-action="Index" class="btn @(loc=="TATCA"?"btn-primary":"")">Tồn kho</a>
+        <a asp-action="PhieuNhap" class="btn">Phiếu nhập</a>
+    </div>
+    <div class="segmented ms-auto" role="group" aria-label="Lọc mức tồn">
+        <a asp-action="Index" asp-route-loc="TATCA" asp-route-search="@ViewData["SearchValue"]" class="btn @(loc=="TATCA"?"btn-primary":"")">Tất cả</a>
+        <a asp-action="Index" asp-route-loc="CONHANG" asp-route-search="@ViewData["SearchValue"]" class="btn @(loc=="CONHANG"?"btn-primary":"")">Còn hàng</a>
+        <a asp-action="Index" asp-route-loc="SAPHET" asp-route-search="@ViewData["SearchValue"]" class="btn @(loc=="SAPHET"?"btn-primary":"")">Sắp hết (≤ 5)</a>
+        <a asp-action="Index" asp-route-loc="HETHANG" asp-route-search="@ViewData["SearchValue"]" class="btn @(loc=="HETHANG"?"btn-primary":"")">Hết hàng</a>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Tồn theo sản phẩm</h6>
+        <span class="cell-sub">@Model.Count SKU</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Mã SKU</th><th>Ảnh</th><th>Sản phẩm</th><th class="num">Giá</th><th class="num">Tồn</th><th>Vị trí kệ</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var s in Model)
+            {
+                var vitri = s.TonKhoKeHangs.Any()
+                    ? string.Join(", ", s.TonKhoKeHangs.Select(t => $"{t.MaKeHangNavigation?.MaKhuVucNavigation?.TenKhuVuc} / {t.MaKeHangNavigation?.TenKeHang}"))
+                    : "Chưa xếp kệ";
+                <tr>
+                    <td><span class="sku">@s.MaCodeSku</span></td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(s.MaMauSanPhamNavigation?.DuongDanHinhAnh))
+                        { <img src="@s.MaMauSanPhamNavigation.DuongDanHinhAnh" class="thumb-44" alt="@s.MaMauSanPhamNavigation?.TenSanPham" loading="lazy" /> }
+                        else { <span class="text-muted"><i class="bi bi-image" style="font-size:22px"></i></span> }
+                    </td>
+                    <td class="cell-main">@s.MaMauSanPhamNavigation?.TenSanPham</td>
+                    <td class="num">@s.GiaTien.ToString("N0") đ</td>
+                    <td class="num"><span class="badge @(s.SoLuong==0?"bg-danger":s.SoLuong<=5?"bg-warning":"bg-success") badge-dot">@s.SoLuong</span></td>
+                    <td class="cell-sub">@vitri</td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-controller="SanPham" asp-action="Details" asp-route-id="@s.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm" aria-label="Xem chi tiết @s.MaCodeSku"><i class="bi bi-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <i class="bi bi-boxes"></i>
+                        <div>Không có sản phẩm nào với bộ lọc này</div>
+                        <p class="page-subtitle mx-auto" style="max-width:42ch">Đổi mức tồn, hoặc thêm sản phẩm mới vào kho.</p>
+                        @if (duocTao) { <a asp-controller="SanPham" asp-action="Create" class="btn btn-primary">Thêm sản phẩm</a> }
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalQuet" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-qr-code-scan"></i>Quét mã SKU</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <div class="modal-body">
+            <div id="reader" style="width:100%;border-radius:var(--radius-sm);overflow:hidden"></div>
+            <div id="quetLoi" class="mt-2" style="display:none"></div>
+            <div class="d-flex gap-2 mt-3">
+                <input id="txtMaQuet" class="form-control" placeholder="Hoặc nhập mã SKU…" />
+                <button id="btnXem" class="btn btn-outline-primary">Xem</button>
+            </div>
+            <div id="previewQuet" class="mt-3" style="display:none">
+                <div class="d-flex gap-3 align-items-center p-3" style="border:1px solid var(--kho-line);border-radius:var(--radius-sm);background:var(--kho-surface-2)">
+                    <span id="pvHinh" class="text-muted"><i class="bi bi-box" style="font-size:28px"></i></span>
+                    <div>
+                        <b id="pvTen"></b>
+                        <div class="cell-sub" id="pvMa"></div>
+                        <div class="cell-sub mt-1">Tồn hiện tại: <b id="pvTon"></b></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button id="btnThemKho" class="btn btn-primary" disabled><i class="bi bi-plus-lg"></i>Thêm vào kho (+1)</button>
+        </div>
+    </div></div>
+</div>
+
+<div class="modal fade" id="modalXuatTonKho" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-file-earmark-excel"></i>Xuất báo cáo tồn kho</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <div class="modal-body">
+            <p class="mb-2">Xuất danh sách tồn kho theo bộ lọc <b>@(loc)</b> đang chọn ra file Excel (.xlsx), có dòng tổng cộng và ô chữ ký.</p>
+            <div class="callout"><i class="bi bi-info-circle"></i><span>File gồm: mã SKU, tên, danh mục, nhãn hiệu, giá, tồn và vị trí kệ.</span></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+            <a class="btn btn-success" asp-action="XuatExcel" asp-route-loc="@loc"><i class="bi bi-file-earmark-excel"></i>Xuất file Excel</a>
+        </div>
+    </div></div>
+</div>
+
+@section Scripts {
+<script src="~/lib/html5-qrcode.min.js"></script>
+<script>
+let maHienTai = '';
+async function xemTruoc(ma) {
+  const res = await fetch('/TonKho/XemTruoc?maCode=' + encodeURIComponent(ma));
+  const d = await res.json();
+  const box = document.getElementById('previewQuet');
+  if (!d.timThay) { box.style.display='none'; document.getElementById('btnThemKho').disabled = true; alert('Không tìm thấy mã SKU'); return; }
+  maHienTai = d.maCodeSku;
+  document.getElementById('pvHinh').innerHTML = d.hinh
+    ? `<img src="${d.hinh}" class="thumb-48" alt="" />`
+    : '<i class="bi bi-box" style="font-size:28px"></i>';
+  document.getElementById('pvTen').textContent = d.ten;
+  document.getElementById('pvMa').textContent = d.maCodeSku;
+  document.getElementById('pvTon').textContent = d.tonHienTai;
+  box.style.display = 'block';
+  document.getElementById('btnThemKho').disabled = false;
+}
+document.getElementById('btnXem').onclick = () => { const v = document.getElementById('txtMaQuet').value.trim(); if (v) xemTruoc(v); };
+document.getElementById('txtMaQuet').addEventListener('change', e => xemTruoc(e.target.value.trim()));
+document.getElementById('btnThemKho').onclick = async () => {
+  const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+  const form = new FormData(); form.append('maCodeSku', maHienTai);
+  if (token) form.append('__RequestVerificationToken', token);
+  const res = await fetch('/TonKho/QuetMa', { method: 'POST', body: form });
+  const d = await res.json();
+  if (d.thanhCong) { alert('Đã thêm vào kho. Tồn sau: ' + d.tonSau); location.reload(); }
+  else alert(d.thongBao || 'Lỗi');
+};
+let quet = null;
+// Báo lỗi camera theo từng nguyên nhân để người dùng biết cách sửa
+function baoLoiQuet(err) {
+  const ten = (err && (err.name || err.code)) || '';
+  let msg;
+  if (!window.isSecureContext) {
+    msg = 'Trình duyệt chỉ cho mở camera khi trang chạy HTTPS. Hãy mở trang bằng địa chỉ https:// rồi thử lại.';
+  } else if (ten === 'NotAllowedError' || ten === 'PermissionDeniedError') {
+    msg = 'Trình duyệt đang chặn quyền camera. Vào Cài đặt trình duyệt → Quyền trang web → Camera và cho phép trang này, sau đó tải lại trang.';
+  } else if (ten === 'NotFoundError' || ten === 'DevicesNotFoundError') {
+    msg = 'Không tìm thấy camera nào trên thiết bị. Bạn vẫn có thể nhập mã SKU bên dưới.';
+  } else if (ten === 'NotReadableError' || ten === 'TrackStartError') {
+    msg = 'Camera đang bị ứng dụng khác dùng hoặc không khởi động được. Đóng ứng dụng khác rồi thử lại.';
+  } else {
+    msg = 'Không truy cập được camera trên thiết bị này. Bạn vẫn có thể nhập mã SKU bên dưới.';
+  }
+  const box = document.getElementById('quetLoi');
+  if (box) { box.style.display = 'block'; box.innerHTML = '<div class="callout"><i class="bi bi-camera-video-off"></i><span>' + msg + '</span></div>'; }
+}
+function batDauQuet() {
+  if (!window.Html5Qrcode) { baoLoiQuet(null); return; }
+  if (quet) return;
+  const loi = document.getElementById('quetLoi');
+  if (loi) { loi.style.display = 'none'; loi.innerHTML = ''; }
+  const onOk = txt => { document.getElementById('txtMaQuet').value = txt; xemTruoc(txt); dungQuet(); };
+  const thatBai = err => {
+    const r = document.getElementById('reader');
+    if (r) r.innerHTML = '';
+    quet = null;
+    baoLoiQuet(err);
+  };
+  try {
+    quet = new Html5Qrcode('reader');
+    const cauHinh = { fps: 10, qrbox: 220 };
+    // Ưu tiên camera sau; máy chỉ có camera trước thì thử lại bằng camera mặc định
+    quet.start({ facingMode: 'environment' }, cauHinh, onOk, () => {})
+      .catch(err => {
+        const ten = (err && err.name) || '';
+        if (ten === 'OverconstrainedError' || ten === 'NotFoundError' || ten === 'DevicesNotFoundError') {
+          try {
+            quet = new Html5Qrcode('reader');
+            quet.start({ facingMode: 'user' }, cauHinh, onOk, () => {}).catch(thatBai);
+            return;
+          } catch (e) { /* rơi xuống báo lỗi chung */ }
+        }
+        thatBai(err);
+      });
+  } catch (e) { quet = null; baoLoiQuet(e); }
+}
+function dungQuet() {
+  const q = quet;
+  if (!q) return;
+  quet = null;
+  try { q.stop().then(() => q.clear()).catch(() => {}); } catch (e) {}
+}
+const modalQuetEl = document.getElementById('modalQuet');
+if (modalQuetEl) {
+  modalQuetEl.addEventListener('shown.bs.modal', batDauQuet);
+  modalQuetEl.addEventListener('hidden.bs.modal', dungQuet);
+}
+</script>
+@Html.AntiForgeryToken()
+}

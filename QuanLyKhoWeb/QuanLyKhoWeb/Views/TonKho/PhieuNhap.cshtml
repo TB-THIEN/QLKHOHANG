@@ -1,0 +1,83 @@
+@model List<QuanLyKhoWeb.Models.Entities.PhieuNhapKho>
+@{
+    ViewData["Title"] = "Phiếu nhập kho";
+    ViewData["Subtitle"] = "Phiếu nhập hàng từ nhà cung cấp";
+    // Chỉ Quản lý + NV kho được tạo phiếu nhập
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.NhapKho(User);
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-box-arrow-in-down"></i>Phiếu nhập kho</h1>
+        <p class="page-subtitle">Mỗi phiếu ghi nhận hàng nhận từ nhà cung cấp. Hoàn tất phiếu sẽ cộng tồn theo số thực nhận.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="XuatExcelPhieuNhap" asp-route-search="@ViewData["SearchValue"]" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i>Xuất file Excel</a>
+        @if (duocTao) { <a asp-action="TaoPhieu" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Tạo phiếu nhập</a> }
+    </div>
+</div>
+
+<div class="mb-3">
+    <div class="segmented" role="group" aria-label="Chế độ xem kho">
+        <a asp-action="Index" class="btn">Tồn kho</a>
+        <a asp-action="PhieuNhap" class="btn btn-primary">Phiếu nhập</a>
+    </div>
+</div>
+
+<div class="app-card mb-3">
+    <h6 class="section-title"><i class="bi bi-search"></i>Tìm phiếu nhập</h6>
+    <partial name="_OTimKiem" model="@(new QuanLyKhoWeb.Models.ViewModels.OTimKiemVm {
+        Trang = "phieunhap",
+        Controller = "TonKho",
+        Action = "PhieuNhap",
+        GiaTri = ViewData["SearchValue"] as string,
+        Placeholder = "Tìm mã phiếu, nhà cung cấp, người tạo, ghi chú…"
+    })" />
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách phiếu</h6>
+        <span class="cell-sub">@Model.Count phiếu</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-app mb-0">
+            <thead>
+                <tr><th>Mã phiếu</th><th>Nhà cung cấp</th><th>Người tạo</th><th>Ngày nhập</th><th class="num">Tổng tiền</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td><span class="sku">@p.MaCodePhieuNhap</span></td>
+                    <td class="cell-main">@(p.MaNhaCungCapNavigation?.TenNhaCungCap ?? "—")</td>
+                    <td class="cell-sub">@(p.NguoiTaoNavigation?.HoTen ?? "—")</td>
+                    <td class="cell-sub">@p.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="num fw-semibold">@((p.TongTienHang ?? 0).ToString("N0")) đ</td>
+                    <td>
+                        @if (p.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+                        else if (p.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
+                        else if (p.TrangThai == "RECEIVING") { <span class="badge bg-warning badge-dot">Đang nhận</span> }
+                        else { <span class="badge bg-info badge-dot">Nháp</span> }
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="ChiTietPhieu" asp-route-id="@p.MaPhieuNhap" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem phiếu @p.MaCodePhieuNhap"><i class="bi bi-eye"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <i class="bi bi-box-arrow-in-down"></i>
+                        <div>Chưa có phiếu nhập nào</div>
+                        <p class="page-subtitle mx-auto" style="max-width:44ch">Tạo phiếu đầu tiên khi nhận hàng từ nhà cung cấp.</p>
+                        @if (duocTao) { <a asp-action="TaoPhieu" class="btn btn-primary">Tạo phiếu nhập</a> }
+                    </div>
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

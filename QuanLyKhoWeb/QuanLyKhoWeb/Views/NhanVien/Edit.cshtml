@@ -1,0 +1,107 @@
+@model QuanLyKhoWeb.Models.ViewModels.NhanVienEditVm
+@{
+    ViewData["Title"] = "Sửa hồ sơ nhân viên";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-pencil"></i>Sửa hồ sơ nhân viên</h1>
+        <p class="page-subtitle">@Model.HoTen — vai trò và trạng thái làm việc được đổi ở trang chi tiết.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.MaNguoiDung" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" class="form-layout" id="frmSuaNv">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.MaNguoiDung" />
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">NV-@Model.MaNguoiDung.ToString("D4")</span>
+                <span class="cell-sub">@Model.HoTen</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-person-vcard"></i>Thông tin cá nhân</h6>
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="HoTen" class="form-label required"></label>
+                            <input asp-for="HoTen" class="form-control" pattern="[^0-9]*" title="Họ tên không được chứa số" />
+                            <span asp-validation-for="HoTen" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Cccd" class="form-label"></label>
+                            <input asp-for="Cccd" class="form-control" maxlength="12" inputmode="numeric" />
+                            <span asp-validation-for="Cccd" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NgaySinh" class="form-label">Ngày sinh</label>
+                            <input asp-for="NgaySinh" type="date" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="GioiTinh" class="form-label">Giới tính</label>
+                            <select asp-for="GioiTinh" class="form-select"><option value="">Chọn</option><option>Nam</option><option>Nữ</option><option>Khác</option></select>
+                        </div>
+                        <div class="span-2">
+                            <label asp-for="ThuongTru" class="form-label">Thường trú</label>
+                            <input asp-for="ThuongTru" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="AnhTheMoi" class="form-label"></label>
+                            <div class="d-flex gap-3 align-items-center">
+                                @if (!string.IsNullOrEmpty(Model.AnhTheHienTai))
+                                { <img src="@Model.AnhTheHienTai" style="width:44px;height:58px;object-fit:cover;border-radius:6px;border:1px solid var(--kho-line)" alt="Ảnh thẻ" /> }
+                                <input asp-for="AnhTheMoi" class="form-control" accept="image/*" />
+                            </div>
+                            <span asp-validation-for="AnhTheMoi" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="StkNganHang" class="form-label"></label>
+                            <input asp-for="StkNganHang" class="form-control" />
+                        </div>
+                        <div>
+                            <label asp-for="ChiNhanhNganHang" class="form-label"></label>
+                            <input asp-for="ChiNhanhNganHang" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+            <a asp-action="Details" asp-route-id="@Model.MaNguoiDung" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-person-badge"></i>@Model.HoTen</div>
+            <div class="summary-body">
+                <dl class="m-0">
+                    <div class="summary-row"><dt>Mã nhân viên</dt><dd>NV-@Model.MaNguoiDung.ToString("D4")</dd></div>
+                    <div class="summary-row"><dt>Họ tên</dt><dd>@Model.HoTen</dd></div>
+                </dl>
+                <div class="summary-note mt-2"><i class="bi bi-info-circle"></i><span>Vai trò và trạng thái làm việc được cập nhật ở trang chi tiết nhân viên.</span></div>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+                <a asp-action="Details" asp-route-id="@Model.MaNguoiDung" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,91 @@
+﻿@model QuanLyKhoWeb.Models.ViewModels.ThongTinCaNhanVm
+@{
+    ViewData["Title"] = "Thông tin nhân viên";
+}
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        @if (!string.IsNullOrEmpty(Model.AnhTheHienTai))
+        { <img src="@Model.AnhTheHienTai" style="width:56px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--kho-line)" alt="Ảnh thẻ" /> }
+        else
+        { <span class="app-avatar avatar-lg" aria-hidden="true">@(string.IsNullOrEmpty(Model.HoTen) ? "?" : Model.HoTen.Substring(0,1).ToUpper())</span> }
+        <div>
+            <h1 class="app-page-title mb-1">@Model.HoTen</h1>
+            <span class="role-badge">@Model.TenVaiTro</span>
+        </div>
+    </div>
+</div>
+
+<div class="app-card">
+    <form asp-action="ThongTinCaNhan" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="MaNguoiDung" />
+
+        <h6 class="section-title"><i class="bi bi-shield-lock"></i>Tài khoản</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label">Tên đăng nhập</label>
+                <input asp-for="TenDangNhap" class="form-control" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Vai trò</label>
+                <input asp-for="TenVaiTro" class="form-control" readonly />
+                <span class="form-hint">Vai trò do quản lý cấp, bạn không tự đổi được.</span>
+            </div>
+        </div>
+
+        <h6 class="section-title"><i class="bi bi-person-vcard"></i>Thông tin cá nhân</h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label required">Họ tên</label>
+                <input asp-for="HoTen" class="form-control" pattern="[^0-9]*" title="Họ tên không được chứa số" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Số điện thoại</label>
+                <input asp-for="SoDienThoai" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Ngày sinh</label>
+                <input asp-for="NgaySinh" type="date" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Giới tính</label>
+                <select asp-for="GioiTinh" class="form-select"><option value="">Chọn</option><option>Nam</option><option>Nữ</option><option>Khác</option></select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Thường trú</label>
+                <input asp-for="ThuongTru" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Cccd" class="form-label">CCCD (12 số)</label>
+                <input asp-for="Cccd" class="form-control" maxlength="12" inputmode="numeric" />
+                <span asp-validation-for="Cccd" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AnhTheMoi" class="form-label"></label>
+                <input asp-for="AnhTheMoi" class="form-control" accept="image/*" />
+                <span class="form-hint">Không chọn ảnh mới thì giữ ảnh hiện tại.</span>
+                <span asp-validation-for="AnhTheMoi" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="StkNganHang" class="form-label"></label>
+                <input asp-for="StkNganHang" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ChiNhanhNganHang" class="form-label"></label>
+                <input asp-for="ChiNhanhNganHang" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu thay đổi</button>
+            <a asp-action="DoiMatKhau" class="btn btn-outline-secondary"><i class="bi bi-key"></i>Đổi mật khẩu</a>
+        </div>
+    </form>
+</div>

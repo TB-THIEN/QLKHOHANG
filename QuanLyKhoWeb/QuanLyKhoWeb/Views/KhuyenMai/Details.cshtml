@@ -1,0 +1,88 @@
+﻿@model QuanLyKhoWeb.Models.Entities.KhuyenMai
+@{
+    ViewData["Title"] = "Chi tiết khuyến mãi";
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaKhuyenMai(User);
+    var phanTram = Model.SoLanSuDungToiDa.HasValue && Model.SoLanSuDungToiDa > 0
+        ? Math.Min(100, (int)Math.Round(Model.SoLanDaDung * 100.0 / Model.SoLanSuDungToiDa.Value)) : 0;
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-ticket-perforated"></i>@Model.TenKhuyenMai</h1>
+        <p class="page-subtitle"><span class="sku">@Model.MaCodeKhuyenMai</span></p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if (Model.TrangThaiHoatDong == true) { <span class="badge bg-success badge-dot">Đang chạy</span> }
+        else { <span class="badge bg-secondary badge-dot">Đã tắt</span> }
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+        @if (duocTao)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaKhuyenMai" class="btn btn-primary"><i class="bi bi-pencil"></i>Sửa</a>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoaKm"><i class="bi bi-trash"></i>Xóa</button>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-ticket-detailed"></i>Điều kiện áp dụng</h6>
+            <dl class="detail-list">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-tag"></i>Chương trình</dt><dd class="mb-0 cell-main">@Model.TenKhuyenMai</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-percent"></i>Loại giảm</dt><dd class="mb-0">@(Model.LoaiGiamGia == "PERCENT" ? "Giảm theo phần trăm đơn hàng" : "Giảm số tiền cố định")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-cash-coin"></i>Giá trị</dt><dd class="mb-0"><strong style="font-size:18px">@(Model.LoaiGiamGia == "PERCENT" ? Model.GiaTriGiam + "%" : Model.GiaTriGiam.ToString("N0") + " đ")</strong></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-cart-check"></i>Đơn tối thiểu</dt><dd class="mb-0">@((Model.GiaTriDonToiThieu ?? 0).ToString("N0")) đ</dd></div>
+                <div class="detail-row">
+                    <dt class="dl-label"><i class="bi bi-graph-up"></i>Lượt sử dụng</dt>
+                    <dd class="mb-0">
+                        <div class="d-flex justify-content-between mb-1" style="max-width:260px"><span>@Model.SoLanDaDung đã dùng</span><span class="cell-sub">@(Model.SoLanSuDungToiDa?.ToString() ?? "Không giới hạn")</span></div>
+                        @if (Model.SoLanSuDungToiDa.HasValue)
+                        {
+                            <div class="progress" style="height:6px;max-width:260px"><div class="progress-bar" style="width:@(phanTram)%"></div></div>
+                        }
+                    </dd>
+                </div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-calendar-range"></i>Hiệu lực</dt><dd class="mb-0">@Model.NgayBatDau.ToString("dd/MM/yyyy") – @Model.NgayKetThuc.ToString("dd/MM/yyyy")</dd></div>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-4 detail-aside">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+            <div>
+                <div class="stat-value">@phanTram%</div>
+                <div class="stat-label">Giới hạn đã sử dụng</div>
+            </div>
+        </div>
+        <div class="app-card mt-3">
+            <div class="callout"><i class="bi bi-info-circle"></i><span>Mã đã được dùng trong đơn hàng sẽ không thể xóa để bảo toàn lịch sử bán hàng.</span></div>
+        </div>
+    </div>
+</div>
+
+@if (duocTao)
+{
+<div class="modal fade" id="xoaKm" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-trash"></i>Xóa mã @Model.MaCodeKhuyenMai</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="Xoa" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaKhuyenMai" />
+            <div class="modal-body">
+                <div class="confirm-record">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <div>
+                        <div class="confirm-record__name">@Model.TenKhuyenMai</div>
+                        <div class="confirm-record__meta">@Model.MaCodeKhuyenMai · @Model.SoLanDaDung lượt đã dùng</div>
+                    </div>
+                </div>
+                <p class="mb-2">Bạn sắp xóa chương trình này. Thao tác không thể hoàn tác.</p>
+                <div class="callout callout--warning"><i class="bi bi-exclamation-triangle"></i><span>Không xóa được nếu đã có đơn hàng dùng mã này.</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xóa mã</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}

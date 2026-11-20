@@ -1,0 +1,90 @@
+@model QuanLyKhoWeb.Models.Entities.DonHang
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-receipt"></i>Đơn @Model.MaCodeDonHang</h1>
+        <p class="page-subtitle">@Model.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if (Model.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
+        else if (Model.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+        else { <span class="badge bg-info badge-dot">Đã xác nhận</span> }
+        @* Đơn hoàn tất tức là đã thanh toán nên không hiện badge thanh toán nữa *@
+        @if (Model.TrangThai != "COMPLETED")
+        {
+            if (Model.TrangThaiThanhToan == "PAID") { <span class="badge bg-success">Đã thanh toán</span> }
+            else { <span class="badge bg-warning badge-dot">Chưa thanh toán</span> }
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-box-seam"></i>Sản phẩm <span class="text-muted fw-normal">— @Model.ChiTietDonHangs.Count dòng</span></h6>
+            <div class="table-responsive">
+                <table class="table table-app mb-0">
+                    <thead><tr><th>Sản phẩm</th><th class="num">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th><th>Lấy từ kệ</th></tr></thead>
+                    <tbody>
+                    @foreach (var ct in Model.ChiTietDonHangs)
+                    {
+                        var hinh = ct.MaSkuNavigation?.MaMauSanPhamNavigation?.DuongDanHinhAnh;
+                        // Các dòng phân bổ: SKU này lấy ở kệ nào bao nhiêu (trigger ghi khi bán)
+                        var phanBos = Model.PhanBoXuatKhoTheoKes.Where(p => p.MaSku == ct.MaSku).ToList();
+                        var daPhanBo = phanBos.Sum(p => p.SoLuong);
+                        var chuaXepKe = ct.SoLuong - daPhanBo;
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (!string.IsNullOrEmpty(hinh))
+                                    {
+                                        <img src="@hinh" class="thumb-44" alt="" loading="lazy" />
+                                    }
+                                    <div>
+                                        <div class="cell-main">@ct.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</div>
+                                        <div class="cell-sub">@ct.MaSkuNavigation?.MaCodeSku</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="num">@ct.SoLuong</td>
+                            <td class="num">@ct.DonGia.ToString("N0") ₫</td>
+                            <td class="num fw-semibold">@ct.ThanhTienDong.ToString("N0") ₫</td>
+                            <td class="cell-sub">
+                                @foreach (var pb in phanBos)
+                                {
+                                    <div>@pb.MaKeHangNavigation?.MaKhuVucNavigation?.TenKhuVuc / @pb.MaKeHangNavigation?.TenKeHang — <b>@pb.SoLuong</b></div>
+                                }
+                                @if (chuaXepKe > 0) { <div>Kho tổng (chưa xếp kệ) — <b>@chuaXepKe</b></div> }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <dl class="detail-list" style="min-width:280px">
+                    <div class="detail-row"><dt class="dl-label">Tổng hàng</dt><dd class="mb-0 text-end">@Model.TongTienHang.ToString("N0") ₫</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Giảm giá</dt><dd class="mb-0 text-end">@(Model.TienGiamGia > 0 ? "-" + Model.TienGiamGia.ToString("N0") + " ₫" : "0 ₫") @(Model.MaKhuyenMaiNavigation != null ? $"({Model.MaKhuyenMaiNavigation.MaCodeKhuyenMai})" : "")</dd></div>
+                    <div class="detail-row"><dt class="dl-label">Phí vận chuyển</dt><dd class="mb-0 text-end">@Model.PhiVanChuyen.ToString("N0") ₫</dd></div>
+                    <div class="detail-row"><dt class="dl-label" style="color:var(--kho-ink);font-weight:600">Thanh toán</dt><dd class="mb-0 text-end"><span class="grand-total" style="color:var(--kho-primary)">@Model.ThanhTien.ToString("N0") ₫</span></dd></div>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-info-circle"></i>Thông tin bổ sung</h6>
+            <dl class="detail-list">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-hash"></i>Mã đơn</dt><dd class="mb-0"><span class="sku">@Model.MaCodeDonHang</span></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person"></i>Khách</dt><dd class="mb-0">@Model.TenKhachHangGiao<div class="cell-sub">@Model.SdtKhachHangGiao</div></dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-geo-alt"></i>Địa chỉ</dt><dd class="mb-0">@Model.DiaChiGiaoHang</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-truck"></i>Nhận hàng</dt><dd class="mb-0">@(Model.HinhThucNhanHang == "GIAO_HANG" ? "Giao hàng" : "Tại shop")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person-check"></i>Nhân viên tạo</dt><dd class="mb-0">@(Model.MaNhanVienNavigation?.HoTen ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-chat-left-text"></i>Ghi chú</dt><dd class="mb-0">@(string.IsNullOrEmpty(Model.GhiChu) ? "—" : Model.GhiChu)</dd></div>
+            </dl>
+        </div>
+    </div>
+</div>

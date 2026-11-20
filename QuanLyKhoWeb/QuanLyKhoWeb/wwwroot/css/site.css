@@ -1,0 +1,9 @@
+/* Base overrides kept minimal — the design system lives in app.css. */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

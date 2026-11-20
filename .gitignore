@@ -1,0 +1,50 @@
+# ============================================================
+#  .gitignore - Du an QuanLyKhoWeb
+#  Muc tieu: khong day len GitHub file build, bi mat, du lieu ca nhan
+# ============================================================
+
+# ---------- Build output & IDE state ----------
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---------- Cau hinh chua bi mat ----------
+# Dat gia tri that trong user-secrets hoac bien moi truong, KHONG commit
+appsettings.*.local.json
+appsettings.Local.json
+secrets.json
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+
+# ---------- Du lieu nguoi dung tai len (PII) ----------
+# Anh the / CCCD nhan vien, anh san pham, file upload
+QuanLyKhoWeb/QuanLyKhoWeb/wwwroot/images/staff/
+QuanLyKhoWeb/QuanLyKhoWeb/wwwroot/images/products/
+**/wwwroot/uploads/
+
+# ---------- Co so du lieu & log ----------
+*.bak
+*.mdf
+*.ldf
+*.trn
+*.log
+*.tmp
+Do_An_Kho.backup.sql
+
+# ---------- Tooling ca nhan ----------
+.agents/
+__pycache__/
+*.pyc
+
+# ---------- Tai lieu nang (giu ngoai repo) ----------
+*.docx
+*.pdf

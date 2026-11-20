@@ -1,0 +1,133 @@
+@model QuanLyKhoWeb.Models.Entities.PhieuNhapKho
+@{
+    ViewData["Title"] = "Chi tiết phiếu nhập";
+    // Chỉ Quản lý + NV kho được hoàn tất/hủy/xóa phiếu nhập
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.NhapKho(User);
+    decimal tongThucNhan = 0;
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-box-arrow-in-down"></i>@Model.MaCodePhieuNhap</h1>
+        <p class="page-subtitle">@(Model.MaNhaCungCapNavigation?.TenNhaCungCap ?? "Không rõ nhà cung cấp") · @Model.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        @if (Model.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+        else if (Model.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
+        else if (Model.TrangThai == "RECEIVING") { <span class="badge bg-warning badge-dot">Đang nhận</span> }
+        else { <span class="badge bg-info badge-dot">Nháp</span> }
+        <a asp-action="PhieuNhap" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+        <a asp-action="XuatExcelPhieuNhap" asp-route-id="@Model.MaPhieuNhap" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i>Xuất file Excel</a>
+        @if (duocTao && (Model.TrangThai == "PENDING" || Model.TrangThai == "RECEIVING"))
+        {
+            <form asp-action="HoanTatPhieu" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.MaPhieuNhap" /><button class="btn btn-primary" title="Cộng tồn theo số thực nhận"><i class="bi bi-check2"></i>Hoàn tất phiếu</button></form>
+        }
+        @if (duocTao && Model.TrangThai == "PENDING")
+        {
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#huyPhieu">Hủy phiếu</button>
+        }
+        @if (duocTao && Model.TrangThai != "COMPLETED")
+        {
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoaPhieu"><i class="bi bi-trash"></i>Xóa</button>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="app-card">
+            <h6 class="section-title"><i class="bi bi-card-list"></i>Dòng hàng trong phiếu</h6>
+            <div class="table-responsive">
+                <table class="table table-app mb-0">
+                    <thead><tr><th>Mã SKU</th><th>Sản phẩm</th><th class="num">Kế hoạch</th><th class="num">Thực nhận</th><th class="num">Đơn giá nhập</th><th class="num">Thành tiền</th></tr></thead>
+                    <tbody>
+                    @foreach (var c in Model.ChiTietPhieuNhapKhos)
+                    {
+                        tongThucNhan += c.SoLuongThucNhan;
+                        <tr>
+                            <td><span class="sku">@c.MaSkuNavigation?.MaCodeSku</span></td>
+                            <td class="cell-main">@c.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham</td>
+                            <td class="num cell-sub">@c.SoLuongKeHoach</td>
+                            <td class="num fw-semibold">@c.SoLuongThucNhan</td>
+                            <td class="num">@((c.DonGiaNhap ?? 0).ToString("N0")) đ</td>
+                            <td class="num fw-semibold">@((c.ThanhTien ?? 0).ToString("N0")) đ</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.GhiChu))
+            {
+                <div class="callout mt-3"><i class="bi bi-sticky"></i><span>@Model.GhiChu</span></div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4 detail-aside">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="stat-value">@((Model.TongTienHang ?? 0).ToString("N0")) đ</div>
+                <div class="stat-label">Tổng tiền hàng</div>
+            </div>
+        </div>
+        <div class="stat-card mt-3">
+            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="stat-value">@tongThucNhan</div>
+                <div class="stat-label">Sản phẩm thực nhận</div>
+            </div>
+        </div>
+        <div class="app-card mt-3">
+            <dl class="detail-list mb-0">
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-building"></i>Nhà cung cấp</dt><dd class="mb-0">@(Model.MaNhaCungCapNavigation?.TenNhaCungCap ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-person"></i>Người tạo</dt><dd class="mb-0">@(Model.NguoiTaoNavigation?.HoTen ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-calendar3"></i>Ngày nhập</dt><dd class="mb-0">@Model.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</dd></div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+@if (duocTao && Model.TrangThai == "PENDING")
+{
+<div class="modal fade" id="huyPhieu" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-x-circle"></i>Hủy phiếu @Model.MaCodePhieuNhap</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="HuyPhieu" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaPhieuNhap" />
+            <div class="modal-body">
+                <div class="confirm-record">
+                    <div class="confirm-record__name">@Model.MaCodePhieuNhap</div>
+                    <div class="confirm-record__meta">@Model.MaNhaCungCapNavigation?.TenNhaCungCap · @Model.ChiTietPhieuNhapKhos.Count mặt hàng</div>
+                </div>
+                <p class="mb-2">Phiếu sẽ chuyển sang trạng thái <b>Đã hủy</b> và không thể khôi phục.</p>
+                <div class="callout callout--warning"><i class="bi bi-exclamation-triangle"></i><span>Chỉ hủy được phiếu đang ở trạng thái Nháp. Phiếu đã hoàn tất không thể hủy.</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Giữ phiếu</button>
+                <button type="submit" class="btn btn-danger">Hủy phiếu</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}
+
+@if (duocTao && Model.TrangThai != "COMPLETED")
+{
+<div class="modal fade" id="xoaPhieu" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content modal-danger">
+        <div class="modal-header"><h6 class="modal-title"><i class="bi bi-trash"></i>Xóa phiếu @Model.MaCodePhieuNhap</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <form asp-action="XoaPhieu" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.MaPhieuNhap" />
+            <div class="modal-body">
+                <p class="mb-2">Bạn sắp xóa phiếu nhập này. Thao tác này không thể hoàn tác.</p>
+                <div class="callout callout--warning"><i class="bi bi-exclamation-triangle"></i><span>Chỉ xóa được phiếu chưa hoàn tất. Phiếu đã hoàn tất phải giữ lại để đối chiếu tồn kho.</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-danger">Xóa phiếu</button>
+            </div>
+        </form>
+    </div></div>
+</div>
+}

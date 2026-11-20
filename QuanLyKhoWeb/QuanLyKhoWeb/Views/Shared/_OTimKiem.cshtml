@@ -1,0 +1,31 @@
+@model QuanLyKhoWeb.Models.ViewModels.OTimKiemVm
+@{
+    // Thanh tìm kiếm riêng của trang: gõ là gợi ý, Enter là lọc danh sách bên dưới.
+    var coTuKhoa = !string.IsNullOrWhiteSpace(Model.GiaTri);
+    var id = "otk-" + Model.Trang;
+    var thamSo = Model.ThamSoThem.Where(x => !string.IsNullOrEmpty(x.Value))
+        .ToDictionary(x => x.Key, x => x.Value!);
+}
+<form method="get" asp-controller="@Model.Controller" asp-action="@Model.Action" class="otk-form" role="search">
+    @foreach (var kv in thamSo)
+    {
+        <input type="hidden" name="@kv.Key" value="@kv.Value" />
+    }
+    <div class="otk" id="@id"
+         data-url="@Url.Action("GoiYTrang", "TimKiem", new { trang = Model.Trang })"
+         data-co-tu-khoa="@(coTuKhoa ? "1" : "0")">
+        <i class="bi bi-search otk-icon" aria-hidden="true"></i>
+        <input type="text" name="search" value="@Model.GiaTri" class="otk-input"
+               placeholder="@Model.Placeholder" aria-label="@Model.Placeholder"
+               autocomplete="off" role="combobox" aria-expanded="false"
+               aria-controls="@(id)-goiy" aria-autocomplete="list" />
+        <button type="button" class="otk-clear" aria-label="Xóa từ khóa" hidden>&times;</button>
+        <div class="otk-results" id="@(id)-goiy" role="listbox" aria-label="Gợi ý tìm kiếm" hidden></div>
+    </div>
+    <button type="submit" class="btn btn-primary otk-submit"><i class="bi bi-search"></i>Tìm</button>
+    @if (coTuKhoa)
+    {
+        <a asp-controller="@Model.Controller" asp-action="@Model.Action" asp-all-route-data="@thamSo"
+           class="btn btn-outline-secondary">Xóa lọc</a>
+    }
+</form>

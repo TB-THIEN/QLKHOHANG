@@ -1,0 +1,132 @@
+@{
+    ViewData["Title"] = "Tạo phiếu nhập";
+    var nccs = ViewBag.Nccs as List<QuanLyKhoWeb.Models.Entities.NhaCungCap> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-plus-lg"></i>Tạo phiếu nhập kho</h1>
+        <p class="page-subtitle">Chọn hàng nhận từ nhà cung cấp. Hoàn tất phiếu sẽ cộng tồn theo số lượng thực nhận.</p>
+    </div>
+    <a asp-action="PhieuNhap" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
+</div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+<form asp-action="TaoPhieu" method="post" id="frmNhap" class="form-layout">
+    @Html.AntiForgeryToken()
+    <div class="form-main">
+        <div class="form-block">
+            <h6 class="section-title"><i class="bi bi-box-seam"></i>Dòng hàng <span class="text-muted fw-normal" style="font-weight:400">— cần ít nhất một</span></h6>
+            <div class="position-relative mb-3">
+                <input id="txtSku" class="form-control" placeholder="Tìm SKU hoặc tên sản phẩm để thêm…" autocomplete="off" />
+                <div id="kqSku" class="list-group position-absolute w-100" style="z-index:10"></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-app" id="tblItems">
+                    <thead><tr><th>Sản phẩm</th><th style="width:110px">SL kế hoạch</th><th style="width:110px">SL thực nhận</th><th style="width:150px">Đơn giá nhập</th><th></th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <span class="text-danger">@if (ViewData.ModelState.TryGetValue("SoLuongKeHoaches", out var loiSl) && loiSl.Errors.Count > 0) { @loiSl.Errors[0].ErrorMessage }</span>
+            <div class="form-hint">Số lượng thực nhận là số được cộng vào kho khi hoàn tất phiếu.</div>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-receipt"></i>Thông tin phiếu</div>
+            <div class="summary-body">
+                <div>
+                    <label class="form-label">Mã phiếu</label>
+                    <input class="form-control" value="Tự động sinh sau khi lưu" readonly />
+                </div>
+                <div>
+                    <label class="form-label required">Nhà cung cấp</label>
+                    <select name="maNhaCungCap" class="form-select" required>
+                        <option value="">Chọn nhà cung cấp</option>
+                        @foreach (var n in nccs) { <option value="@n.MaNhaCungCap">@n.MaCodeNcc — @n.TenNhaCungCap</option> }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Ghi chú</label>
+                    <textarea name="ghiChu" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="summary-total">
+                    <span>Tạm tính</span>
+                    <strong id="tamTinh">0 đ</strong>
+                </div>
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100" name="luuNhap" value="false"><i class="bi bi-check2"></i>Tạo &amp; hoàn tất</button>
+                <button class="btn btn-outline-primary w-100" name="luuNhap" value="true"><i class="bi bi-save"></i>Lưu nháp</button>
+                <a asp-action="PhieuNhap" class="btn btn-outline-secondary w-100">Hủy</a>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-body">
+                <div class="summary-note"><i class="bi bi-info-circle"></i><span><b>Tạo &amp; hoàn tất</b> cộng tồn ngay theo số thực nhận. <b>Lưu nháp</b> giữ phiếu ở trạng thái chờ để kiểm hàng, sau đó bấm Hoàn tất phiếu ở trang chi tiết.</span></div>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+<script>
+let items = [];
+const fmt = n => n.toLocaleString('vi-VN') + ' đ';
+const txt = document.getElementById('txtSku'), kq = document.getElementById('kqSku');
+async function taiList(term) {
+  const res = await fetch('/TonKho/TimSku?term=' + encodeURIComponent(term));
+  return await res.json();
+}
+txt.addEventListener('focus', async () => { veList(await taiList('')); });
+txt.addEventListener('input', async () => {
+  const t = txt.value.trim();
+  if (!t) { veList(await taiList('')); return; }
+  const res = await fetch('/TonKho/TimSku?term=' + encodeURIComponent(t));
+  veList(await res.json());
+});
+function veList(list) {
+  kq.innerHTML = '';
+  if (list.length === 0) { kq.innerHTML = '<span class="list-group-item text-muted">Không tìm thấy món nào</span>'; return; }
+  list.forEach(sp => {
+    const b = document.createElement('button');
+    b.type='button'; b.className='list-group-item list-group-item-action';
+    b.textContent = `${sp.ten} (${sp.maCodeSku}) — tồn ${sp.ton}`;
+    b.onclick = () => { themDong(sp); kq.innerHTML=''; txt.value=''; };
+    kq.appendChild(b);
+  });
+}
+function themDong(sp) {
+  if (items.find(x => x.maSku === sp.maSku)) return;
+  items.push({...sp, slKh: 0, slTn: 0, dg: 0});
+  render();
+}
+function render() {
+  const tb = document.querySelector('#tblItems tbody');
+  tb.innerHTML = '';
+  if (items.length === 0) {
+    tb.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Chưa có dòng hàng. Tìm và chọn sản phẩm ở ô phía trên.</td></tr>';
+    document.getElementById('tamTinh').textContent = fmt(0);
+    return;
+  }
+  let tong = 0;
+  items.forEach((it, idx) => {
+    tong += it.dg * it.slTn;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><div class="cell-main">${it.ten}</div><div class="cell-sub">${it.maCodeSku}</div>
+      <input type="hidden" name="MaSkus" value="${it.maSku}"/></td>
+      <td><input type="number" name="SoLuongKeHoaches" value="${it.slKh}" min="0" step="1" class="form-control form-control-sm" onchange="doiKh(${idx}, this.value)"/></td>
+      <td><input type="number" name="SoLuongThucNhans" value="${it.slTn}" min="0" step="1" class="form-control form-control-sm" onchange="doiTn(${idx}, this.value)"/></td>
+      <td><input type="text" inputmode="numeric" name="DonGiaNhaps" value="${it.dg}" class="form-control form-control-sm money" onchange="doiDg(${idx}, this.value)"/></td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="xoaDong(${idx})" aria-label="Bỏ dòng hàng"><i class="bi bi-trash"></i></button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('tamTinh').textContent = fmt(tong);
+}
+window.doiKh = (i, v) => { items[i].slKh = Math.max(0, parseInt(v) || 0); render(); };
+window.doiTn = (i, v) => { items[i].slTn = Math.max(0, parseInt(v) || 0); render(); };
+window.doiDg = (i, v) => { items[i].dg = Math.max(0, parseFloat(String(v).replace(/\./g, '')) || 0); render(); };
+window.xoaDong = i => { items.splice(i,1); render(); };
+render();
+</script>
+}
