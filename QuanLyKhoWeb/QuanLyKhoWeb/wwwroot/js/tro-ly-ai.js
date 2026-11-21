@@ -180,21 +180,21 @@
         ghiChu.textContent = 'Đã hoàn tất.';
         themBong('tro-ly', kq.traLoi || 'Đã tạo nhân viên.');
 
-        // Mật khẩu tạm chỉ có trong đúng phản hồi này nên phải hiện ngay.
-        if (kq.matKhauTam) {
+        // Mật khẩu do quản lý đặt chỉ có trong đúng phản hồi này nên phải hiện ngay.
+        if (kq.matKhau) {
           var hop = document.createElement('div');
           hop.className = 'tro-ly-mk';
           var nhan = document.createElement('span');
-          nhan.textContent = 'Mật khẩu tạm cho ' + (kq.tenDangNhapMoi || '') + ':';
+          nhan.textContent = 'Mật khẩu bạn đã đặt cho ' + (kq.tenDangNhapMoi || '') + ':';
           var ma = document.createElement('code');
-          ma.textContent = kq.matKhauTam;
+          ma.textContent = kq.matKhau;
           var nutChep = document.createElement('button');
           nutChep.type = 'button';
           nutChep.className = 'btn btn-sm btn-outline-secondary';
           nutChep.textContent = 'Sao chép';
           nutChep.addEventListener('click', function () {
             if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(kq.matKhauTam).then(function () {
+              navigator.clipboard.writeText(kq.matKhau).then(function () {
                 nutChep.textContent = 'Đã chép';
               }, function () {
                 nutChep.textContent = 'Không chép được';
@@ -276,7 +276,7 @@
     var hop = document.createElement('div');
     hop.className = 'tro-ly-goiy';
     var goiY = [
-      'Thêm nhân viên Nguyễn Văn A, đăng nhập nva, vai trò Nhân viên kho',
+      'Thêm nhân viên Nguyễn Văn A, đăng nhập nva, mật khẩu Abc@1234, vai trò Nhân viên kho',
       'Tìm nhân viên tên Hùng',
       'Có những vai trò nào?'
     ];

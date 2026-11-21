@@ -5,7 +5,6 @@ using QuanLyKhoWeb.Data;
 using QuanLyKhoWeb.Models.Entities;
 using QuanLyKhoWeb.Services.Interfaces;
 using System.Data;
-using System.Security.Cryptography;
 
 namespace QuanLyKhoWeb.Services
 {
@@ -147,16 +146,5 @@ namespace QuanLyKhoWeb.Services
 
         private static string? ChuanHoa(string? s)
             => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
-
-        // Mật khẩu tạm do hệ thống sinh (trợ lý AI không được tự đặt mật khẩu).
-        // Bỏ các ký tự dễ nhầm khi đọc/gõ lại (0/O, 1/l/I).
-        public static string SinhMatKhauTam(int doDai = 12)
-        {
-            const string bang = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-            var kyTu = new char[doDai];
-            for (var i = 0; i < doDai; i++)
-                kyTu[i] = bang[RandomNumberGenerator.GetInt32(bang.Length)];
-            return new string(kyTu);
-        }
     }
 }

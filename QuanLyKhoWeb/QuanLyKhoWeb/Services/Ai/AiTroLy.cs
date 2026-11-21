@@ -41,9 +41,13 @@ namespace QuanLyKhoWeb.Services.Ai
 
             Quy tắc bắt buộc:
             1. Chỉ dùng thông tin người dùng cung cấp và dữ liệu trả về từ công cụ. Tuyệt đối không bịa
-               họ tên, tên đăng nhập, email, số điện thoại, CCCD hay bất kỳ thông tin cá nhân nào.
-            2. Nếu thiếu họ tên, tên đăng nhập hoặc vai trò thì phải hỏi lại, không tự đoán.
-            3. Không bao giờ tự đặt mật khẩu. Hệ thống tự sinh mật khẩu tạm và bắt đổi ở lần đăng nhập đầu.
+               họ tên, tên đăng nhập, mật khẩu, email, số điện thoại, CCCD hay bất kỳ thông tin cá nhân nào.
+            2. Nếu thiếu họ tên, tên đăng nhập, mật khẩu hoặc vai trò thì phải hỏi lại, không tự đoán.
+            3. Mật khẩu là do quản lý tự đặt và tự gõ vào. Bạn TUYỆT ĐỐI không được tự sinh, tự nghĩ ra,
+               hay gợi ý một mật khẩu cụ thể. Không có mật khẩu thì không được gọi tao_nhan_vien.
+               Mật khẩu phải có ít nhất 6 ký tự; nếu ngắn hơn thì báo để quản lý nhập lại.
+               Không hỏi lại mật khẩu lần hai khi người dùng đã cung cấp, và không nhắc lại mật khẩu
+               trong câu trả lời của mình.
             4. Trước khi tạo, nếu người dùng đưa tên đăng nhập hoặc CCCD thì nên kiểm tra trùng bằng công cụ
                tim_nhan_vien. Nếu cần biết vai trò chính xác, dùng liet_ke_vai_tro.
             5. Khi đã đủ dữ liệu hợp lệ, gọi tao_nhan_vien. Công cụ này chỉ tạo BẢN NHÁP, chưa ghi gì.
@@ -70,6 +74,17 @@ namespace QuanLyKhoWeb.Services.Ai
             var khaiBao = _congCu.KhaiBao();
             var ghiChuCongCu = new StringBuilder();
 
+            // Toàn bộ lời của người dùng trong phiên (gồm tin nhắn hiện tại). Dùng để đối chiếu
+            // mật khẩu: chỉ chấp nhận mật khẩu mà chính quản lý đã gõ ra, không chấp nhận giá trị
+            // do model tự sinh. Gộp cả lịch sử vì quản lý có thể đưa mật khẩu ở lượt trước.
+            var loiNguoiDung = new StringBuilder(tinNhan);
+            if (lichSu != null)
+            {
+                foreach (var luot in lichSu.Where(x => x.VaiTro != "tro_ly"))
+                    loiNguoiDung.Append('\n').Append(luot.NoiDung);
+            }
+            var vanBanNguoiDung = loiNguoiDung.ToString();
+
             for (var vong = 1; vong <= Math.Max(1, _cauHinh.SoVongToiDa); vong++)
             {
                 var ketQua = await _gemini.GoiAsync(ChiDan, lichSuJson, khaiBao, ct);
@@ -95,7 +110,7 @@ namespace QuanLyKhoWeb.Services.Ai
 
                 foreach (var goi in ketQua.GoiCongCu)
                 {
-                    var kq = await _congCu.ThucThiAsync(maNguoiDung, goi.Ten, goi.ThamSo, ct);
+                    var kq = await _congCu.ThucThiAsync(maNguoiDung, goi.Ten, goi.ThamSo, vanBanNguoiDung, ct);
                     phanHoi.Add(new JsonObject
                     {
                         ["functionResponse"] = new JsonObject

@@ -26,8 +26,8 @@ namespace QuanLyKhoWeb.Models.ViewModels
         public string? Loi { get; set; }
         public TheHanhDongVm? HanhDong { get; set; }
 
-        // Mật khẩu tạm chỉ trả về đúng một lần ngay sau khi tạo thành công.
-        public string? MatKhauTam { get; set; }
+        // Mật khẩu do quản lý đặt, chỉ trả về đúng một lần ngay sau khi tạo thành công.
+        public string? MatKhau { get; set; }
         public string? TenDangNhapMoi { get; set; }
     }
 

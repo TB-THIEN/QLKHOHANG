@@ -68,7 +68,13 @@ namespace QuanLyKhoWeb.Services.Ai
                     ["properties"] = new JsonObject
                     {
                         ["ho_ten"] = new JsonObject { ["type"] = "string", ["description"] = "Họ tên đầy đủ, không chứa chữ số" },
-                        ["ten_dang_nhap"] = new JsonObject { ["type"] = "string", ["description"] = "Tên đăng nhập duy nhất, không dấu, tối đa 50 ký tự" },
+                        ["ten_dang_nhap"] = new JsonObject { ["type"] = "string", ["description"] = "Tên đăng nhập duy nhất, không dấu, tối đa 50 ký tự, do quản lý cung cấp" },
+                        ["mat_khau"] = new JsonObject
+                        {
+                            ["type"] = "string",
+                            ["description"] = "Mật khẩu do quản lý cung cấp cho tài khoản này, tối thiểu 6 ký tự. "
+                                + "TUYỆT ĐỐI không được tự sinh, tự đoán hay tự đặt mật khẩu."
+                        },
                         ["vai_tro"] = new JsonObject { ["type"] = "string", ["description"] = "Tên vai trò, dùng đúng tên có sẵn nếu phù hợp" },
                         ["email"] = new JsonObject { ["type"] = "string", ["description"] = "Bắt buộc có đuôi @gmail.com nếu nhập" },
                         ["so_dien_thoai"] = new JsonObject { ["type"] = "string" },
@@ -80,19 +86,20 @@ namespace QuanLyKhoWeb.Services.Ai
                         ["chi_nhanh_ngan_hang"] = new JsonObject { ["type"] = "string" },
                         ["trang_thai_hoat_dong"] = new JsonObject { ["type"] = "boolean", ["description"] = "true = đang làm, false = nghỉ làm" }
                     },
-                    ["required"] = new JsonArray("ho_ten", "ten_dang_nhap", "vai_tro")
+                    ["required"] = new JsonArray("ho_ten", "ten_dang_nhap", "mat_khau", "vai_tro")
                 }
             }
         };
 
         public async Task<KetQuaCongCu> ThucThiAsync(
-            int maNguoiDung, string ten, JsonObject thamSo, CancellationToken ct = default)
+            int maNguoiDung, string ten, JsonObject thamSo, string? nguoiDungNoi = null,
+            CancellationToken ct = default)
         {
             return ten switch
             {
                 LietKeVaiTro => await LietKeVaiTroAsync(ct),
                 TimNhanVien => await TimNhanVienAsync(thamSo, ct),
-                TaoNhanVien => await TaoNhanVienAsync(maNguoiDung, thamSo, ct),
+                TaoNhanVien => await TaoNhanVienAsync(maNguoiDung, thamSo, nguoiDungNoi, ct),
                 _ => new KetQuaCongCu
                 {
                     DuLieu = new JsonObject { ["loi"] = "Công cụ không được phép sử dụng." }
@@ -162,21 +169,53 @@ namespace QuanLyKhoWeb.Services.Ai
             };
         }
 
-        private async Task<KetQuaCongCu> TaoNhanVienAsync(int maNguoiDung, JsonObject thamSo, CancellationToken ct)
+        private async Task<KetQuaCongCu> TaoNhanVienAsync(int maNguoiDung, JsonObject thamSo,
+            string? nguoiDungNoi, CancellationToken ct)
         {
             var hoTen = LayChuoi(thamSo, "ho_ten");
             var tenDangNhap = LayChuoi(thamSo, "ten_dang_nhap");
             var vaiTro = LayChuoi(thamSo, "vai_tro");
 
-            // Model không được tự đặt mật khẩu: hệ thống sinh mật khẩu tạm và buộc đổi lần đầu.
-            var matKhauTam = NhanVienService.SinhMatKhauTam();
+            // Mật khẩu do QUẢN LÝ cung cấp trong câu lệnh. Model không được tự sinh,
+            // không được tự nghĩ ra; thiếu là phải hỏi lại chứ không lấp bằng giá trị tạm.
+            // Không Trim(): mật khẩu phải được dùng đúng nguyên văn người dùng nhập.
+            var matKhau = LayChuoi(thamSo, "mat_khau");
+
+            if (string.IsNullOrWhiteSpace(matKhau))
+            {
+                return new KetQuaCongCu
+                {
+                    DuLieu = new JsonObject
+                    {
+                        ["ket_qua"] = "THIEU_MAT_KHAU",
+                        ["huong_dan"] = "Chưa có mật khẩu. Hãy hỏi quản lý mật khẩu muốn đặt cho tài khoản này "
+                            + "(tối thiểu 6 ký tự). Tuyệt đối không tự sinh hay tự đoán mật khẩu."
+                    }
+                };
+            }
+
+            // Chốt chặn cuối ở server: mật khẩu phải xuất hiện nguyên văn trong điều quản lý đã gõ.
+            // Nhờ vậy dù model bị "dụ" hay tự bịa ra một mật khẩu, nó cũng không tạo được bản nháp.
+            if (!string.IsNullOrEmpty(nguoiDungNoi)
+                && !nguoiDungNoi.Contains(matKhau, StringComparison.Ordinal))
+            {
+                return new KetQuaCongCu
+                {
+                    DuLieu = new JsonObject
+                    {
+                        ["ket_qua"] = "MAT_KHAU_KHONG_DO_NGUOI_DUNG_DAT",
+                        ["huong_dan"] = "Mật khẩu này không có trong tin nhắn của quản lý nên không được dùng. "
+                            + "Hãy hỏi lại quản lý đúng mật khẩu họ muốn đặt. Không được tự sinh mật khẩu."
+                    }
+                };
+            }
 
             var yeuCau = new NhanVienTaoMoi
             {
                 HoTen = hoTen?.Trim() ?? string.Empty,
                 TenDangNhap = tenDangNhap?.Trim() ?? string.Empty,
                 TenVaiTro = vaiTro?.Trim() ?? string.Empty,
-                MatKhau = matKhauTam,
+                MatKhau = matKhau,
                 Email = LayChuoi(thamSo, "email"),
                 SoDienThoai = LayChuoi(thamSo, "so_dien_thoai"),
                 NgaySinh = LayNgay(thamSo, "ngay_sinh"),
@@ -201,7 +240,8 @@ namespace QuanLyKhoWeb.Services.Ai
                     {
                         ["ket_qua"] = "DU_LIEU_CHUA_HOP_LE",
                         ["loi"] = mang,
-                        ["huong_dan"] = "Hỏi lại người dùng để sửa các trường bị lỗi. Không được tự bịa thông tin."
+                        ["huong_dan"] = "Hỏi lại người dùng để sửa các trường bị lỗi (kể cả mật khẩu nếu thiếu hoặc "
+                            + "ngắn hơn 6 ký tự). Không được tự bịa thông tin, không được tự sinh mật khẩu."
                     }
                 };
             }
@@ -210,6 +250,7 @@ namespace QuanLyKhoWeb.Services.Ai
             {
                 new("Họ tên", yeuCau.HoTen),
                 new("Tên đăng nhập", yeuCau.TenDangNhap),
+                new("Mật khẩu (bạn đã đặt)", CheMatKhau(yeuCau.MatKhau)),
                 new("Vai trò", yeuCau.TenVaiTro),
                 new("Trạng thái", yeuCau.TrangThaiHoatDong ? "Đang làm" : "Nghỉ làm")
             };
@@ -241,6 +282,11 @@ namespace QuanLyKhoWeb.Services.Ai
                 }
             };
         }
+
+        // Thẻ bản nháp hiện trên màn hình nên không in nguyên mật khẩu;
+        // chỉ hiện vài ký tự đầu để quản lý đối chiếu là đã nhập đúng.
+        private static string CheMatKhau(string matKhau)
+            => matKhau.Length <= 2 ? "**" : matKhau[..2] + new string('*', Math.Min(8, matKhau.Length - 2));
 
         private static string? LayChuoi(JsonObject o, string ten)
         {

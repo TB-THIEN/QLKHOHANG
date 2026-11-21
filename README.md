@@ -85,7 +85,9 @@ Cách hoạt động: model không ghi thẳng vào cơ sở dữ liệu. Khi đ
 (hết hạn sau 10 phút, gắn với tài khoản đang đăng nhập). Quản lý phải bấm **Xác nhận**
 thì mới thực sự gọi `sp_TaoNhanVien`.
 
-- Mật khẩu do hệ thống sinh ngẫu nhiên và chỉ hiện **một lần** ngay sau khi tạo; nhân viên
+- **Tên đăng nhập và mật khẩu đều do quản lý cung cấp** trong câu lệnh. Trợ lý không được
+  tự sinh mật khẩu: thiếu mật khẩu thì nó hỏi lại, không tự đoán. Mật khẩu tối thiểu 6 ký tự.
+- Mật khẩu quản lý đặt chỉ hiện **một lần** trong thẻ kết quả ngay sau khi tạo; nhân viên
   buộc đổi ở lần đăng nhập đầu (`phai_doi_mat_khau = 1`).
 - Model chỉ được dùng 3 công cụ cố định: `liet_ke_vai_tro`, `tim_nhan_vien`, `tao_nhan_vien`.
 - Giới hạn 20 lượt / 5 phút / tài khoản (`Program.cs`, policy `"ai"`).

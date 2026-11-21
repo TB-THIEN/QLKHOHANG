@@ -126,10 +126,10 @@ namespace QuanLyKhoWeb.Controllers
                 {
                     ThanhCong = true,
                     TraLoi = $"Đã tạo nhân viên {hanhDong.NhanVien.HoTen} với tài khoản {kq.TenDangNhap}. "
-                        + "Mật khẩu tạm chỉ hiện đúng một lần — hãy sao chép và gửi cho nhân viên. "
+                        + "Mật khẩu là mật khẩu bạn đã đặt, hãy gửi cho nhân viên. "
                         + "Họ sẽ phải đổi mật khẩu ở lần đăng nhập đầu tiên.",
                     TenDangNhapMoi = kq.TenDangNhap,
-                    MatKhauTam = hanhDong.NhanVien.MatKhau
+                    MatKhau = hanhDong.NhanVien.MatKhau
                 });
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
