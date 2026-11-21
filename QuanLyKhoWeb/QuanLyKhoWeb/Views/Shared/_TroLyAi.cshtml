@@ -38,8 +38,13 @@
                     <button type="submit" class="tro-ly-send" id="troLyGui" aria-label="Gửi">
                         <i class="bi bi-send" aria-hidden="true"></i>
                     </button>
+                    @* Khi trợ lý đang xử lý, nút gửi được thay bằng nút này để người dùng dừng lại. *@
+                    <button type="button" class="tro-ly-stop" id="troLyDung" aria-label="Tạm dừng trợ lý"
+                            title="Tạm dừng" hidden>
+                        <i class="bi bi-pause-fill" aria-hidden="true"></i>
+                    </button>
                 </form>
-                <p class="tro-ly-foot__note">Trợ lý chỉ chuẩn bị bản nháp; bạn phải bấm Xác nhận thì mới ghi dữ liệu.</p>
+                <p class="tro-ly-foot__note" id="troLyGhiChu" role="status" aria-live="polite">Trợ lý chỉ chuẩn bị bản nháp; bạn phải bấm Xác nhận thì mới ghi dữ liệu.</p>
             </div>
         </section>
     </div>

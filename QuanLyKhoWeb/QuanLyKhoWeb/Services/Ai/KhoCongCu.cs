@@ -27,12 +27,19 @@ namespace QuanLyKhoWeb.Services.Ai
         private readonly DoAnQlkContext _context;
         private readonly INhanVienService _nhanVien;
         private readonly KhoHanhDongCho _khoHanhDong;
+        private readonly ILogger<KhoCongCu> _logger;
 
-        public KhoCongCu(DoAnQlkContext context, INhanVienService nhanVien, KhoHanhDongCho khoHanhDong)
+        // Id các bản nháp đã tạo trong phạm vi một request. Nếu request bị ngắt giữa chừng
+        // (người dùng bấm Tạm dừng) thì dọn lại, tránh bản nháp "mồ côi" nằm trong bộ nhớ đệm.
+        private readonly List<string> _banNhapDaTao = new();
+
+        public KhoCongCu(DoAnQlkContext context, INhanVienService nhanVien,
+            KhoHanhDongCho khoHanhDong, ILogger<KhoCongCu> logger)
         {
             _context = context;
             _nhanVien = nhanVien;
             _khoHanhDong = khoHanhDong;
+            _logger = logger;
         }
 
         // Khai báo tool cho model (OpenAPI rút gọn mà Gemini chấp nhận).
@@ -269,6 +276,7 @@ namespace QuanLyKhoWeb.Services.Ai
                 $"Thêm nhân viên {yeuCau.HoTen}",
                 yeuCau,
                 tomTat);
+            _banNhapDaTao.Add(hanhDong.Id);
 
             return new KetQuaCongCu
             {
@@ -287,6 +295,20 @@ namespace QuanLyKhoWeb.Services.Ai
         // chỉ hiện vài ký tự đầu để quản lý đối chiếu là đã nhập đúng.
         private static string CheMatKhau(string matKhau)
             => matKhau.Length <= 2 ? "**" : matKhau[..2] + new string('*', Math.Min(8, matKhau.Length - 2));
+
+        // Người dùng bấm "Tạm dừng" đúng lúc bản nháp đã tạo nhưng chưa kịp hiện ra:
+        // bản nháp đó không ai thấy nên phải xoá, đừng để nằm trong bộ nhớ đệm 10 phút.
+        public void DonBanNhapChuaDung(int maNguoiDung)
+        {
+            if (_banNhapDaTao.Count == 0) return;
+
+            foreach (var id in _banNhapDaTao)
+                _khoHanhDong.Xoa(maNguoiDung, id);
+
+            _logger.LogInformation("Đã huỷ {SoBanNhap} bản nháp do người dùng dừng trợ lý (người dùng {MaNguoiDung})",
+                _banNhapDaTao.Count, maNguoiDung);
+            _banNhapDaTao.Clear();
+        }
 
         private static string? LayChuoi(JsonObject o, string ten)
         {

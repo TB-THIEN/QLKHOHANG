@@ -272,6 +272,21 @@
 }
 .tro-ly-send:hover:not(:disabled) { background: var(--kho-primary-2); }
 .tro-ly-send:disabled { background: var(--kho-line-2); cursor: not-allowed; }
+
+/* Nút Tạm dừng thay chỗ nút Gửi trong lúc trợ lý đang xử lý. */
+.tro-ly-stop {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-sm);
+  background: var(--kho-danger); color: #fff;
+  font-size: 16px; cursor: pointer;
+  transition: background .14s;
+}
+.tro-ly-stop:hover:not(:disabled) { background: #A5301F; }
+.tro-ly-stop:disabled { background: var(--kho-line-2); cursor: not-allowed; }
+/* display ở trên đè lên [hidden] của trình duyệt nên phải khai báo lại. */
+.tro-ly-send[hidden], .tro-ly-stop[hidden] { display: none; }
 .tro-ly-foot__note {
   margin: 7px 2px 0;
   font-size: var(--fs-xs);

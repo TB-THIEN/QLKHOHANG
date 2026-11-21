@@ -55,6 +55,15 @@ namespace QuanLyKhoWeb.Controllers
                 if (!kq.ThanhCong)
                     return Json(new TraLoiTroLyVm { ThanhCong = false, Loi = kq.Loi });
 
+                // Ngắt đúng lúc bản nháp vừa tạo xong nhưng chưa kịp gửi đi: người dùng
+                // không bao giờ thấy nó, nên xoá thay vì để tồn tại 10 phút trong bộ nhớ đệm.
+                if (ct.IsCancellationRequested)
+                {
+                    if (kq.HanhDong != null)
+                        _khoHanhDong.Xoa(maNguoiDung.Value, kq.HanhDong.Id);
+                    return new EmptyResult();
+                }
+
                 return Json(new TraLoiTroLyVm
                 {
                     ThanhCong = true,
@@ -64,7 +73,9 @@ namespace QuanLyKhoWeb.Controllers
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                // Người dùng đóng trang giữa chừng, không cần báo lỗi.
+                // Người dùng bấm "Tạm dừng" (hoặc đóng trang). Trình duyệt đã ngắt kết nối
+                // nên không còn ai nhận phản hồi; trả rỗng để không sinh thêm lỗi giả.
+                _logger.LogInformation("Người dùng {MaNguoiDung} đã tạm dừng trợ lý", maNguoiDung);
                 return new EmptyResult();
             }
             catch (Exception ex)

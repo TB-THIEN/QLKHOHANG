@@ -18,6 +18,9 @@
   var form = document.getElementById('troLyForm');
   var oNhap = document.getElementById('troLyNhap');
   var nutGui = document.getElementById('troLyGui');
+  var nutDung = document.getElementById('troLyDung');
+  var ghiChuChan = document.getElementById('troLyGhiChu');
+  var GHI_CHU_MAC_DINH = ghiChuChan ? ghiChuChan.textContent : '';
 
   // Chưa cấu hình khóa API: vẫn mở được khung nhưng báo rõ thay vì gọi mạng.
   var daCauHinh = goc.getAttribute('data-da-cau-hinh') === 'true';
@@ -25,6 +28,10 @@
   // Lịch sử gửi kèm mỗi lượt (chỉ văn bản, tối đa 10 lượt gần nhất).
   var lichSu = [];
   var dangBan = false;
+
+  // Bộ huỷ của lượt đang chạy. Bấm "Tạm dừng" sẽ abort() để trình duyệt ngắt kết nối;
+  // ASP.NET Core chuyển việc đó thành RequestAborted nên server dừng luôn lượt gọi Gemini.
+  var boHuy = null;
 
   function layToken() {
     var input = form.querySelector('input[name="__RequestVerificationToken"]');
@@ -64,14 +71,29 @@
     if (el) el.remove();
   }
 
+  // Khi trợ lý đang chạy: ô nhập bị khoá, nút Gửi đổi thành nút Tạm dừng.
+  // Người dùng vẫn thấy được nút dừng nên không bị "treo" khi AI trả lời chậm.
   function khoaNhap(khoa) {
     dangBan = khoa;
     oNhap.disabled = khoa;
+
+    nutGui.hidden = khoa;
     nutGui.disabled = khoa;
+    nutDung.hidden = !khoa;
+    nutDung.disabled = !khoa;
+
+    if (ghiChuChan) {
+      ghiChuChan.textContent = khoa
+        ? 'Trợ lý đang xử lý… bấm nút tạm dừng nếu bạn không cần nữa.'
+        : GHI_CHU_MAC_DINH;
+    }
+
+    // Không chuyển focus sang nút Tạm dừng: người dùng vừa bấm Enter để gửi,
+    // nhấn thêm lần nữa sẽ vô tình dừng mất. Chỉ giành lại focus khi mở khoá.
     if (!khoa) oNhap.focus();
   }
 
-  function goiApi(duongDan, duLieu) {
+  function goiApi(duongDan, duLieu, tinHieu) {
     return fetch(duongDan, {
       method: 'POST',
       headers: {
@@ -79,7 +101,8 @@
         'RequestVerificationToken': layToken()
       },
       // Gửi token trong header để action [FromBody] vẫn qua được ValidateAntiForgeryToken
-      body: JSON.stringify(duLieu)
+      body: JSON.stringify(duLieu),
+      signal: tinHieu
     }).then(function (res) {
       if (res.status === 429) {
         return { thanhCong: false, loi: 'Bạn thao tác quá nhanh. Vui lòng chờ một lát rồi thử lại.' };
@@ -96,7 +119,11 @@
         return { thanhCong: false, loi: 'Phiên đăng nhập đã hết hạn hoặc bạn không có quyền dùng trợ lý.' };
       }
       return res.json();
-    }).catch(function () {
+    }).catch(function (loi) {
+      // Người dùng bấm Tạm dừng: không phải sự cố, trả cờ riêng để nơi gọi xử lý.
+      if (loi && loi.name === 'AbortError') {
+        return { thanhCong: false, daHuy: true };
+      }
       return { thanhCong: false, loi: 'Không kết nối được tới máy chủ. Kiểm tra mạng rồi thử lại.' };
     });
   }
@@ -229,10 +256,24 @@
     hienDangGo();
 
     var lichSuGui = lichSu.slice(-10);
+    boHuy = typeof AbortController !== 'undefined' ? new AbortController() : null;
 
-    goiApi('/TroLy/Hoi', { tinNhan: noiDung, lichSu: lichSuGui }).then(function (kq) {
+    goiApi('/TroLy/Hoi', { tinNhan: noiDung, lichSu: lichSuGui },
+      boHuy ? boHuy.signal : undefined).then(function (kq) {
       xoaDangGo();
+      boHuy = null;
       khoaNhap(false);
+
+      if (kq && kq.daHuy) {
+        themBong('tro-ly', 'Đã tạm dừng theo yêu cầu của bạn. Bạn có thể sửa lại yêu cầu rồi gửi tiếp.');
+        // Trả lại nội dung vừa gõ để người dùng chỉnh sửa thay vì phải nhập lại từ đầu.
+        if (!oNhap.value) {
+          oNhap.value = noiDung;
+          oNhap.style.height = 'auto';
+          oNhap.style.height = Math.min(oNhap.scrollHeight, 110) + 'px';
+        }
+        return;
+      }
 
       if (!kq || !kq.thanhCong) {
         themLoi((kq && kq.loi) || 'Trợ lý không phản hồi. Vui lòng thử lại.');
@@ -306,6 +347,22 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     guiTinNhan();
+  });
+
+  // Bấm "Tạm dừng": ngắt request đang chạy. Việc dọn dẹp (xoá "đang gõ", mở khoá ô nhập)
+  // do callback trong guiTinNhan lo, nên không làm hai lần ở đây.
+  nutDung.addEventListener('click', function () {
+    if (!dangBan) return;
+    nutDung.disabled = true;
+    if (boHuy) {
+      boHuy.abort();
+    } else {
+      // Trình duyệt quá cũ (không có AbortController): chỉ mở khoá giao diện.
+      xoaDangGo();
+      boHuy = null;
+      khoaNhap(false);
+      themBong('tro-ly', 'Đã tạm dừng theo yêu cầu của bạn. Bạn có thể sửa lại yêu cầu rồi gửi tiếp.');
+    }
   });
 
   // Enter gửi, Shift+Enter xuống dòng (giống các ứng dụng chat quen thuộc).

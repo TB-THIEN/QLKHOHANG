@@ -90,6 +90,9 @@ thì mới thực sự gọi `sp_TaoNhanVien`.
 - Mật khẩu quản lý đặt chỉ hiện **một lần** trong thẻ kết quả ngay sau khi tạo; nhân viên
   buộc đổi ở lần đăng nhập đầu (`phai_doi_mat_khau = 1`).
 - Model chỉ được dùng 3 công cụ cố định: `liet_ke_vai_tro`, `tim_nhan_vien`, `tao_nhan_vien`.
+- Trong lúc trợ lý đang xử lý, nút **Gửi** đổi thành nút **Tạm dừng**. Bấm vào đó thì
+  trình duyệt ngắt request, máy chủ nhận tín hiệu huỷ và dừng luôn lượt gọi AI; bản nháp
+  (nếu vừa kịp tạo nhưng chưa hiện ra) cũng bị xoá khỏi bộ nhớ đệm.
 - Giới hạn 20 lượt / 5 phút / tài khoản (`Program.cs`, policy `"ai"`).
 - Quy tắc kiểm tra dữ liệu nằm ở `Services/NhanVienService.cs`, dùng chung cho cả form
   Thêm nhân viên và trợ lý AI.

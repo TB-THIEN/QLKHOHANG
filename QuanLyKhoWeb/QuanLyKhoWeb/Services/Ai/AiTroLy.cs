@@ -72,7 +72,6 @@ namespace QuanLyKhoWeb.Services.Ai
 
             var lichSuJson = DungLichSu(lichSu, tinNhan);
             var khaiBao = _congCu.KhaiBao();
-            var ghiChuCongCu = new StringBuilder();
 
             // Toàn bộ lời của người dùng trong phiên (gồm tin nhắn hiện tại). Dùng để đối chiếu
             // mật khẩu: chỉ chấp nhận mật khẩu mà chính quản lý đã gõ ra, không chấp nhận giá trị
@@ -85,6 +84,24 @@ namespace QuanLyKhoWeb.Services.Ai
             }
             var vanBanNguoiDung = loiNguoiDung.ToString();
 
+            try
+            {
+                return await ChayVongLapAsync(maNguoiDung, lichSuJson, khaiBao, vanBanNguoiDung, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Người dùng bấm "Tạm dừng": nếu bản nháp đã kịp tạo thì nó chưa hiện ra màn hình,
+                // phải xoá để không ai vô tình xác nhận một thứ mình không nhìn thấy.
+                _congCu.DonBanNhapChuaDung(maNguoiDung);
+                throw;
+            }
+        }
+
+        private async Task<KetQuaTraLoi> ChayVongLapAsync(
+            int maNguoiDung, JsonArray lichSuJson, JsonArray khaiBao,
+            string vanBanNguoiDung, CancellationToken ct)
+        {
+            var ghiChuCongCu = new StringBuilder();
             for (var vong = 1; vong <= Math.Max(1, _cauHinh.SoVongToiDa); vong++)
             {
                 var ketQua = await _gemini.GoiAsync(ChiDan, lichSuJson, khaiBao, ct);
