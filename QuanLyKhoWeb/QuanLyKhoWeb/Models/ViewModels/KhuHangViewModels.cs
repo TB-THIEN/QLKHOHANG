@@ -6,6 +6,12 @@ namespace QuanLyKhoWeb.Models.ViewModels
 
         public List<QuanLyKhoWeb.Models.Entities.KhuVucKho> Khus { get; set; } = new();
 
+        /// <summary>
+        /// Toàn bộ khu (kèm kệ) dùng cho hộp thoại đổi khu/kệ. Không lọc theo từ khóa
+        /// để luôn chọn được mọi vị trí đích.
+        /// </summary>
+        public List<QuanLyKhoWeb.Models.Entities.KhuVucKho> KhuChonDich { get; set; } = new();
+
         public List<HangTimKiemVm> KetQua { get; set; } = new();
     }
 

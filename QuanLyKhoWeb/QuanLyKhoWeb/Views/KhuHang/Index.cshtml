@@ -140,6 +140,15 @@
                                     <a asp-controller="SanPham" asp-action="Details" asp-route-id="@t.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm"><i class="bi bi-eye"></i></a>
                                     @if (duocTao)
                                     {
+                                        <button type="button" class="btn btn-sm btn-outline-secondary btn-doi-vi-tri" title="Chuyển / đổi vị trí sản phẩm này"
+                                                data-bs-toggle="modal" data-bs-target="#modalDoiViTri"
+                                                data-nguon="khu"
+                                                data-masku="@t.MaSku"
+                                                data-ten="@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham"
+                                                data-code="@t.MaSkuNavigation?.MaCodeSku"
+                                                data-vitri="@khu.TenKhuVuc"
+                                                data-macu="@khu.MaKhuVuc"
+                                                data-soluong="@t.SoLuong"><i class="bi bi-arrow-left-right"></i></button>
                                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-khoi-khu-@khu.MaKhuVuc-@t.MaSku" title="Xóa sản phẩm ra khỏi khu"><i class="bi bi-trash"></i></button>
                                     }
                                 </td>
@@ -209,6 +218,15 @@
                                         <a asp-controller="SanPham" asp-action="Details" asp-route-id="@t.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm"><i class="bi bi-eye"></i></a>
                                         @if (duocTao)
                                         {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary btn-doi-vi-tri" title="Chuyển / đổi vị trí sản phẩm này"
+                                                    data-bs-toggle="modal" data-bs-target="#modalDoiViTri"
+                                                    data-nguon="ke"
+                                                    data-masku="@t.MaSku"
+                                                    data-ten="@t.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham"
+                                                    data-code="@t.MaSkuNavigation?.MaCodeSku"
+                                                    data-vitri="@khu.TenKhuVuc / @ke.TenKeHang"
+                                                    data-macu="@ke.MaKeHang"
+                                                    data-soluong="@t.SoLuong"><i class="bi bi-arrow-left-right"></i></button>
                                             <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#xoa-khoi-ke-@ke.MaKeHang-@t.MaSku" title="Xóa sản phẩm ra khỏi kệ"><i class="bi bi-trash"></i></button>
                                         }
                                     </td>
@@ -359,6 +377,85 @@
 }
 @if (!Model.Khus.Any()) { <div class="empty-state"><i class="bi bi-diagram-3"></i><div>@(string.IsNullOrWhiteSpace(Model.Search) ? "Chưa có khu hàng nào. Hãy tạo khu đầu tiên ở ô phía trên." : "Không có khu/kệ nào chứa hàng khớp từ khóa. Xem kết quả tìm kiếm phía trên.")</div></div> }
 
+@if (duocTao)
+{
+<!-- Hộp thoại dùng chung: chuyển hàng sang khu khác hoặc sang kệ (bất kỳ khu nào).
+     Hỗ trợ 4 hướng: khu→khu, khu→kệ, kệ→kệ, kệ→khu. -->
+<div class="modal fade" id="modalDoiViTri" tabindex="-1" aria-labelledby="doiViTriTieuDe" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-action="ChuyenHang" id="frmDoiViTri">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="maSku" id="doiViTriMaSku" />
+                <input type="hidden" name="nguon" id="doiViTriNguon" />
+                <input type="hidden" name="maKhuNguon" id="doiViTriMaKhuNguon" />
+                <input type="hidden" name="maKeNguon" id="doiViTriMaKeNguon" />
+                <div class="modal-header">
+                    <h6 class="modal-title" id="doiViTriTieuDe"><i class="bi bi-arrow-left-right"></i><span id="doiViTriTieuDeText">Chuyển vị trí</span></h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="confirm-record">
+                        <i class="bi bi-box-seam"></i>
+                        <div>
+                            <div class="confirm-record__name" id="doiViTriTenSp">—</div>
+                            <div class="confirm-record__meta" id="doiViTriViTriCu">—</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="doiViTriSoLuong">Số lượng chuyển</label>
+                        <input type="number" class="form-control" name="soLuong" id="doiViTriSoLuong" value="1" min="1" step="1" required />
+                        <div class="form-hint" id="doiViTriGoiY">Có thể chuyển một phần; phần còn lại vẫn nằm ở vị trí cũ.</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label" for="doiViTriLoaiDich">Chuyển đến</label>
+                        <select class="form-select" id="doiViTriLoaiDich" name="dich">
+                            <option value="khu">Khu hàng (chưa xếp kệ)</option>
+                            <option value="ke">Kệ hàng (khu bất kỳ)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-1" id="khungKhuDich">
+                        <label class="form-label" for="doiViTriKhuMoi">Khu hàng đích</label>
+                        <select class="form-select" name="maKhuDich" id="doiViTriKhuMoi">
+                            @foreach (var k in Model.KhuChonDich)
+                            {
+                                <option value="@k.MaKhuVuc">@k.TenKhuVuc (chưa xếp kệ)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-1" id="khungKeDich" hidden>
+                        <label class="form-label" for="doiViTriKeMoi">Kệ hàng đích</label>
+                        <select class="form-select" name="maKeDich" id="doiViTriKeMoi" disabled>
+                            @foreach (var k in Model.KhuChonDich.Where(x => x.KeHangs.Any()))
+                            {
+                                <optgroup label="@k.TenKhuVuc">
+                                    @foreach (var ke in k.KeHangs.OrderBy(x => x.TenKeHang))
+                                    {
+                                        <option value="@ke.MaKeHang">@k.TenKhuVuc / @ke.TenKeHang</option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="callout callout--warning mt-2 mb-0" id="doiViTriCanhBao" hidden>
+                        <i class="bi bi-exclamation-triangle"></i><span>Không còn vị trí nào khác để chuyển. Hãy chọn loại đích còn lại hoặc tạo thêm khu/kệ trước.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="doiViTriXacNhan"><i class="bi bi-check2"></i>Xác nhận chuyển</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+}
+
 @section Scripts {
 <script>
 // Mở rộng / thu gọn khu & kệ + nhớ trạng thái (localStorage)
@@ -423,6 +520,96 @@ document.querySelectorAll('.txt-tim-sp').forEach(txt => {
     });
   }
 });
+</script>
+<script>
+// Chuyển hàng sang khu/kệ khác: mở hộp thoại dùng chung và nạp dữ liệu theo nút vừa bấm.
+(function () {
+  var modalEl = document.getElementById('modalDoiViTri');
+  if (!modalEl) return;
+
+  var inpMaSku = document.getElementById('doiViTriMaSku');
+  var inpNguon = document.getElementById('doiViTriNguon');
+  var inpMaKhuNguon = document.getElementById('doiViTriMaKhuNguon');
+  var inpMaKeNguon = document.getElementById('doiViTriMaKeNguon');
+  var elTen = document.getElementById('doiViTriTenSp');
+  var elViTri = document.getElementById('doiViTriViTriCu');
+  var elTieuDe = document.getElementById('doiViTriTieuDeText');
+  var inpSoLuong = document.getElementById('doiViTriSoLuong');
+  var elGoiY = document.getElementById('doiViTriGoiY');
+  var selLoaiDich = document.getElementById('doiViTriLoaiDich');
+  var khungKhu = document.getElementById('khungKhuDich');
+  var khungKe = document.getElementById('khungKeDich');
+  var selKhu = document.getElementById('doiViTriKhuMoi');
+  var selKe = document.getElementById('doiViTriKeMoi');
+  var canhBao = document.getElementById('doiViTriCanhBao');
+  var nutXacNhan = document.getElementById('doiViTriXacNhan');
+
+  // Đang chuyển từ vị trí nào (để không cho chọn trùng vị trí đang đứng).
+  var nguonLoai = 'khu';
+  var nguonMa = 0;
+
+  // Chọn sẵn option đầu tiên không bị khoá; trả về true nếu còn vị trí để chọn.
+  // Option trùng đúng vị trí đang đứng (cùng loại) bị khoá để không chuyển vào chỗ cũ.
+  function chonMacDinhHopLe(sel, laKe) {
+    var daChon = false;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      o.disabled = laKe === (nguonLoai === 'ke') && Number(o.value) === nguonMa;
+      if (!o.disabled && !daChon) { o.selected = true; daChon = true; }
+    });
+    return daChon;
+  }
+
+  function capNhatTheoLoaiDich() {
+    var laKe = selLoaiDich.value === 'ke';
+    khungKhu.hidden = laKe;
+    khungKe.hidden = !laKe;
+    selKhu.disabled = laKe;
+    selKe.disabled = !laKe;
+
+    var conViTri = laKe ? chonMacDinhHopLe(selKe, true) : chonMacDinhHopLe(selKhu, false);
+    canhBao.hidden = conViTri;
+    nutXacNhan.disabled = !conViTri;
+    return conViTri;
+  }
+
+  // Có ít nhất một vị trí đích hợp lệ cho loại đích đang chọn hay không.
+  function coViTriHopLe(laKe) {
+    return Array.prototype.some.call(laKe ? selKe.options : selKhu.options, function (o) {
+      return !(laKe === (nguonLoai === 'ke') && Number(o.value) === nguonMa);
+    });
+  }
+
+  selLoaiDich.addEventListener('change', capNhatTheoLoaiDich);
+
+  modalEl.addEventListener('show.bs.modal', function (ev) {
+    var nut = ev.relatedTarget;
+    if (!nut || !nut.dataset.masku) return;
+
+    nguonLoai = nut.dataset.nguon === 'ke' ? 'ke' : 'khu';
+    nguonMa = parseInt(nut.dataset.macu, 10);
+    var soLuong = parseInt(nut.dataset.soluong, 10) || 1;
+
+    inpMaSku.value = nut.dataset.masku;
+    inpNguon.value = nguonLoai;
+    inpMaKhuNguon.value = nguonLoai === 'khu' ? nguonMa : '';
+    inpMaKeNguon.value = nguonLoai === 'ke' ? nguonMa : '';
+
+    elTen.textContent = nut.dataset.ten + ' (' + nut.dataset.code + ')';
+    elViTri.textContent = 'Đang ở: ' + nut.dataset.vitri + ' · ' + soLuong + ' sản phẩm';
+    inpSoLuong.max = soLuong;
+    inpSoLuong.value = soLuong;
+    elGoiY.textContent = 'Chuyển tối đa ' + soLuong + ' sản phẩm. Phần còn lại vẫn nằm ở vị trí cũ.';
+    elTieuDe.textContent = 'Chuyển vị trí hàng';
+
+    // Ưu tiên chuyển cùng loại vị trí (đang ở kệ → sang kệ, đang ở khu → sang khu);
+    // nếu loại đó không còn chỗ thì tự chuyển sang loại còn lại.
+    // Kệ đích có thể thuộc bất kỳ khu nào.
+    var uuTienKe = nguonLoai === 'ke';
+    if (!coViTriHopLe(uuTienKe) && coViTriHopLe(!uuTienKe)) uuTienKe = !uuTienKe;
+    selLoaiDich.value = uuTienKe ? 'ke' : 'khu';
+    capNhatTheoLoaiDich();
+  });
+})();
 </script>
 }
 
