@@ -523,8 +523,11 @@ document.addEventListener('click', function (ev) {
   document.querySelectorAll('.ketqua-tim').forEach(function (kq) {
     if (!kq.innerHTML) return;
     var wrap = kq.closest('[data-kethemmahang]');
-    // Bấm bên trong chính khối thêm hàng đó (ô tìm, gợi ý, ô số lượng...) thì giữ nguyên.
-    if (!wrap || !wrap.contains(ev.target)) kq.innerHTML = '';
+    var txt = wrap ? wrap.querySelector('.txt-tim-sp') : null;
+    // Chỉ giữ gợi ý khi bấm đúng vào ô tìm kiếm hoặc vào chính danh sách gợi ý.
+    // Bấm vào bất kỳ chỗ khác trong khung (kể cả khung xanh chứa nó) đều ẩn đi.
+    if (ev.target === txt || kq.contains(ev.target)) return;
+    kq.innerHTML = '';
   });
 });
 // Chuyển sang ô tìm kiếm khác (kể cả bằng Tab) thì đóng gợi ý của ô trước.
