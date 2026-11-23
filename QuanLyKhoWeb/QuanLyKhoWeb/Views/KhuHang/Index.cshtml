@@ -379,8 +379,8 @@
 
 @if (duocTao)
 {
-<!-- Hộp thoại dùng chung: chuyển hàng sang khu khác hoặc sang kệ (bất kỳ khu nào).
-     Hỗ trợ 4 hướng: khu→khu, khu→kệ, kệ→kệ, kệ→khu. -->
+<!-- Hộp thoại dùng chung: chọn khu hàng đích, kệ hàng là tuỳ chọn và chỉ gồm kệ của khu đó.
+     Không chọn kệ thì hàng về khu (chưa xếp kệ). -->
 <div class="modal fade" id="modalDoiViTri" tabindex="-1" aria-labelledby="doiViTriTieuDe" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -409,41 +409,34 @@
                         <div class="form-hint" id="doiViTriGoiY">Có thể chuyển một phần; phần còn lại vẫn nằm ở vị trí cũ.</div>
                     </div>
 
-                    <div class="mb-2">
-                        <label class="form-label" for="doiViTriLoaiDich">Chuyển đến</label>
-                        <select class="form-select" id="doiViTriLoaiDich" name="dich">
-                            <option value="khu">Khu hàng (chưa xếp kệ)</option>
-                            <option value="ke">Kệ hàng (khu bất kỳ)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-1" id="khungKhuDich">
-                        <label class="form-label" for="doiViTriKhuMoi">Khu hàng đích</label>
-                        <select class="form-select" name="maKhuDich" id="doiViTriKhuMoi">
-                            @foreach (var k in Model.KhuChonDich)
-                            {
-                                <option value="@k.MaKhuVuc">@k.TenKhuVuc (chưa xếp kệ)</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-1" id="khungKeDich" hidden>
-                        <label class="form-label" for="doiViTriKeMoi">Kệ hàng đích</label>
-                        <select class="form-select" name="maKeDich" id="doiViTriKeMoi" disabled>
-                            @foreach (var k in Model.KhuChonDich.Where(x => x.KeHangs.Any()))
-                            {
-                                <optgroup label="@k.TenKhuVuc">
-                                    @foreach (var ke in k.KeHangs.OrderBy(x => x.TenKeHang))
+                    <div class="row g-2 mb-2">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="doiViTriKhuMoi">Khu hàng</label>
+                            <select class="form-select" name="maKhuDich" id="doiViTriKhuMoi">
+                                @foreach (var k in Model.KhuChonDich)
+                                {
+                                    <option value="@k.MaKhuVuc">@k.TenKhuVuc</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="doiViTriKeMoi">Kệ hàng</label>
+                            <select class="form-select" name="maKeDich" id="doiViTriKeMoi">
+                                <option value="">— Không chọn kệ —</option>
+                                @foreach (var k in Model.KhuChonDich)
+                                {
+                                    foreach (var ke in k.KeHangs.OrderBy(x => x.TenKeHang))
                                     {
-                                        <option value="@ke.MaKeHang">@k.TenKhuVuc / @ke.TenKeHang</option>
+                                        <option value="@ke.MaKeHang" data-khu="@k.MaKhuVuc">@k.TenKhuVuc / @ke.TenKeHang</option>
                                     }
-                                </optgroup>
-                            }
-                        </select>
+                                }
+                            </select>
+                        </div>
                     </div>
+                    <div class="form-hint" id="doiViTriGoiYDich">Chọn khu hàng là đủ. Nếu không chọn kệ, hàng sẽ nằm trong khu (chưa xếp kệ).</div>
 
                     <div class="callout callout--warning mt-2 mb-0" id="doiViTriCanhBao" hidden>
-                        <i class="bi bi-exclamation-triangle"></i><span>Không còn vị trí nào khác để chuyển. Hãy chọn loại đích còn lại hoặc tạo thêm khu/kệ trước.</span>
+                        <i class="bi bi-exclamation-triangle"></i><span id="doiViTriCanhBaoText">Vị trí đích trùng với vị trí hiện tại.</span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -522,7 +515,8 @@ document.querySelectorAll('.txt-tim-sp').forEach(txt => {
 });
 </script>
 <script>
-// Chuyển hàng sang khu/kệ khác: mở hộp thoại dùng chung và nạp dữ liệu theo nút vừa bấm.
+// Chuyển hàng sang khu/kệ khác: chọn khu trước, danh sách kệ tự lọc theo khu đó.
+// Không chọn kệ thì hàng về khu (chưa xếp kệ).
 (function () {
   var modalEl = document.getElementById('modalDoiViTri');
   if (!modalEl) return;
@@ -536,50 +530,67 @@ document.querySelectorAll('.txt-tim-sp').forEach(txt => {
   var elTieuDe = document.getElementById('doiViTriTieuDeText');
   var inpSoLuong = document.getElementById('doiViTriSoLuong');
   var elGoiY = document.getElementById('doiViTriGoiY');
-  var selLoaiDich = document.getElementById('doiViTriLoaiDich');
-  var khungKhu = document.getElementById('khungKhuDich');
-  var khungKe = document.getElementById('khungKeDich');
   var selKhu = document.getElementById('doiViTriKhuMoi');
   var selKe = document.getElementById('doiViTriKeMoi');
   var canhBao = document.getElementById('doiViTriCanhBao');
+  var canhBaoText = document.getElementById('doiViTriCanhBaoText');
   var nutXacNhan = document.getElementById('doiViTriXacNhan');
 
-  // Đang chuyển từ vị trí nào (để không cho chọn trùng vị trí đang đứng).
+  // Giữ danh sách kệ đầy đủ (kèm khu) để lọc lại theo khu đang chọn.
+  var tatCaKe = Array.prototype.slice.call(selKe.options)
+    .filter(function (o) { return o.value !== ''; })
+    .map(function (o) { return { value: o.value, text: o.textContent, khu: Number(o.dataset.khu) }; });
+
+  // Đang chuyển từ vị trí nào (để chặn chọn trùng vị trí hiện tại).
   var nguonLoai = 'khu';
   var nguonMa = 0;
 
-  // Chọn sẵn option đầu tiên không bị khoá; trả về true nếu còn vị trí để chọn.
-  // Option trùng đúng vị trí đang đứng (cùng loại) bị khoá để không chuyển vào chỗ cũ.
-  function chonMacDinhHopLe(sel, laKe) {
-    var daChon = false;
-    Array.prototype.forEach.call(sel.options, function (o) {
-      o.disabled = laKe === (nguonLoai === 'ke') && Number(o.value) === nguonMa;
-      if (!o.disabled && !daChon) { o.selected = true; daChon = true; }
+  function khuCuaKe(maKe) {
+    for (var i = 0; i < tatCaKe.length; i++) {
+      if (Number(tatCaKe[i].value) === maKe) return tatCaKe[i].khu;
+    }
+    return 0;
+  }
+
+  // Dựng lại cột Kệ hàng: chỉ gồm các kệ thuộc khu đang chọn.
+  function napKeTheoKhu(maKeMuonChon) {
+    var khu = Number(selKhu.value) || 0;
+    while (selKe.options.length > 1) selKe.remove(1);
+    tatCaKe.forEach(function (ke) {
+      if (ke.khu !== khu) return;
+      var o = document.createElement('option');
+      o.value = ke.value;
+      o.textContent = ke.text;
+      o.dataset.khu = ke.khu;
+      selKe.add(o);
     });
-    return daChon;
+    selKe.value = '';
+    if (maKeMuonChon) {
+      var coKe = Array.prototype.some.call(selKe.options, function (o) {
+        return Number(o.value) === maKeMuonChon;
+      });
+      if (coKe) selKe.value = String(maKeMuonChon);
+    }
   }
 
-  function capNhatTheoLoaiDich() {
-    var laKe = selLoaiDich.value === 'ke';
-    khungKhu.hidden = laKe;
-    khungKe.hidden = !laKe;
-    selKhu.disabled = laKe;
-    selKe.disabled = !laKe;
-
-    var conViTri = laKe ? chonMacDinhHopLe(selKe, true) : chonMacDinhHopLe(selKhu, false);
-    canhBao.hidden = conViTri;
-    nutXacNhan.disabled = !conViTri;
-    return conViTri;
+  // Vị trí đích trùng vị trí đang đứng thì chặn nút xác nhận.
+  function kiemTra() {
+    var khu = Number(selKhu.value) || 0;
+    var ke = Number(selKe.value) || 0;
+    var trung = nguonLoai === 'khu'
+      ? (khu === nguonMa && ke === 0)          // khu → đúng khu đó, không chọn kệ
+      : (ke !== 0 && ke === nguonMa);          // kệ → đúng kệ đó
+    canhBao.hidden = !trung;
+    nutXacNhan.disabled = trung;
+    if (trung) {
+      canhBaoText.textContent = nguonLoai === 'khu'
+        ? 'Khu hàng đích trùng với vị trí hiện tại. Hãy chọn khu khác, hoặc chọn một kệ trong khu này.'
+        : 'Kệ hàng đích trùng với vị trí hiện tại. Hãy chọn kệ khác, hoặc bỏ chọn kệ để chuyển về khu.';
+    }
   }
 
-  // Có ít nhất một vị trí đích hợp lệ cho loại đích đang chọn hay không.
-  function coViTriHopLe(laKe) {
-    return Array.prototype.some.call(laKe ? selKe.options : selKhu.options, function (o) {
-      return !(laKe === (nguonLoai === 'ke') && Number(o.value) === nguonMa);
-    });
-  }
-
-  selLoaiDich.addEventListener('change', capNhatTheoLoaiDich);
+  selKhu.addEventListener('change', function () { napKeTheoKhu(0); kiemTra(); });
+  selKe.addEventListener('change', kiemTra);
 
   modalEl.addEventListener('show.bs.modal', function (ev) {
     var nut = ev.relatedTarget;
@@ -601,13 +612,23 @@ document.querySelectorAll('.txt-tim-sp').forEach(txt => {
     elGoiY.textContent = 'Chuyển tối đa ' + soLuong + ' sản phẩm. Phần còn lại vẫn nằm ở vị trí cũ.';
     elTieuDe.textContent = 'Chuyển vị trí hàng';
 
-    // Ưu tiên chuyển cùng loại vị trí (đang ở kệ → sang kệ, đang ở khu → sang khu);
-    // nếu loại đó không còn chỗ thì tự chuyển sang loại còn lại.
-    // Kệ đích có thể thuộc bất kỳ khu nào.
-    var uuTienKe = nguonLoai === 'ke';
-    if (!coViTriHopLe(uuTienKe) && coViTriHopLe(!uuTienKe)) uuTienKe = !uuTienKe;
-    selLoaiDich.value = uuTienKe ? 'ke' : 'khu';
-    capNhatTheoLoaiDich();
+    // Chọn sẵn một vị trí đích khác vị trí hiện tại.
+    if (nguonLoai === 'ke') {
+      var khuNguonKe = khuCuaKe(nguonMa) || Number(selKhu.value);
+      if (khuNguonKe) selKhu.value = String(khuNguonKe);
+      napKeTheoKhu(0);
+      var keKhac = tatCaKe.filter(function (k) {
+        return k.khu === khuNguonKe && Number(k.value) !== nguonMa;
+      })[0];
+      if (keKhac) selKe.value = keKhac.value;
+    } else {
+      var khuKhac = Array.prototype.filter.call(selKhu.options, function (o) {
+        return Number(o.value) !== nguonMa;
+      })[0];
+      if (khuKhac) selKhu.value = khuKhac.value;
+      napKeTheoKhu(0);
+    }
+    kiemTra();
   });
 })();
 </script>
