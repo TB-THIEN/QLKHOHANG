@@ -513,6 +513,32 @@ document.querySelectorAll('.txt-tim-sp').forEach(txt => {
     });
   }
 });
+
+// Bấm ra ngoài khung tìm kiếm (hoặc nhấn Esc) thì ẩn danh sách gợi ý
+// để không chiếm diện tích của khu/kệ.
+function anGoiYTimKiem() {
+  document.querySelectorAll('.ketqua-tim').forEach(function (kq) { kq.innerHTML = ''; });
+}
+document.addEventListener('click', function (ev) {
+  document.querySelectorAll('.ketqua-tim').forEach(function (kq) {
+    if (!kq.innerHTML) return;
+    var wrap = kq.closest('[data-kethemmahang]');
+    // Bấm bên trong chính khối thêm hàng đó (ô tìm, gợi ý, ô số lượng...) thì giữ nguyên.
+    if (!wrap || !wrap.contains(ev.target)) kq.innerHTML = '';
+  });
+});
+// Chuyển sang ô tìm kiếm khác (kể cả bằng Tab) thì đóng gợi ý của ô trước.
+document.addEventListener('focusin', function (ev) {
+  var txt = ev.target && ev.target.closest ? ev.target.closest('.txt-tim-sp') : null;
+  if (!txt) return;
+  var wrap = txt.closest('[data-kethemmahang]');
+  document.querySelectorAll('.ketqua-tim').forEach(function (kq) {
+    if (kq.closest('[data-kethemmahang]') !== wrap) kq.innerHTML = '';
+  });
+});
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') anGoiYTimKiem();
+});
 </script>
 <script>
 // Chuyển hàng sang khu/kệ khác: chọn khu trước, danh sách kệ tự lọc theo khu đó.
