@@ -75,6 +75,13 @@ namespace QuanLyKhoWeb.Models.ViewModels
         public string CheDo { get; set; } = "doanhthu";
         public int Nam { get; set; }
         public int? Thang { get; set; }
+
+        /// <summary>Quý đang xuất (1-4). Chỉ dùng cho file Excel xuất theo quý.</summary>
+        public int? Quy { get; set; }
+
+        /// <summary>Các năm có dữ liệu bán hàng/nhập kho (mới nhất trước).</summary>
+        public List<int> NamCoDuLieu { get; set; } = new();
+
         public List<int> DanhSachNam { get; set; } = new();
 
         public List<ThangDoanhThuVm> DoanhThuThang { get; set; } = new();

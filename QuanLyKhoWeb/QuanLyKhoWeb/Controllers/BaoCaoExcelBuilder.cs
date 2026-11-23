@@ -8,6 +8,8 @@ namespace QuanLyKhoWeb.Controllers
     /// Sinh file Excel .xlsx gộp cho trang Báo cáo:
     ///  - Sheet 1 "Tổng hợp 12 tháng": mỗi tháng gồm số đơn, tổng số hàng,
     ///    doanh thu, tỷ trọng, lũy kế và doanh thu bình quân/đơn.
+    ///  - Xuất theo quý: sheet "Tổng hợp quý X" gồm 3 tháng của quý và 1 dòng
+    ///    tổng hợp quý ở cuối.
     ///  - Sheet 2 "Chi tiết tháng X": danh sách đơn (và phiếu nhập) của tháng
     ///    người dùng đang chọn. Chỉ có khi trang Báo cáo đang lọc theo tháng.
     /// Không còn phần "Nhận xét nhanh" trong file.
@@ -18,15 +20,22 @@ namespace QuanLyKhoWeb.Controllers
 
         public static string TenFile(BaoCaoVm vm)
         {
-            var ten = vm.Thang is int t
-                ? $"BaoCaoTongHop_Thang{t}_{vm.Nam}"
-                : $"BaoCaoTongHop_Nam{vm.Nam}";
+            var ten = vm.Quy is int q
+                ? $"BaoCaoTongHop_Quy{q}_{vm.Nam}"
+                : vm.Thang is int t
+                    ? $"BaoCaoTongHop_Thang{t}_{vm.Nam}"
+                    : $"BaoCaoTongHop_Nam{vm.Nam}";
             return ten + ".xlsx";
         }
 
         public static byte[] XayDung(BaoCaoVm vm)
         {
-            var dsSheet = new List<OSheet> { DungTongHop(vm) };
+            var dsSheet = new List<OSheet>();
+            if (vm.Quy is int quy)
+                dsSheet.Add(DungTongHopQuy(vm, quy));
+            else
+                dsSheet.Add(DungTongHop(vm));
+
             if (vm.Thang is int thang)
                 dsSheet.Add(DungChiTietThang(vm, thang));
 
@@ -86,6 +95,76 @@ namespace QuanLyKhoWeb.Controllers
                 [3] = ((double)vm.DoanhThuCaNam, OStyle.MoneyTotal),
                 [4] = (1d, OStyle.PercentTotal),
                 [5] = ((double)vm.DoanhThuCaNam, OStyle.MoneyTotal),
+                [6] = ((double)tbDon, OStyle.MoneyTotal)
+            });
+
+            b.GhiChuNguon("Cơ sở dữ liệu bán hàng nội bộ, số liệu chốt đến thời điểm xuất file.");
+            b.ChuKy("NGƯỜI LẬP BÁO CÁO", "TRƯỞNG PHÒNG KINH DOANH");
+            return b.ThanhSheet();
+        }
+
+        // =====================================================================
+        //  SHEET TỔNG HỢP QUÝ — 3 tháng của quý + 1 dòng tổng hợp quý ở cuối
+        // =====================================================================
+        private static OSheet DungTongHopQuy(BaoCaoVm vm, int quy)
+        {
+            int thangDau = (quy - 1) * 3 + 1;
+            int thangCuoi = thangDau + 2;
+            var cacThang = vm.DoanhThuThang
+                .Where(t => t.Thang >= thangDau && t.Thang <= thangCuoi)
+                .OrderBy(t => t.Thang)
+                .ToList();
+
+            var b = new ExcelReportBuilder(new double[] { 15, 12, 17, 15, 13, 17, 14 }, "VNĐ")
+            {
+                TenSheet = $"Tổng hợp quý {quy} năm {vm.Nam}"
+            };
+
+            var tongDon = cacThang.Sum(x => x.SoDon);
+            var tongHang = cacThang.Sum(x => x.TongSoHang);
+            var tongDoanhThu = cacThang.Sum(x => x.DoanhThu);
+            var tbDon = tongDon > 0 ? tongDoanhThu / tongDon : 0m;
+
+            b.TieuDeHanhChinh(
+                $"BÁO CÁO TỔNG HỢP KINH DOANH QUÝ {quy} NĂM {vm.Nam}",
+                "PHÒNG KINH DOANH - KHO VẬN",
+                ("Kỳ báo cáo", $"Quý {quy}/{vm.Nam} (tháng {thangDau} - {thangCuoi})"),
+                ("Tổng doanh thu", tongDoanhThu.ToString("N0", Vi) + " đ"),
+                ("Tổng số đơn", tongDon.ToString("N0", Vi) + " đơn"),
+                ("Tổng số hàng", tongHang.ToString("N0", Vi) + " sản phẩm"),
+                ("Doanh thu bình quân/đơn", tbDon.ToString("N0", Vi) + " đ"));
+
+            b.AddRow(new() { [0] = ($"Bảng tổng hợp quý {quy} năm {vm.Nam}", OStyle.BoldLeft) });
+            b.Merge($"A{b.DongHienTai}:{b.Col(b.SoCot - 1)}{b.DongHienTai}");
+            b.Empty();
+            b.Header(new[] { "Tháng", "Số đơn", "Tổng số hàng", "Doanh thu", "Tỷ trọng", "Lũy kế", "TB/đơn" });
+
+            decimal luyKe = 0;
+            foreach (var t in cacThang)
+            {
+                luyKe += t.DoanhThu;
+                var tyTrong = tongDoanhThu > 0 ? Math.Round(t.DoanhThu / tongDoanhThu * 100, 1) : 0m;
+                b.AddRow(new()
+                {
+                    [0] = ($"Tháng {t.Thang}", OStyle.TextCenter),
+                    [1] = (t.SoDon, OStyle.Integer),
+                    [2] = (t.TongSoHang, OStyle.Integer),
+                    [3] = ((double)t.DoanhThu, OStyle.Money),
+                    [4] = ((double)(tyTrong / 100m), OStyle.Percent),
+                    [5] = ((double)luyKe, OStyle.Money),
+                    [6] = (t.SoDon > 0 ? (double)(t.DoanhThu / t.SoDon) : 0d, OStyle.Money)
+                });
+            }
+
+            // Dòng tổng hợp quý nằm ở cuối bảng, cộng lại đúng 3 tháng bên trên.
+            b.AddRow(new()
+            {
+                [0] = ($"Quý {quy}", OStyle.TotalCenter),
+                [1] = (tongDon, OStyle.IntegerTotal),
+                [2] = (tongHang, OStyle.IntegerTotal),
+                [3] = ((double)tongDoanhThu, OStyle.MoneyTotal),
+                [4] = (1d, OStyle.PercentTotal),
+                [5] = ((double)tongDoanhThu, OStyle.MoneyTotal),
                 [6] = ((double)tbDon, OStyle.MoneyTotal)
             });
 

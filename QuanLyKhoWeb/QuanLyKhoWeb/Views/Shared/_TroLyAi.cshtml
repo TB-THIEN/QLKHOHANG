@@ -1,0 +1,51 @@
+@using QuanLyKhoWeb.Authorization
+@inject Microsoft.Extensions.Options.IOptions<QuanLyKhoWeb.Services.Ai.AiCauHinh> CauHinhAi
+@{
+    // Chỉ Quản lý mới thấy trợ lý nhân sự (controller cũng chặn policy ChiQuanLy).
+    var duocDungTroLy = QuyenNguoiDung.QuanLyNhanVien(User);
+    var daCauHinh = CauHinhAi.Value.DaCauHinh;
+}
+@if (duocDungTroLy)
+{
+    <button type="button" class="tro-ly-launcher" id="troLyMo" aria-controls="troLyPanel" aria-expanded="false">
+        <i class="bi bi-stars" aria-hidden="true"></i>
+        <span>Trợ lý AI</span>
+        <span class="tro-ly-cham" aria-hidden="true"></span>
+    </button>
+
+    <div id="troLyAi" data-da-cau-hinh="@(daCauHinh ? "true" : "false")">
+        <section class="tro-ly-panel" id="troLyPanel" role="dialog" aria-modal="false"
+                 aria-labelledby="troLyTieuDe" hidden>
+            <header class="tro-ly-head">
+                <span class="tro-ly-head__icon" aria-hidden="true"><i class="bi bi-stars"></i></span>
+                <div class="tro-ly-head__text">
+                    <div class="tro-ly-head__title" id="troLyTieuDe">Trợ lý nhân sự</div>
+                    <div class="tro-ly-head__sub">Thêm và tra cứu nhân viên bằng câu lệnh</div>
+                </div>
+                <button type="button" class="tro-ly-head__close" id="troLyDong" aria-label="Đóng trợ lý">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </header>
+
+            <div class="tro-ly-body" id="troLyThan" role="log" aria-live="polite" aria-atomic="false"></div>
+
+            <div class="tro-ly-foot">
+                <form class="tro-ly-form" id="troLyForm" autocomplete="off">
+                    @Html.AntiForgeryToken()
+                    <label class="visually-hidden" for="troLyNhap">Nhập yêu cầu cho trợ lý</label>
+                    <textarea class="tro-ly-input" id="troLyNhap" rows="1" maxlength="2000"
+                              placeholder="Ví dụ: Thêm nhân viên Trần B, đăng nhập tranb, mật khẩu Abc@1234, vai trò Nhân viên kho"></textarea>
+                    <button type="submit" class="tro-ly-send" id="troLyGui" aria-label="Gửi">
+                        <i class="bi bi-send" aria-hidden="true"></i>
+                    </button>
+                    @* Khi trợ lý đang xử lý, nút gửi được thay bằng nút này để người dùng dừng lại. *@
+                    <button type="button" class="tro-ly-stop" id="troLyDung" aria-label="Tạm dừng trợ lý"
+                            title="Tạm dừng" hidden>
+                        <i class="bi bi-pause-fill" aria-hidden="true"></i>
+                    </button>
+                </form>
+                <p class="tro-ly-foot__note" id="troLyGhiChu" role="status" aria-live="polite">Trợ lý chỉ chuẩn bị bản nháp; bạn phải bấm Xác nhận thì mới ghi dữ liệu.</p>
+            </div>
+        </section>
+    </div>
+}

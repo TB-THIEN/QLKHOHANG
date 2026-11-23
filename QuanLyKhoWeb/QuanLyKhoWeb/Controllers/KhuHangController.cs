@@ -35,7 +35,7 @@ namespace QuanLyKhoWeb.Controllers
                 .OrderBy(k => k.TenKhuVuc)
                 .ToListAsync();
 
-            var vm = new KhuHangIndexVm { Search = search?.Trim() };
+            var vm = new KhuHangIndexVm { Search = search?.Trim(), KhuChonDich = khus };
 
             if (!string.IsNullOrWhiteSpace(vm.Search))
             {
@@ -245,6 +245,152 @@ namespace QuanLyKhoWeb.Controllers
             _context.TonKhoKeHangs.Remove(dong);
             await _context.SaveChangesAsync();
             TempData["ThongBao"] = "Đã xóa sản phẩm ra khỏi kệ hàng.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Chuyển hàng sang vị trí khác: hỗ trợ cả 4 hướng khu→khu, khu→kệ, kệ→kệ, kệ→khu.
+        // Đích chọn theo 2 cột: Khu hàng (bắt buộc) và Kệ hàng (tuỳ chọn, chỉ gồm kệ của khu đó).
+        // Chọn khu mà không chọn kệ thì hàng về khu (chưa xếp kệ).
+        // Chuyển một phần hoặc toàn bộ số lượng; chỉ đổi vị trí xếp, không đổi tổng tồn SKU.
+        [HttpPost, Authorize(Policy = "SuaKhuHang"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChuyenHang(int maSku, string? nguon, int? maKhuNguon, int? maKeNguon,
+            int? maKhuDich, int? maKeDich, int soLuong)
+        {
+            var laKhuNguon = string.Equals(nguon, "khu", StringComparison.OrdinalIgnoreCase);
+            var laKeNguon = string.Equals(nguon, "ke", StringComparison.OrdinalIgnoreCase);
+
+            if (!(laKhuNguon || laKeNguon))
+            {
+                TempData["Loi"] = "Vị trí nguồn không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+            if (soLuong <= 0)
+            {
+                TempData["Loi"] = "Số lượng chuyển phải lớn hơn 0.";
+                return RedirectToAction(nameof(Index));
+            }
+            if ((laKhuNguon && maKhuNguon == null) || (laKeNguon && maKeNguon == null) || maKhuDich == null)
+            {
+                TempData["Loi"] = "Vui lòng chọn khu hàng cần chuyển đến.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Khu đích phải tồn tại; nếu có chọn kệ thì kệ đó phải thuộc đúng khu đích.
+            var khuDich = await _context.KhuVucKhos.FirstOrDefaultAsync(k => k.MaKhuVuc == maKhuDich);
+            if (khuDich == null)
+            {
+                TempData["Loi"] = "Khu hàng đích không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var laKeDich = maKeDich.HasValue;
+            if (laKeDich)
+            {
+                var keDich = await _context.KeHangs.FirstOrDefaultAsync(k => k.MaKeHang == maKeDich);
+                if (keDich == null || keDich.MaKhuVuc != maKhuDich)
+                {
+                    TempData["Loi"] = "Kệ hàng đích không thuộc khu hàng đã chọn.";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            // Không cho chuyển vào đúng vị trí đang đứng.
+            if (laKhuNguon && !laKeDich && maKhuNguon == maKhuDich)
+            {
+                TempData["Loi"] = "Khu hàng đích phải khác khu hàng hiện tại.";
+                return RedirectToAction(nameof(Index));
+            }
+            if (laKeNguon && laKeDich && maKeNguon == maKeDich)
+            {
+                TempData["Loi"] = "Kệ hàng đích phải khác kệ hàng hiện tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Đọc dòng tồn nguồn để kiểm tra số lượng còn đủ.
+            TonKhoKhu? nguonKhu = null;
+            TonKhoKeHang? nguonKe = null;
+            int soLuongNguon;
+            if (laKhuNguon)
+            {
+                nguonKhu = await _context.TonKhoKhus.FindAsync(maSku, maKhuNguon!.Value);
+                if (nguonKhu == null)
+                {
+                    TempData["Loi"] = "Sản phẩm không còn nằm trong khu hàng này.";
+                    return RedirectToAction(nameof(Index));
+                }
+                soLuongNguon = nguonKhu.SoLuong;
+            }
+            else
+            {
+                nguonKe = await _context.TonKhoKeHangs.FindAsync(maSku, maKeNguon!.Value);
+                if (nguonKe == null)
+                {
+                    TempData["Loi"] = "Sản phẩm không còn nằm trên kệ hàng này.";
+                    return RedirectToAction(nameof(Index));
+                }
+                soLuongNguon = nguonKe.SoLuong;
+            }
+            if (soLuong > soLuongNguon)
+            {
+                TempData["Loi"] = $"Số lượng chuyển vượt quá số lượng đang có ở vị trí hiện tại ({soLuongNguon}).";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var maNguoi = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : (int?)null;
+            var moTaDich = laKeDich
+                ? $"kệ hàng ({khuDich.TenKhuVuc})"
+                : $"khu hàng {khuDich.TenKhuVuc}";
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Cộng vào vị trí đích (tạo dòng nếu chưa có) rồi trừ ở vị trí nguồn.
+                if (laKeDich)
+                {
+                    var dichKe = await _context.TonKhoKeHangs.FindAsync(maSku, maKeDich!.Value);
+                    if (dichKe == null)
+                        _context.TonKhoKeHangs.Add(new TonKhoKeHang { MaSku = maSku, MaKeHang = maKeDich.Value, SoLuong = soLuong });
+                    else
+                        dichKe.SoLuong += soLuong;
+                }
+                else
+                {
+                    var dichKhu = await _context.TonKhoKhus.FindAsync(maSku, maKhuDich!.Value);
+                    if (dichKhu == null)
+                        _context.TonKhoKhus.Add(new TonKhoKhu { MaSku = maSku, MaKhuVuc = maKhuDich.Value, SoLuong = soLuong });
+                    else
+                        dichKhu.SoLuong += soLuong;
+                }
+
+                if (laKhuNguon)
+                {
+                    if (nguonKhu!.SoLuong == soLuong) _context.TonKhoKhus.Remove(nguonKhu);
+                    else nguonKhu.SoLuong -= soLuong;
+                }
+                else
+                {
+                    if (nguonKe!.SoLuong == soLuong) _context.TonKhoKeHangs.Remove(nguonKe);
+                    else nguonKe.SoLuong -= soLuong;
+                }
+
+                _context.NhatKyTonKhos.Add(new NhatKyTonKho
+                {
+                    MaSku = maSku,
+                    LoaiBienDong = "CHUYEN_KE",
+                    SoLuongThayDoi = soLuong,
+                    MaNguoiThucHien = maNguoi,
+                    MaKeHang = laKeDich ? maKeDich : null,
+                    ThoiGian = DateTime.Now
+                });
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                TempData["ThongBao"] = $"Đã chuyển {soLuong} sản phẩm sang {moTaDich} mới.";
+            }
+            catch (DbUpdateException)
+            {
+                await tx.RollbackAsync();
+                TempData["Loi"] = "Không thể chuyển hàng lúc này. Vui lòng thử lại.";
+            }
             return RedirectToAction(nameof(Index));
         }
 

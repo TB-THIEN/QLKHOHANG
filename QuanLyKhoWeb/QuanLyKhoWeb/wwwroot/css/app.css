@@ -570,21 +570,30 @@ small { font-size: var(--fs-sm); }
   border: 1px solid var(--kho-line-2); border-radius: var(--radius-sm);
   padding: 9px 11px; font-size: var(--fs-base); font-family: var(--font-body);
   color: var(--kho-ink); background-color: var(--kho-surface);
-  transition: border-color .14s var(--ease), box-shadow .14s var(--ease), background .14s;
+  transition: border-color .14s var(--ease), box-shadow .14s var(--ease), background-color .14s;
 }
 .form-control::placeholder { color: #97A9BC; }
 .form-control:hover, .form-select:hover { border-color: var(--kho-ink-3); }
+/* Chỉ đổi background-color: dùng shorthand `background` sẽ xoá background-image
+   (mũi tên của .form-select) và làm mũi tên biến mất mỗi lần focus. */
 .form-control:focus, .form-select:focus {
   outline: none; border-color: var(--kho-primary);
   box-shadow: var(--kho-focus);
-  background: #fff;
+  background-color: #fff;
 }
-.form-control[readonly] { background: var(--kho-surface-2); color: var(--kho-ink-2); }
+.form-control[readonly] { background-color: var(--kho-surface-2); color: var(--kho-ink-2); }
 .form-control[readonly]:focus { border-color: var(--kho-line-2); box-shadow: none; }
-.form-control:disabled, .form-select:disabled { background: var(--kho-surface-2); color: var(--kho-ink-3); }
-fieldset:disabled .form-control { background: var(--kho-surface-2); }
+.form-control:disabled, .form-select:disabled { background-color: var(--kho-surface-2); color: var(--kho-ink-3); }
+fieldset:disabled .form-control { background-color: var(--kho-surface-2); }
 textarea.form-control { min-height: 88px; resize: vertical; }
-.form-select { padding-right: 34px; }
+.form-select {
+  padding-right: 34px;
+  /* Ghim mũi tên vào đúng một vị trí cho mọi trạng thái (hover/focus/disabled)
+     để nó không nhảy khi bấm vào ô chọn. */
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 12px;
+}
 input[type="file"].form-control { padding: 7px 10px; font-size: var(--fs-sm); }
 input[type="file"].form-control::file-selector-button {
   border: 0; background: var(--kho-paper-2); color: var(--kho-ink-2);

@@ -72,14 +72,27 @@ namespace QuanLyKhoWeb.Controllers
         }
 
         // =====================================================================
-        //  XUẤT BÁO CÁO EXCEL (.xlsx) — MỘT file gộp:
-        //  - Sheet 1: tổng hợp 12 tháng (số đơn, tổng số hàng, doanh thu, tỷ trọng...)
-        //  - Sheet 2: chi tiết tháng đang chọn (nếu người dùng đang lọc theo tháng)
+        //  XUẤT BÁO CÁO EXCEL (.xlsx) — chọn kỳ xuất: Quý / Tháng / Năm
+        //  - Năm: tổng hợp 12 tháng.
+        //  - Tháng: tổng hợp tháng + danh sách đơn của tháng.
+        //  - Quý: tổng hợp 3 tháng của quý + dòng quý ở cuối.
         // =====================================================================
-        public async Task<IActionResult> XuatExcel(string xem = "doanhthu", int? nam = null, int? thang = null)
+        public async Task<IActionResult> XuatExcel(string xem = "doanhthu", int? nam = null, int? thang = null,
+            int? quy = null, string? ky = null)
         {
             if (!new[] { "doanhthu", "donhang", "top" }.Contains(xem)) xem = "doanhthu";
-            var context = await XayDungBaoCaoAsync(xem, nam, thang, layChiTiet: true);
+
+            // ky = quy | thang | nam. Nếu link cũ không truyền ky thì suy ra từ tham số có sẵn.
+            var cheDoKy = (ky ?? "").Trim().ToLowerInvariant();
+            if (cheDoKy is not ("quy" or "thang" or "nam"))
+                cheDoKy = quy.HasValue ? "quy" : thang.HasValue ? "thang" : "nam";
+
+            if (cheDoKy == "quy" && quy is not (>= 1 and <= 4)) cheDoKy = "nam";
+            if (cheDoKy == "thang" && thang is not (>= 1 and <= 12)) cheDoKy = "nam";
+
+            int? thangXuat = cheDoKy == "thang" ? thang : null;
+            var context = await XayDungBaoCaoAsync(xem, nam, thangXuat, layChiTiet: true);
+            context.Quy = cheDoKy == "quy" ? quy : null;
 
             var bytes = BaoCaoExcelBuilder.XayDung(context);
             var tenFile = BaoCaoExcelBuilder.TenFile(context);
@@ -102,17 +115,21 @@ namespace QuanLyKhoWeb.Controllers
 
             var vm = new BaoCaoVm { CheDo = xem, Nam = namChon, Thang = thangChon };
 
-            // Các năm có dữ liệu (đơn hàng hoặc phiếu nhập), luôn kèm năm hiện tại và năm đang chọn.
-            var dsNam = new SortedSet<int>(Comparer<int>.Create((a, b) => b.CompareTo(a)));
-            dsNam.Add(DateTime.Today.Year);
-            dsNam.Add(namChon);
+            // Các năm có dữ liệu (đơn hàng hoặc phiếu nhập) — hộp thoại xuất báo cáo chỉ hiện các năm này.
+            var namCoDuLieu = new SortedSet<int>(Comparer<int>.Create((a, b) => b.CompareTo(a)));
             using (var conn = (SqlConnection)_factory.CreateConnection())
             {
                 await conn.OpenAsync();
                 var cacNam = await conn.QueryAsync<int>(
                     "SELECT DISTINCT YEAR(ngay_dat_hang) FROM don_hang WHERE ngay_dat_hang IS NOT NULL UNION SELECT DISTINCT YEAR(ngay_nhap) FROM phieu_nhap_kho WHERE ngay_nhap IS NOT NULL");
-                foreach (var y in cacNam) if (y >= 2000 && y <= 2100) dsNam.Add(y);
+                foreach (var y in cacNam) if (y >= 2000 && y <= 2100) namCoDuLieu.Add(y);
             }
+            vm.NamCoDuLieu = namCoDuLieu.ToList();
+
+            // Bộ lọc năm của trang: kèm năm hiện tại và năm đang chọn để ô chọn không bị rỗng.
+            var dsNam = new SortedSet<int>(namCoDuLieu, Comparer<int>.Create((a, b) => b.CompareTo(a)));
+            dsNam.Add(DateTime.Today.Year);
+            dsNam.Add(namChon);
             vm.DanhSachNam = dsNam.ToList();
 
             // ---- Doanh thu 12 tháng ----

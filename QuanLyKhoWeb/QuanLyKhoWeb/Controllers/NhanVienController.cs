@@ -18,11 +18,14 @@ namespace QuanLyKhoWeb.Controllers
         private readonly DoAnQlkContext _context;
         private readonly IDbConnectionFactory _factory;
         private readonly IWebHostEnvironment _env;
-        public NhanVienController(DoAnQlkContext context, IDbConnectionFactory factory, IWebHostEnvironment env)
+        private readonly INhanVienService _nhanVienService;
+        public NhanVienController(DoAnQlkContext context, IDbConnectionFactory factory,
+            IWebHostEnvironment env, INhanVienService nhanVienService)
         {
             _context = context;
             _factory = factory;
             _env = env;
+            _nhanVienService = nhanVienService;
         }
 
         // Danh sách nhân viên - chỉ Quản lý (policy ChiQuanLy).
@@ -242,39 +245,34 @@ namespace QuanLyKhoWeb.Controllers
 
         // Thêm mới nhân viên - qua sp_TaoNhanVien để có đủ: kiểm tra trùng tên đăng nhập/email,
         // email chỉ nhận @gmail.com, tự tạo vai trò mới nếu chưa có, và chặn tạo quá 1 Quản lý.
+        // Quy tắc kiểm tra + gọi SP nằm trong INhanVienService (dùng chung với trợ lý AI).
         [HttpPost, Authorize(Policy = "ChiQuanLy"), ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(NhanVienCreateVm vm)
         {
             // Combobox Vai trò load qua API GoiYVaiTro nên không cần ViewBag preload
-
-            // Cảnh báo sớm cho UX; sp_TaoNhanVien vẫn kiểm tra lại lần cuối để tránh đụng độ.
-            if (await _context.NguoiDungs.AnyAsync(n => n.TenDangNhap == vm.TenDangNhap))
-                ModelState.AddModelError(nameof(vm.TenDangNhap), "Tên đăng nhập đã tồn tại, vui lòng chọn tên khác.");
-            if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.HoTen))
-                ModelState.AddModelError(nameof(vm.HoTen), "Họ tên không được chứa số.");
             vm.TenVaiTro = (vm.TenVaiTro ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(vm.TenVaiTro))
-                ModelState.AddModelError(nameof(vm.TenVaiTro), "Vui lòng chọn hoặc nhập vai trò.");
             var cccdMoi = string.IsNullOrWhiteSpace(vm.Cccd) ? null : vm.Cccd.Trim();
-            if (cccdMoi != null && await _context.NguoiDungs.AnyAsync(n => n.Cccd == cccdMoi))
-                ModelState.AddModelError(nameof(vm.Cccd), "CCCD này đã được sử dụng.");
+
+            // Lưu ảnh thẻ 3x4 vào wwwroot/images/staff (chỉ khi file hợp lệ)
+            string? duongDanAnh = null;
+            var anhHopLe = false;
             if (vm.AnhThe != null && vm.AnhThe.Length > 0)
             {
                 if (vm.AnhThe.Length > 5 * 1024 * 1024)
                     ModelState.AddModelError(nameof(vm.AnhThe), "Ảnh vượt quá 5MB.");
                 else if (string.IsNullOrEmpty(vm.AnhThe.ContentType) || !vm.AnhThe.ContentType.StartsWith("image/"))
                     ModelState.AddModelError(nameof(vm.AnhThe), "Vui lòng chọn đúng file hình ảnh.");
+                else
+                    anhHopLe = true;
             }
 
             if (!ModelState.IsValid) return View(vm);
 
-            // Lưu ảnh thẻ 3x4 vào wwwroot/images/staff
-            string? duongDanAnh = null;
-            if (vm.AnhThe != null && vm.AnhThe.Length > 0)
+            if (anhHopLe)
             {
                 var thuMuc = Path.Combine(_env.WebRootPath, "images", "staff");
                 Directory.CreateDirectory(thuMuc);
-                var tenFile = Guid.NewGuid().ToString("N") + Path.GetExtension(vm.AnhThe.FileName);
+                var tenFile = Guid.NewGuid().ToString("N") + Path.GetExtension(vm.AnhThe!.FileName);
                 using (var stream = new FileStream(Path.Combine(thuMuc, tenFile), FileMode.Create))
                 {
                     await vm.AnhThe.CopyToAsync(stream);
@@ -282,51 +280,34 @@ namespace QuanLyKhoWeb.Controllers
                 duongDanAnh = "/images/staff/" + tenFile;
             }
 
-            try
+            var ketQua = await _nhanVienService.TaoAsync(new NhanVienTaoMoi
             {
-                using var conn = (SqlConnection)_factory.CreateConnection();
-                var p = new DynamicParameters();
-                p.Add("@ten_dang_nhap", vm.TenDangNhap);
-                p.Add("@mat_khau_ma_hoa", BCrypt.Net.BCrypt.HashPassword(vm.MatKhau));
-                p.Add("@ho_ten", vm.HoTen);
-                p.Add("@vai_tro", vm.TenVaiTro);
-                p.Add("@email", string.IsNullOrWhiteSpace(vm.Email) ? null : vm.Email);
-                p.Add("@so_dien_thoai", vm.SoDienThoai);
-                p.Add("@ngay_sinh", vm.NgaySinh);
-                p.Add("@gioi_tinh", vm.GioiTinh);
-                p.Add("@thuong_tru", vm.ThuongTru);
-                p.Add("@cccd", cccdMoi);
-                p.Add("@anh_the", duongDanAnh);
-                p.Add("@stk_ngan_hang", string.IsNullOrWhiteSpace(vm.StkNganHang) ? null : vm.StkNganHang.Trim());
-                p.Add("@chi_nhanh_ngan_hang", string.IsNullOrWhiteSpace(vm.ChiNhanhNganHang) ? null : vm.ChiNhanhNganHang.Trim());
-                // Chỉ áp dụng khi vai trò CHƯA tồn tại (SP tự tạo vai trò mới với 2 quyền này);
-                // nếu vai trò đã có sẵn thì SP giữ nguyên quyền cũ của vai trò đó.
-                p.Add("@co_quyen_huy_don", false);
-                p.Add("@duoc_nhan_van_don", true);
-                await conn.OpenAsync();
-                await conn.ExecuteAsync("sp_TaoNhanVien", p, commandType: CommandType.StoredProcedure);
-            }
-            catch (SqlException ex)
+                TenDangNhap = vm.TenDangNhap,
+                MatKhau = vm.MatKhau,
+                HoTen = vm.HoTen,
+                TenVaiTro = vm.TenVaiTro,
+                Email = vm.Email,
+                SoDienThoai = vm.SoDienThoai,
+                NgaySinh = vm.NgaySinh,
+                GioiTinh = vm.GioiTinh,
+                ThuongTru = vm.ThuongTru,
+                Cccd = cccdMoi,
+                AnhThe = duongDanAnh,
+                StkNganHang = vm.StkNganHang,
+                ChiNhanhNganHang = vm.ChiNhanhNganHang,
+                TrangThaiHoatDong = vm.TrangThaiHoatDong
+            });
+
+            if (!ketQua.ThanhCong)
             {
                 // Bắt các RAISERROR trong SP: trùng tên đăng nhập/email, email sai định dạng,
                 // vai trò trống, hoặc "Không được có nhiều hơn 1 quản lý."
-                ModelState.AddModelError(string.Empty, ex.Message);
+                foreach (var l in ketQua.Loi)
+                    ModelState.AddModelError(l.Truong, l.ThongBao);
                 return View(vm);
             }
 
-            // sp_TaoNhanVien luôn tạo tài khoản ở trạng thái "đang làm"; nếu quản lý chọn sẵn
-            // "Nghỉ" ngay lúc tạo thì cập nhật lại bằng EF (SP không nhận tham số này).
-            if (!vm.TrangThaiHoatDong)
-            {
-                var nvMoi = await _context.NguoiDungs.FirstOrDefaultAsync(n => n.TenDangNhap == vm.TenDangNhap);
-                if (nvMoi != null)
-                {
-                    nvMoi.TrangThaiHoatDong = false;
-                    await _context.SaveChangesAsync();
-                }
-            }
-
-            TempData["ThongBao"] = $"Đã cấp tài khoản {vm.TenDangNhap} cho nhân viên.";
+            TempData["ThongBao"] = $"Đã cấp tài khoản {ketQua.TenDangNhap} cho nhân viên.";
             return RedirectToAction(nameof(Index));
         }
 
