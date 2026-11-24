@@ -88,15 +88,19 @@
                             </div>
                         </div>
                         <div class="span-full">
-                            <label asp-for="HinhAnhMoi" class="form-label"></label>
-                            <div class="d-flex gap-3 align-items-center flex-wrap">
-                                @if (!string.IsNullOrEmpty(Model.HinhAnhHienTai))
-                                { <img src="@Model.HinhAnhHienTai" class="thumb-48" alt="Ảnh hiện tại" /> }
-                                else { <span class="cell-sub">Chưa có ảnh</span> }
-                                <input asp-for="HinhAnhMoi" class="form-control flex-grow-1" style="max-width:340px" accept="image/*" />
+                            <label class="form-label">Hình ảnh sản phẩm</label>
+                            <div class="anh-luoi" id="anhLuoi" data-toi-da="8" data-che-do="sua"
+                                 data-anh-cu="@System.Text.Json.JsonSerializer.Serialize((Model.HinhAnhHienTai ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries))">
+                                <button type="button" class="anh-o anh-o--them" id="anhThem" aria-label="Thêm ảnh">
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                    <span>Thêm ảnh</span>
+                                </button>
                             </div>
-                            <span class="form-hint">Không chọn ảnh mới thì giữ nguyên ảnh cũ.</span>
-                            <span asp-validation-for="HinhAnhMoi" class="text-danger"></span>
+                            <input type="file" name="HinhAnhMois" id="fileHinh" class="d-none" accept="image/*" multiple />
+                            <input type="hidden" name="ThuTuAnh" id="anhThuTu" value="" />
+                            <input type="hidden" name="CoSapXepAnh" id="anhCoSapXep" value="" />
+                            <span class="form-hint">Tối đa 8 ảnh, mỗi ảnh tối đa 5 MB. Ảnh đầu tiên là ảnh đại diện; dùng mũi tên để đổi thứ tự, dấu × để bỏ ảnh.</span>
+                            <span asp-validation-for="HinhAnhMois" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
@@ -154,6 +158,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/anh-san-pham.js" asp-append-version="true"></script>
     <script>
         window.setupAutocomplete('txtDm', 'goiYDm', {
           url: term => '/SanPham/GoiY?loai=danhmuc&term=' + encodeURIComponent(term),

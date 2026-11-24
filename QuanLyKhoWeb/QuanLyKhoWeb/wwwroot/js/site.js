@@ -208,9 +208,17 @@
   });
 })();
 
-// Ô tiền (.money): gõ 150000 -> hiện 150.000; submit tự gỡ chấm để server nhận số nguyên
-function formatMoneyInput(el) {
-  var d = (el.value || '').replace(/\D/g, '').slice(0, 15);
+// Ô tiền (.money): gõ 150000 -> hiện 150.000; submit tự gỡ chấm để server nhận số nguyên.
+// khiNap: giá trị server render từ cột decimal có thể là "1500000.00" (hoặc "1500000,00").
+// Lúc nạp trang phải bỏ phần lẻ trước khi lọc chữ số, nếu không mỗi lần mở trang Sửa
+// giá lại bị nhân 100. Khi người dùng đang gõ thì chỉ lọc chữ số (giữ nguyên số họ nhập).
+function formatMoneyInput(el, khiNap) {
+  var raw = String(el.value == null ? '' : el.value).trim();
+  if (khiNap) {
+    var thapPhan = raw.match(/^(\d+)[.,]\d{2}$/); // 1500000.00 / 1500000,00
+    if (thapPhan) raw = thapPhan[1];
+  }
+  var d = raw.replace(/\D/g, '').slice(0, 15);
   el.value = d.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 document.addEventListener('input', function (e) {
@@ -224,7 +232,7 @@ document.addEventListener('submit', function (e) {
   });
 }, true);
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('input.money').forEach(formatMoneyInput);
+  document.querySelectorAll('input.money').forEach(function (el) { formatMoneyInput(el, true); });
 });
 
 // Hộp gợi ý dùng chung (1 list duy nhất do web tự vẽ, đã bỏ datalist mặc định):

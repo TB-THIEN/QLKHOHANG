@@ -30,6 +30,8 @@ public partial class DoAnQlkContext : DbContext
 
     public virtual DbSet<KeHang> KeHangs { get; set; }
 
+    public virtual DbSet<HinhAnhSanPham> HinhAnhSanPhams { get; set; }
+
     public virtual DbSet<LoHang> LoHangs { get; set; }
 
     public virtual DbSet<KhachHang> KhachHangs { get; set; }
@@ -416,6 +418,29 @@ public partial class DoAnQlkContext : DbContext
                 .HasForeignKey(d => d.MaNguoiDung)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_matkhaudatlai_nguoidung");
+        });
+
+        modelBuilder.Entity<HinhAnhSanPham>(entity =>
+        {
+            entity.HasKey(e => e.MaHinhAnh).HasName("PK_hinhanh_sanpham");
+
+            entity.ToTable("hinh_anh_san_pham");
+
+            entity.HasIndex(e => new { e.MaMauSanPham, e.ThuTu }, "IX_hinhanh_mausp");
+
+            entity.Property(e => e.MaHinhAnh).HasColumnName("ma_hinh_anh");
+            entity.Property(e => e.MaMauSanPham).HasColumnName("ma_mau_san_pham");
+            entity.Property(e => e.DuongDan)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("duong_dan");
+            entity.Property(e => e.ThuTu)
+                .HasDefaultValue(0)
+                .HasColumnName("thu_tu");
+
+            entity.HasOne(d => d.MaMauSanPhamNavigation).WithMany(p => p.HinhAnhSanPhams)
+                .HasForeignKey(d => d.MaMauSanPham)
+                .HasConstraintName("FK_hinhanh_mausp");
         });
 
         modelBuilder.Entity<MauSanPham>(entity =>

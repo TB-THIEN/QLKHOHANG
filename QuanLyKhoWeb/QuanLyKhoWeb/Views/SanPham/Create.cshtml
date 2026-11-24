@@ -90,15 +90,17 @@
 
                 <div class="form-block">
                     <h6 class="section-title"><i class="bi bi-image"></i>Hình ảnh</h6>
-                    <div class="d-flex gap-3 align-items-center flex-wrap">
-                        <div class="thumb-preview" id="wrapPreview"><i class="bi bi-image" id="previewIcon"></i><img id="imgPreview" alt="Xem trước ảnh" /></div>
-                        <div class="flex-grow-1" style="min-width:220px">
-                            <label asp-for="HinhAnh" class="form-label"></label>
-                            <input asp-for="HinhAnh" class="form-control" id="fileHinh" accept="image/*" />
-                            <span class="form-hint">JPG hoặc PNG, tối đa 5 MB. Bỏ trống nếu chưa có ảnh.</span>
-                            <span asp-validation-for="HinhAnh" class="text-danger"></span>
-                        </div>
+                    <div class="anh-luoi" id="anhLuoi" data-toi-da="8">
+                        <button type="button" class="anh-o anh-o--them" id="anhThem" aria-label="Thêm ảnh">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            <span>Thêm ảnh</span>
+                        </button>
                     </div>
+                    <input type="file" name="HinhAnhs" id="fileHinh" class="d-none" accept="image/*" multiple />
+                    <input type="hidden" name="ThuTuAnh" id="anhThuTu" value="" />
+                    <input type="hidden" name="CoSapXepAnh" id="anhCoSapXep" value="" />
+                    <span class="form-hint">Chọn tối đa 8 ảnh, mỗi ảnh tối đa 5 MB (JPG/PNG). Ảnh đầu tiên là ảnh đại diện — dùng nút mũi tên để đổi thứ tự.</span>
+                    <span asp-validation-for="HinhAnhs" class="text-danger"></span>
                 </div>
 
                 <div class="form-block">
@@ -182,6 +184,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/anh-san-pham.js" asp-append-version="true"></script>
     <script>
         window.setupAutocomplete('txtDm', 'goiYDm', {
           url: term => '/SanPham/GoiY?loai=danhmuc&term=' + encodeURIComponent(term),
@@ -224,19 +227,6 @@
             });
             if (selKhu.value) selKhu.dispatchEvent(new Event('change'));
         })();
-
-        // Xem trước ảnh
-        const fileHinh = document.getElementById('fileHinh'), wrap = document.getElementById('wrapPreview'),
-              img = document.getElementById('imgPreview'), icon = document.getElementById('previewIcon');
-        fileHinh.addEventListener('change', () => {
-          const file = fileHinh.files && fileHinh.files[0];
-          if (!file) { wrap.classList.remove('has-image'); img.removeAttribute('src'); return; }
-          if (!file.type.startsWith('image/')) { alert('Vui lòng chọn file hình ảnh.'); fileHinh.value = ''; return; }
-          if (file.size > 5 * 1024 * 1024) { alert('Ảnh vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn.'); fileHinh.value = ''; return; }
-          const reader = new FileReader();
-          reader.onload = e => { img.src = e.target.result; wrap.classList.add('has-image'); };
-          reader.readAsDataURL(file);
-        });
 
         // Tóm tắt trực tiếp bên phải: mã SKU dự kiến + giá + tồn
         (function () {
