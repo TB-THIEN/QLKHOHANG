@@ -56,10 +56,13 @@ namespace QuanLyKhoWeb.Models.ViewModels
         [Display(Name = "Mô tả")]
         public string? MoTa { get; set; }
 
-        // Chọn file ảnh trực tiếp từ máy thay vì nhập đường dẫn tay.
-        // Controller sẽ lưu file vào wwwroot/images/products rồi mới suy ra đường dẫn lưu DB.
+        // Chọn nhiều file ảnh trực tiếp từ máy. Ảnh đầu tiên là ảnh đại diện.
+        // Controller sẽ lưu file vào wwwroot/images/products rồi mới ghi đường dẫn vào DB.
         [Display(Name = "Hình ảnh")]
-        public IFormFile? HinhAnh { get; set; }
+        public List<IFormFile>? HinhAnhs { get; set; }
+
+        // Thứ tự ảnh người dùng sắp trên giao diện, dạng "moi:0|moi:1" (JS điền vào).
+        public string? ThuTuAnh { get; set; }
     }
 
     public class SanPhamEditVm
@@ -102,11 +105,16 @@ namespace QuanLyKhoWeb.Models.ViewModels
         [Display(Name = "Mô tả")]
         public string? MoTa { get; set; }
 
-        // Ảnh hiện tại (hiển thị) + ảnh mới (nếu tải lên sẽ thay thế)
+        // Danh sách ảnh hiện có (thứ tự hiển thị = thứ tự trong danh sách, ảnh đầu là đại diện).
+        // View gửi lên chuỗi đường dẫn còn giữ, ngăn cách bởi dấu "|".
         public string? HinhAnhHienTai { get; set; }
 
-        [Display(Name = "Đổi hình ảnh")]
-        public IFormFile? HinhAnhMoi { get; set; }
+        // Ảnh mới thêm trong lần sửa này (nối vào sau danh sách ảnh còn giữ)
+        [Display(Name = "Thêm hình ảnh")]
+        public List<IFormFile>? HinhAnhMois { get; set; }
+
+        // Thứ tự cuối cùng: "moi:0|/images/products/a.jpg|moi:1" (JS điền vào).
+        public string? ThuTuAnh { get; set; }
     }
 
     public class KhuyenMaiCreateVm

@@ -3,6 +3,8 @@
     ViewData["Title"] = "Chi tiết sản phẩm";
     var m = Model.MaMauSanPhamNavigation;
     var duocSua = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaSanPham(User);
+    var dsAnh = ViewBag.DsAnh as List<string> ?? new List<string>();
+    var dsAnhJson = System.Text.Json.JsonSerializer.Serialize(dsAnh);
 }
 @functions {
     string GiaiMaSku(string sku)
@@ -34,9 +36,29 @@
 <div class="row g-3">
     <div class="col-lg-4">
         <div class="app-card text-center">
-            @if (!string.IsNullOrEmpty(m?.DuongDanHinhAnh))
-            { <img src="@m.DuongDanHinhAnh" class="img-fluid rounded" style="border:1px solid var(--kho-line)" alt="@m?.TenSanPham" /> }
-            else { <div class="empty-state" style="padding:44px 12px"><i class="bi bi-image"></i><div>Chưa có ảnh</div></div> }
+            @if (dsAnh.Count > 0)
+            {
+                <button type="button" class="anh-chinh" data-anh-xem="0" data-ds-anh="@dsAnhJson"
+                        aria-label="Phóng to ảnh 1">
+                    <img src="@dsAnh[0]" alt="@m?.TenSanPham - ảnh đại diện" />
+                    <span class="anh-chinh__goi-y"><i class="bi bi-arrows-fullscreen"></i>Bấm để xem lớn</span>
+                </button>
+                @if (dsAnh.Count > 1)
+                {
+                    <div class="anh-chi-tiet">
+                        @for (var i = 0; i < dsAnh.Count; i++)
+                        {
+                            var chiSo = i;
+                            <button type="button" class="anh-chi-tiet__o" data-anh-xem="@chiSo" data-ds-anh="@dsAnhJson"
+                                    aria-label="Phóng to ảnh @(chiSo + 1)">
+                                <img src="@dsAnh[chiSo]" alt="@m?.TenSanPham - ảnh @(chiSo + 1)" loading="lazy" />
+                            </button>
+                        }
+                    </div>
+                }
+            }
+            else
+            { <div class="empty-state" style="padding:44px 12px"><i class="bi bi-image"></i><div>Chưa có ảnh</div></div> }
             <div class="mt-3 text-start">
                 <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--kho-line)">
                     <span class="cell-sub">Giá tiền</span>
@@ -102,8 +124,20 @@
 </div>
 }
 
+<div class="xem-anh" id="xemAnh" hidden role="dialog" aria-modal="true" aria-label="Xem ảnh sản phẩm">
+    <div class="xem-anh__nen" data-dong></div>
+    <button type="button" class="xem-anh__dong" data-dong aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+    <button type="button" class="xem-anh__chuyen xem-anh__chuyen--trai" id="xemAnhTrai" aria-label="Ảnh trước"><i class="bi bi-chevron-left"></i></button>
+    <figure class="xem-anh__khung">
+        <img id="xemAnhImg" src="" alt="Ảnh sản phẩm" />
+        <figcaption class="xem-anh__dem" id="xemAnhDem"></figcaption>
+    </figure>
+    <button type="button" class="xem-anh__chuyen xem-anh__chuyen--phai" id="xemAnhPhai" aria-label="Ảnh sau"><i class="bi bi-chevron-right"></i></button>
+</div>
+
 @section Scripts {
     <script src="~/lib/qrcode.min.js"></script>
+    <script src="~/js/anh-san-pham.js" asp-append-version="true"></script>
     <script>
         (function () {
             var el = document.getElementById('qrSku');

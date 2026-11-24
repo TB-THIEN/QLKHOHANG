@@ -60,6 +60,21 @@ CREATE TABLE mau_san_pham (
 );
 GO
 
+-- 1b. NHIỀU ẢNH CHO MỘT SẢN PHẨM
+-- Ảnh có thứ tự nhỏ nhất là ảnh đại diện; mau_san_pham.duong_dan_hinh_anh giữ bản sao
+-- của ảnh đại diện để các màn hình cũ (danh sách, tồn kho, khu hàng) không phải sửa.
+CREATE TABLE hinh_anh_san_pham (
+    ma_hinh_anh INT IDENTITY(1,1) PRIMARY KEY,             -- Mã ảnh (khóa chính)
+    ma_mau_san_pham INT NOT NULL,                          -- Thuộc sản phẩm gốc nào
+    duong_dan VARCHAR(255) NOT NULL,                       -- Đường dẫn ảnh trong wwwroot
+    thu_tu INT NOT NULL DEFAULT 0,                         -- Thứ tự hiển thị, 0 = ảnh đại diện
+    CONSTRAINT FK_hinhanh_mausp FOREIGN KEY (ma_mau_san_pham)
+        REFERENCES mau_san_pham(ma_mau_san_pham) ON DELETE CASCADE
+);
+GO
+CREATE INDEX IX_hinhanh_mausp ON hinh_anh_san_pham(ma_mau_san_pham, thu_tu);
+GO
+
 -- 2. KHU VỰC KHO
 CREATE TABLE khu_vuc_kho (
     ma_khu_vuc INT IDENTITY(1,1) PRIMARY KEY,              -- Mã khu vực (khóa chính)

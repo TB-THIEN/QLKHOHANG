@@ -23,6 +23,12 @@ namespace QuanLyKhoWeb.Controllers
         // Giới hạn dung lượng ảnh sản phẩm tải lên (5MB) - đủ dùng, tránh chiếm dung lượng ổ đĩa.
         private const long GioiHanDungLuongAnh = 5 * 1024 * 1024;
 
+        // Số ảnh tối đa cho mỗi sản phẩm (ảnh đầu tiên là ảnh đại diện).
+        private const int SoAnhToiDa = 8;
+
+        // Thư mục vật lý chứa ảnh sản phẩm (nằm trong wwwroot)
+        private string ThuMucAnh => Path.Combine(_env.WebRootPath, "images", "products");
+
         public SanPhamController(DoAnQlkContext context, IDbConnectionFactory factory, IWebHostEnvironment env)
         {
             _context = context;
@@ -103,6 +109,7 @@ namespace QuanLyKhoWeb.Controllers
                 .Include(x => x.MaLoHangNavigation)
                 .FirstOrDefaultAsync(x => x.MaSku == id);
             if (s == null) return NotFound();
+            ViewBag.DsAnh = await LayDanhSachAnhAsync(s.MaMauSanPham);
             return View(s);
         }
 
@@ -132,14 +139,8 @@ namespace QuanLyKhoWeb.Controllers
             ViewBag.DanhMucs = await _context.DanhMucs.Select(d => d.TenDanhMuc).ToListAsync();
             ViewBag.Khus = await _context.KhuVucKhos.OrderBy(k => k.TenKhuVuc).ToListAsync();
 
-            // Kiểm tra file ảnh (nếu có chọn): đúng định dạng ảnh + không vượt giới hạn dung lượng.
-            if (vm.HinhAnh != null && vm.HinhAnh.Length > 0)
-            {
-                if (vm.HinhAnh.Length > GioiHanDungLuongAnh)
-                    ModelState.AddModelError(nameof(vm.HinhAnh), "Ảnh vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn.");
-                else if (string.IsNullOrEmpty(vm.HinhAnh.ContentType) || !vm.HinhAnh.ContentType.StartsWith("image/"))
-                    ModelState.AddModelError(nameof(vm.HinhAnh), "Vui lòng chọn đúng file hình ảnh.");
-            }
+            // Kiểm tra các file ảnh đã chọn: đúng định dạng, không vượt dung lượng, không quá số lượng.
+            KiemTraAnh(vm.HinhAnhs, nameof(vm.HinhAnhs));
 
             // Tên sản phẩm không được chứa số; các ô số nhập chữ/số thập phân thì báo lại rõ ràng
             if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenSanPham))
@@ -167,20 +168,10 @@ namespace QuanLyKhoWeb.Controllers
             if (!ModelState.IsValid) return View(vm);
 
             // Lưu ảnh vào wwwroot/images/products với tên ngẫu nhiên (tránh trùng/đè file, tránh
-            // lộ tên file gốc từ máy nhân viên). Không chọn ảnh thì để trống như trước đây.
-            string? duongDanHinhAnh = null;
-            if (vm.HinhAnh != null && vm.HinhAnh.Length > 0)
-            {
-                var thuMuc = Path.Combine(_env.WebRootPath, "images", "products");
-                Directory.CreateDirectory(thuMuc);
-                var tenFile = Guid.NewGuid().ToString("N") + Path.GetExtension(vm.HinhAnh.FileName);
-                var duongDanDay = Path.Combine(thuMuc, tenFile);
-                using (var stream = new FileStream(duongDanDay, FileMode.Create))
-                {
-                    await vm.HinhAnh.CopyToAsync(stream);
-                }
-                duongDanHinhAnh = "/images/products/" + tenFile;
-            }
+            // lộ tên file gốc từ máy nhân viên). Ảnh đầu tiên là ảnh đại diện.
+            var dsFileMoi = await LuuAnhAsync(vm.HinhAnhs);
+            var dsDuongDanAnh = SapXepAnh(vm.ThuTuAnh, dsFileMoi, new List<string>());
+            string? duongDanHinhAnh = dsDuongDanAnh.FirstOrDefault();
 
             var maNguoi = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : (int?)null;
             try
@@ -205,6 +196,19 @@ namespace QuanLyKhoWeb.Controllers
                     "sp_TaoSanPham", p, commandType: CommandType.StoredProcedure);
                 string maSku = row?.ma_code_sku ?? "";
                 int maSkuMoi = row?.ma_sku ?? 0;
+
+                // Ghi danh sách ảnh theo đúng thứ tự đã chọn (0 = ảnh đại diện).
+                if (maSkuMoi > 0 && dsDuongDanAnh.Count > 0)
+                {
+                    var maMau = await conn.ExecuteScalarAsync<int?>(
+                        "SELECT ma_mau_san_pham FROM san_pham_sku WHERE ma_sku = @ma_sku",
+                        new { ma_sku = maSkuMoi });
+                    if (maMau.HasValue)
+                        await LuuDanhSachAnhAsync(conn, maMau.Value, dsDuongDanAnh);
+                }
+
+                // Ảnh đã ghi ra đĩa nhưng người dùng bỏ khỏi danh sách trước khi lưu -> dọn rác
+                XoaFileAnh(LayFileDaGhi(dsFileMoi).Where(a => !dsDuongDanAnh.Contains(a)));
 
                 if (soLuongTrenKe > 0 && maSkuMoi > 0)
                 {
@@ -244,6 +248,8 @@ namespace QuanLyKhoWeb.Controllers
             }
             catch (SqlException ex)
             {
+                // Lưu DB thất bại: dọn ảnh vừa ghi ra đĩa cho khỏi rác
+                XoaFileAnh(LayFileDaGhi(dsFileMoi));
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View(vm);
             }
@@ -262,6 +268,7 @@ namespace QuanLyKhoWeb.Controllers
             if (s == null) return NotFound();
             var m = s.MaMauSanPhamNavigation;
             ViewBag.DanhMucs = await _context.DanhMucs.Select(d => d.TenDanhMuc).ToListAsync();
+            var dsAnh = await LayDanhSachAnhAsync(m.MaMauSanPham);
             return View(new SanPhamEditVm
             {
                 MaSku = s.MaSku,
@@ -276,7 +283,7 @@ namespace QuanLyKhoWeb.Controllers
                 GiaTien = s.GiaTien,
                 SoLuong = s.SoLuong,
                 MoTa = m.MoTa,
-                HinhAnhHienTai = m.DuongDanHinhAnh
+                HinhAnhHienTai = string.Join("|", dsAnh)
             });
         }
 
@@ -289,13 +296,8 @@ namespace QuanLyKhoWeb.Controllers
             if (s == null) return NotFound();
             ViewBag.DanhMucs = await _context.DanhMucs.Select(d => d.TenDanhMuc).ToListAsync();
 
-            if (vm.HinhAnhMoi != null && vm.HinhAnhMoi.Length > 0)
-            {
-                if (vm.HinhAnhMoi.Length > GioiHanDungLuongAnh)
-                    ModelState.AddModelError(nameof(vm.HinhAnhMoi), "Ảnh vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn.");
-                else if (string.IsNullOrEmpty(vm.HinhAnhMoi.ContentType) || !vm.HinhAnhMoi.ContentType.StartsWith("image/"))
-                    ModelState.AddModelError(nameof(vm.HinhAnhMoi), "Vui lòng chọn đúng file hình ảnh.");
-            }
+            // Kiểm tra danh sách ảnh mới thêm (nếu có)
+            KiemTraAnh(vm.HinhAnhMois, nameof(vm.HinhAnhMois));
 
             if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenSanPham))
                 ModelState.AddModelError(nameof(vm.TenSanPham), "Tên sản phẩm không được chứa số.");
@@ -303,21 +305,32 @@ namespace QuanLyKhoWeb.Controllers
                 "Số lượng phải là số nguyên lớn hơn hoặc bằng 0 (không nhập chữ hay số thập phân).",
                 nameof(vm.SoLuong));
 
-            if (!ModelState.IsValid) return View(vm);
+            // Ảnh đang có của sản phẩm (dùng để kiểm tra số lượng và lọc đường dẫn lạ)
+            var dsAnhCu = await LayDanhSachAnhAsync(s.MaMauSanPham);
+            // Danh sách ảnh cũ người dùng còn giữ, theo đúng thứ tự đã sắp trên giao diện.
+            // Chỉ nhận đường dẫn đang thuộc sản phẩm này (chống chèn đường dẫn lạ).
+            var dsAnhGiu = string.IsNullOrEmpty(vm.HinhAnhHienTai)
+                ? dsAnhCu.ToList()
+                : vm.HinhAnhHienTai
+                    .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Where(dsAnhCu.Contains)
+                    .Distinct()
+                    .ToList();
+            var soAnhMoi = vm.HinhAnhMois?.Count(f => f != null && f.Length > 0) ?? 0;
+            if (dsAnhGiu.Count + soAnhMoi > SoAnhToiDa)
+                ModelState.AddModelError(nameof(vm.HinhAnhMois), $"Mỗi sản phẩm chỉ được tối đa {SoAnhToiDa} ảnh.");
+
+            if (!ModelState.IsValid)
+            {
+                // Hiện lại form: file mới không giữ được, chỉ dựng lại ảnh cũ theo thứ tự đã giữ.
+                vm.HinhAnhHienTai = string.Join("|", dsAnhGiu);
+                return View(vm);
+            }
 
             var m = s.MaMauSanPhamNavigation;
-            var anhCu = m.DuongDanHinhAnh;
-            if (vm.HinhAnhMoi != null && vm.HinhAnhMoi.Length > 0)
-            {
-                var thuMuc = Path.Combine(_env.WebRootPath, "images", "products");
-                Directory.CreateDirectory(thuMuc);
-                var tenFile = Guid.NewGuid().ToString("N") + Path.GetExtension(vm.HinhAnhMoi.FileName);
-                using (var stream = new FileStream(Path.Combine(thuMuc, tenFile), FileMode.Create))
-                {
-                    await vm.HinhAnhMoi.CopyToAsync(stream);
-                }
-                m.DuongDanHinhAnh = "/images/products/" + tenFile;
-            }
+            List<string?> dsAnhThemFile = new();
+            List<string> dsAnhSau = new();
+            List<string> dsAnhThem = new();
 
             // Danh mục gõ mới thì tự tạo (sinh mã nhóm như sp_TaoSanPham)
             // Bọc transaction: lỗi ở bước sau thì rollback cả danh mục vừa tạo, khỏi mồ côi
@@ -351,6 +364,12 @@ namespace QuanLyKhoWeb.Controllers
                 m.MoTa = string.IsNullOrWhiteSpace(vm.MoTa) ? null : vm.MoTa.Trim();
                 s.GiaTien = vm.GiaTien;
 
+                // Ảnh: sắp theo thứ tự người dùng chọn; ảnh đầu tiên làm ảnh đại diện.
+                dsAnhThemFile = await LuuAnhAsync(vm.HinhAnhMois);
+                dsAnhThem = LayFileDaGhi(dsAnhThemFile);
+                dsAnhSau = SapXepAnh(vm.ThuTuAnh, dsAnhThemFile, dsAnhCu);
+                await CapNhatAnhAsync(m, dsAnhSau);
+
                 // Đổi tồn tay: giữ vết trong nhật ký để đối chiếu sau này
                 var chenhLech = vm.SoLuong - s.SoLuong;
                 if (chenhLech != 0)
@@ -371,24 +390,171 @@ namespace QuanLyKhoWeb.Controllers
             catch (Exception ex)
             {
                 await txEdit.RollbackAsync();
+                // Rollback thì dọn luôn file ảnh vừa ghi ra đĩa cho khỏi rác
+                XoaFileAnh(dsAnhThem);
                 ModelState.AddModelError(string.Empty, "Lưu thất bại: " + ex.Message);
                 return View(vm);
             }
 
-            // Dọn ảnh cũ sau khi đã lưu xong (tránh mất ảnh nếu lưu lỗi)
-            if (vm.HinhAnhMoi != null && vm.HinhAnhMoi.Length > 0
-                && !string.IsNullOrEmpty(anhCu) && anhCu.StartsWith("/images/products/"))
-            {
-                try
-                {
-                    var duongDanCu = Path.Combine(_env.WebRootPath, anhCu.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    if (System.IO.File.Exists(duongDanCu)) System.IO.File.Delete(duongDanCu);
-                }
-                catch { /* xóa file thất bại thì bỏ qua */ }
-            }
+            // Dọn file ảnh đã bị người dùng bỏ ra khỏi danh sách (chỉ trong thư mục products)
+            XoaFileAnh(dsAnhCu.Where(a => !dsAnhSau.Contains(a)));
+            // Ảnh mới đã ghi ra đĩa nhưng người dùng bỏ trước khi lưu -> dọn rác
+            XoaFileAnh(dsAnhThem.Where(a => !dsAnhSau.Contains(a)));
 
             TempData["ThongBao"] = $"Đã cập nhật sản phẩm {s.MaCodeSku}.";
             return RedirectToAction(nameof(Details), new { id = s.MaSku });
+        }
+
+        // ===== Ảnh sản phẩm (nhiều ảnh, ảnh đầu tiên là ảnh đại diện) =====
+
+        // Kiểm tra định dạng, dung lượng và số lượng ảnh người dùng chọn.
+        private void KiemTraAnh(List<IFormFile>? files, string tenTruong)
+        {
+            if (files == null || files.Count == 0) return;
+            var hopLe = files.Where(f => f != null && f.Length > 0).ToList();
+            if (hopLe.Count > SoAnhToiDa)
+            {
+                ModelState.AddModelError(tenTruong, $"Mỗi sản phẩm chỉ được tối đa {SoAnhToiDa} ảnh.");
+                return;
+            }
+            foreach (var f in hopLe)
+            {
+                if (f.Length > GioiHanDungLuongAnh)
+                {
+                    ModelState.AddModelError(tenTruong, $"Ảnh \"{f.FileName}\" vượt quá 5MB, vui lòng chọn ảnh nhỏ hơn.");
+                    return;
+                }
+                if (string.IsNullOrEmpty(f.ContentType) || !f.ContentType.StartsWith("image/"))
+                {
+                    ModelState.AddModelError(tenTruong, $"File \"{f.FileName}\" không phải là hình ảnh.");
+                    return;
+                }
+            }
+        }
+
+        // Ghi các file ảnh lên đĩa với tên ngẫu nhiên. Kết quả giữ đúng số phần tử và
+        // đúng vị trí của danh sách file (file rỗng/không hợp lệ -> null) để token
+        // "moi:N" trong #anhThuTu ánh xạ chính xác.
+        private async Task<List<string?>> LuuAnhAsync(List<IFormFile>? files)
+        {
+            var kq = new List<string?>();
+            if (files == null || files.Count == 0) return kq;
+            Directory.CreateDirectory(ThuMucAnh);
+            foreach (var f in files)
+            {
+                if (f == null || f.Length <= 0) { kq.Add(null); continue; }
+                var tenFile = Guid.NewGuid().ToString("N") + Path.GetExtension(f.FileName);
+                using (var stream = new FileStream(Path.Combine(ThuMucAnh, tenFile), FileMode.Create))
+                {
+                    await f.CopyToAsync(stream);
+                }
+                kq.Add("/images/products/" + tenFile);
+            }
+            return kq;
+        }
+
+        // Sắp xếp lại đường dẫn ảnh theo chuỗi thứ tự người dùng chọn trên giao diện.
+        // Token "moi:N" = file thứ N vừa tải lên; token khác = đường dẫn ảnh cũ đã có.
+        // dsCu dùng để lọc đường dẫn lạ; trả về danh sách đã sắp, bỏ token không hợp lệ.
+        private static List<string> SapXepAnh(string? thuTuAnh, List<string?> dsMoi, List<string> dsCu)
+        {
+            var kq = new List<string>();
+            if (string.IsNullOrWhiteSpace(thuTuAnh))
+            {
+                // Không có thông tin thứ tự (JS lỗi/tắt): giữ ảnh cũ trước, ảnh mới sau
+                kq.AddRange(dsCu);
+                kq.AddRange(dsMoi.Where(x => !string.IsNullOrEmpty(x))!);
+                return kq;
+            }
+
+            foreach (var token in thuTuAnh.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                string? them = null;
+                if (token.StartsWith("moi:", StringComparison.Ordinal))
+                {
+                    if (int.TryParse(token.Substring(4), out var i) && i >= 0 && i < dsMoi.Count)
+                        them = dsMoi[i];
+                }
+                else if (dsCu.Contains(token))
+                {
+                    them = token;
+                }
+                if (!string.IsNullOrEmpty(them) && !kq.Contains(them)) kq.Add(them);
+            }
+            return kq;
+        }
+
+        // Các file ảnh vừa ghi ra đĩa (bỏ null) để dọn khi cần.
+        private static List<string> LayFileDaGhi(List<string?> dsMoi) =>
+            dsMoi.Where(x => !string.IsNullOrEmpty(x)).Select(x => x!).ToList();
+
+        // Xóa file ảnh vật lý (chỉ trong thư mục products để an toàn).
+        private void XoaFileAnh(IEnumerable<string> duongDans)
+        {
+            foreach (var d in duongDans)
+            {
+                if (string.IsNullOrEmpty(d) || !d.StartsWith("/images/products/")) continue;
+                try
+                {
+                    var duongDanDay = Path.Combine(_env.WebRootPath, d.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(duongDanDay)) System.IO.File.Delete(duongDanDay);
+                }
+                catch { /* xóa file thất bại thì bỏ qua */ }
+            }
+        }
+
+        // Danh sách ảnh hiện có của một sản phẩm theo đúng thứ tự hiển thị.
+        private async Task<List<string>> LayDanhSachAnhAsync(int maMauSanPham)
+        {
+            var ds = await _context.HinhAnhSanPhams
+                .Where(h => h.MaMauSanPham == maMauSanPham)
+                .OrderBy(h => h.ThuTu).ThenBy(h => h.MaHinhAnh)
+                .Select(h => h.DuongDan)
+                .ToListAsync();
+            // Sản phẩm cũ chỉ có 1 ảnh trong mau_san_pham: dùng tạm cột đó
+            if (ds.Count == 0)
+            {
+                var cu = await _context.MauSanPhams
+                    .Where(x => x.MaMauSanPham == maMauSanPham)
+                    .Select(x => x.DuongDanHinhAnh)
+                    .FirstOrDefaultAsync();
+                if (!string.IsNullOrEmpty(cu)) ds.Add(cu);
+            }
+            return ds;
+        }
+
+        // Ghi danh sách ảnh (đã có sẵn trong DB) theo thứ tự: xóa hết rồi thêm lại.
+        // Dùng chung connection để nằm trong transaction đang mở của Create.
+        private static async Task LuuDanhSachAnhAsync(SqlConnection conn, int maMauSanPham, List<string> duongDans)
+        {
+            await conn.ExecuteAsync("DELETE FROM hinh_anh_san_pham WHERE ma_mau_san_pham = @ma",
+                new { ma = maMauSanPham });
+            for (var i = 0; i < duongDans.Count; i++)
+            {
+                await conn.ExecuteAsync(
+                    "INSERT INTO hinh_anh_san_pham (ma_mau_san_pham, duong_dan, thu_tu) VALUES (@ma, @dd, @tt)",
+                    new { ma = maMauSanPham, dd = duongDans[i], tt = i });
+            }
+        }
+
+        // Cập nhật danh sách ảnh qua EF (dùng trong transaction của Edit), đồng thời
+        // chép ảnh đầu tiên sang cột ảnh đại diện của mau_san_pham.
+        private async Task CapNhatAnhAsync(QuanLyKhoWeb.Models.Entities.MauSanPham m, List<string> duongDans)
+        {
+            var cu = await _context.HinhAnhSanPhams
+                .Where(h => h.MaMauSanPham == m.MaMauSanPham)
+                .ToListAsync();
+            _context.HinhAnhSanPhams.RemoveRange(cu);
+            for (var i = 0; i < duongDans.Count; i++)
+            {
+                _context.HinhAnhSanPhams.Add(new QuanLyKhoWeb.Models.Entities.HinhAnhSanPham
+                {
+                    MaMauSanPham = m.MaMauSanPham,
+                    DuongDan = duongDans[i],
+                    ThuTu = i
+                });
+            }
+            m.DuongDanHinhAnh = duongDans.FirstOrDefault();
         }
 
         // Bỏ dấu tiếng Việt để sinh mã nhóm danh mục (đ/Đ xử lý riêng)
@@ -423,8 +589,11 @@ namespace QuanLyKhoWeb.Controllers
             }
 
             var mau = s.MaMauSanPhamNavigation;
-            var hinh = mau?.DuongDanHinhAnh;
             var maCode = s.MaCodeSku;
+            // Ảnh của sản phẩm: dòng trong hinh_anh_san_pham (xóa theo khóa ngoại cascade)
+            // + cột ảnh đại diện cũ. Gom lại để dọn file sau khi DB lưu thành công.
+            var dsAnhCanXoa = mau == null ? new List<string>() : await LayDanhSachAnhAsync(mau.MaMauSanPham);
+            if (!string.IsNullOrEmpty(mau?.DuongDanHinhAnh)) dsAnhCanXoa.Add(mau.DuongDanHinhAnh);
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -445,15 +614,7 @@ namespace QuanLyKhoWeb.Controllers
                 await tx.CommitAsync();
 
                 // Dọn file ảnh đã tải lên (chỉ trong thư mục products để an toàn)
-                if (!string.IsNullOrEmpty(hinh) && hinh.StartsWith("/images/products/"))
-                {
-                    try
-                    {
-                        var duongDan = Path.Combine(_env.WebRootPath, hinh.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                        if (System.IO.File.Exists(duongDan)) System.IO.File.Delete(duongDan);
-                    }
-                    catch { /* xóa file thất bại thì bỏ qua, dữ liệu đã xóa xong */ }
-                }
+                XoaFileAnh(dsAnhCanXoa);
                 TempData["ThongBao"] = $"Đã xóa sản phẩm {maCode} cùng dữ liệu liên quan (kệ hàng, phiếu nhập, nhật ký tồn).";
                 return RedirectToAction(nameof(Index));
             }
