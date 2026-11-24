@@ -13,6 +13,7 @@
   var nutThem = document.getElementById('anhThem');
   var inputFile = document.getElementById('fileHinh');
   var inputThuTu = document.getElementById('anhThuTu');
+  var inputCoSapXep = document.getElementById('anhCoSapXep');
   var toiDa = parseInt(luoi.getAttribute('data-toi-da') || '8', 10);
 
   // Ảnh đã có trên server (chỉ trang Sửa mới có)
@@ -30,6 +31,9 @@
     inputThuTu.value = ds.map(function (it) {
       return it.cu ? it.src : 'moi:' + it.chiSo;
     }).join('|');
+    // Đánh dấu JS đã dựng xong lưới ảnh: server tin #anhThuTu kể cả khi rỗng
+    // (người dùng bỏ hết ảnh thì không được giữ lại ảnh cũ).
+    if (inputCoSapXep) inputCoSapXep.value = '1';
   }
 
   function taoNut(act, icon, nhan) {

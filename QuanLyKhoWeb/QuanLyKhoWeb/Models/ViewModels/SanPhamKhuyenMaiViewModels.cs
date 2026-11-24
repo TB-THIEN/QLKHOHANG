@@ -63,6 +63,10 @@ namespace QuanLyKhoWeb.Models.ViewModels
 
         // Thứ tự ảnh người dùng sắp trên giao diện, dạng "moi:0|moi:1" (JS điền vào).
         public string? ThuTuAnh { get; set; }
+
+        // JS đặt "1" khi lưới ảnh đã sẵn sàng. Có cờ này thì ThuTuAnh (kể cả rỗng)
+        // là ý người dùng; không có cờ thì giữ ảnh cũ (JS lỗi/tắt).
+        public string? CoSapXepAnh { get; set; }
     }
 
     public class SanPhamEditVm
@@ -115,6 +119,10 @@ namespace QuanLyKhoWeb.Models.ViewModels
 
         // Thứ tự cuối cùng: "moi:0|/images/products/a.jpg|moi:1" (JS điền vào).
         public string? ThuTuAnh { get; set; }
+
+        // JS đặt "1" khi lưới ảnh đã sẵn sàng. Có cờ này thì ThuTuAnh (kể cả rỗng)
+        // là ý người dùng; không có cờ thì giữ ảnh cũ (JS lỗi/tắt).
+        public string? CoSapXepAnh { get; set; }
     }
 
     public class KhuyenMaiCreateVm

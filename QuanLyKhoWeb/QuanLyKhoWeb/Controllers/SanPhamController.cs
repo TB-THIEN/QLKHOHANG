@@ -170,7 +170,7 @@ namespace QuanLyKhoWeb.Controllers
             // Lưu ảnh vào wwwroot/images/products với tên ngẫu nhiên (tránh trùng/đè file, tránh
             // lộ tên file gốc từ máy nhân viên). Ảnh đầu tiên là ảnh đại diện.
             var dsFileMoi = await LuuAnhAsync(vm.HinhAnhs);
-            var dsDuongDanAnh = SapXepAnh(vm.ThuTuAnh, dsFileMoi, new List<string>());
+            var dsDuongDanAnh = SapXepAnh(vm.ThuTuAnh, dsFileMoi, new List<string>(), vm.CoSapXepAnh == "1");
             string? duongDanHinhAnh = dsDuongDanAnh.FirstOrDefault();
 
             var maNguoi = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : (int?)null;
@@ -307,15 +307,13 @@ namespace QuanLyKhoWeb.Controllers
 
             // Ảnh đang có của sản phẩm (dùng để kiểm tra số lượng và lọc đường dẫn lạ)
             var dsAnhCu = await LayDanhSachAnhAsync(s.MaMauSanPham);
+            // JS đã sắp xếp ảnh trên giao diện thì tin #anhThuTu, kể cả khi rỗng
+            // (người dùng bỏ hết ảnh) — tránh trường hợp xoá ảnh mà lưu vẫn còn.
+            var coThongTinThuTu = vm.CoSapXepAnh == "1";
             // Danh sách ảnh cũ người dùng còn giữ, theo đúng thứ tự đã sắp trên giao diện.
             // Chỉ nhận đường dẫn đang thuộc sản phẩm này (chống chèn đường dẫn lạ).
-            var dsAnhGiu = string.IsNullOrEmpty(vm.HinhAnhHienTai)
-                ? dsAnhCu.ToList()
-                : vm.HinhAnhHienTai
-                    .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .Where(dsAnhCu.Contains)
-                    .Distinct()
-                    .ToList();
+            var dsAnhGiu = SapXepAnh(vm.ThuTuAnh, new List<string?>(), dsAnhCu, coThongTinThuTu)
+                .Where(dsAnhCu.Contains).Distinct().ToList();
             var soAnhMoi = vm.HinhAnhMois?.Count(f => f != null && f.Length > 0) ?? 0;
             if (dsAnhGiu.Count + soAnhMoi > SoAnhToiDa)
                 ModelState.AddModelError(nameof(vm.HinhAnhMois), $"Mỗi sản phẩm chỉ được tối đa {SoAnhToiDa} ảnh.");
@@ -367,7 +365,7 @@ namespace QuanLyKhoWeb.Controllers
                 // Ảnh: sắp theo thứ tự người dùng chọn; ảnh đầu tiên làm ảnh đại diện.
                 dsAnhThemFile = await LuuAnhAsync(vm.HinhAnhMois);
                 dsAnhThem = LayFileDaGhi(dsAnhThemFile);
-                dsAnhSau = SapXepAnh(vm.ThuTuAnh, dsAnhThemFile, dsAnhCu);
+                dsAnhSau = SapXepAnh(vm.ThuTuAnh, dsAnhThemFile, dsAnhCu, coThongTinThuTu);
                 await CapNhatAnhAsync(m, dsAnhSau);
 
                 // Đổi tồn tay: giữ vết trong nhật ký để đối chiếu sau này
@@ -392,6 +390,8 @@ namespace QuanLyKhoWeb.Controllers
                 await txEdit.RollbackAsync();
                 // Rollback thì dọn luôn file ảnh vừa ghi ra đĩa cho khỏi rác
                 XoaFileAnh(dsAnhThem);
+                // Dựng lại lưới ảnh theo đúng lựa chọn của người dùng (không khôi phục ảnh đã xoá)
+                vm.HinhAnhHienTai = string.Join("|", dsAnhGiu);
                 ModelState.AddModelError(string.Empty, "Lưu thất bại: " + ex.Message);
                 return View(vm);
             }
@@ -456,16 +456,21 @@ namespace QuanLyKhoWeb.Controllers
         // Sắp xếp lại đường dẫn ảnh theo chuỗi thứ tự người dùng chọn trên giao diện.
         // Token "moi:N" = file thứ N vừa tải lên; token khác = đường dẫn ảnh cũ đã có.
         // dsCu dùng để lọc đường dẫn lạ; trả về danh sách đã sắp, bỏ token không hợp lệ.
-        private static List<string> SapXepAnh(string? thuTuAnh, List<string?> dsMoi, List<string> dsCu)
+        // coThongTin = JS đã điền #anhThuTu: khi đó chuỗi rỗng nghĩa là người dùng bỏ hết ảnh,
+        // KHÔNG được giữ lại ảnh cũ. Không có cờ (JS lỗi/tắt) thì mới giữ ảnh cũ cho an toàn.
+        private static List<string> SapXepAnh(string? thuTuAnh, List<string?> dsMoi, List<string> dsCu,
+            bool coThongTin = false)
         {
             var kq = new List<string>();
-            if (string.IsNullOrWhiteSpace(thuTuAnh))
+            if (!coThongTin && string.IsNullOrWhiteSpace(thuTuAnh))
             {
                 // Không có thông tin thứ tự (JS lỗi/tắt): giữ ảnh cũ trước, ảnh mới sau
                 kq.AddRange(dsCu);
                 kq.AddRange(dsMoi.Where(x => !string.IsNullOrEmpty(x))!);
                 return kq;
             }
+
+            if (string.IsNullOrWhiteSpace(thuTuAnh)) return kq; // người dùng đã bỏ hết ảnh
 
             foreach (var token in thuTuAnh.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
