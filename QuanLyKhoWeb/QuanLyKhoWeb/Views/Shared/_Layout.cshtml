@@ -66,6 +66,13 @@
             <a asp-controller="TonKho" asp-action="Index" class="@isActive("TonKho")">
                 <i class="bi bi-boxes"></i><span class="menu-text">Tồn kho &amp; Nhập kho</span>
             </a>
+            @* Cấu hình cửa hàng: thông tin người bán in trên hóa đơn / phiếu giao hàng *@
+            @if (QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaCauHinhCuaHang(User))
+            {
+                <a asp-controller="CauHinhCuaHang" asp-action="Edit" class="@isActive("CauHinhCuaHang")">
+                    <i class="bi bi-shop"></i><span class="menu-text">Thông tin cửa hàng</span>
+                </a>
+            }
             <div class="menu-label">Kinh doanh</div>
             <a asp-controller="KhuyenMai" asp-action="Index" class="@isActive("KhuyenMai")">
                 <i class="bi bi-ticket-perforated"></i><span class="menu-text">Khuyến mãi</span>

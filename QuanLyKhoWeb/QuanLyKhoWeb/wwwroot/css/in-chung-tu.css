@@ -1,0 +1,145 @@
+/* ==========================================================================
+   BẢN IN CHỨNG TỪ (hóa đơn điện tử, phiếu giao hàng)
+   Khổ A4 dọc, chỉ dùng cho 2 trang in nên tách riêng khỏi app.css.
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+.in-body {
+  margin: 0;
+  padding: 0;
+  background: #EEF2F7;
+  font-family: var(--font-body, "Source Sans 3", "Segoe UI", sans-serif);
+  color: #10202E;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Thanh công cụ: chỉ hiện trên màn hình, không in ra giấy */
+.in-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: #10202E;
+  color: #fff;
+  font-size: 13px;
+}
+
+.in-toolbar .in-toolbar__note { opacity: .72; }
+.in-toolbar .in-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.in-toolbar .in-btn--primary { background: #1C7ED6; color: #fff; }
+.in-toolbar .in-btn--ghost { background: #24384B; color: #E7EEF6; }
+.in-toolbar .in-btn:hover { filter: brightness(1.08); }
+
+/* Tờ giấy A4 */
+.in-sheet {
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 296mm;
+  margin: 16px auto 40px;
+  padding: 14mm 15mm 16mm;
+  background: #fff;
+  box-shadow: 0 12px 34px -18px rgba(16, 32, 46, .45), 0 2px 8px rgba(16, 32, 46, .08);
+}
+
+/* --- Đầu trang: người bán --- */
+.in-head { display: flex; gap: 14px; align-items: flex-start; border-bottom: 2px solid #10202E; padding-bottom: 10px; }
+.in-head__logo { width: 64px; height: 64px; object-fit: contain; flex: 0 0 auto; }
+.in-head__seller { flex: 1 1 auto; min-width: 0; }
+.in-head__name {
+  font-family: var(--font-display, "Barlow Semi Condensed", "Segoe UI", sans-serif);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+  margin: 0 0 3px;
+}
+.in-head__line { margin: 1px 0; color: #39506A; font-size: 12px; }
+.in-head__mst { margin-top: 4px; font-size: 12px; color: #39506A; }
+
+/* --- Tiêu đề chứng từ --- */
+.in-title { text-align: center; margin: 18px 0 4px; }
+.in-title h1 {
+  font-family: var(--font-display, "Barlow Semi Condensed", "Segoe UI", sans-serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+.in-title .in-title__sub { font-size: 12px; color: #6C8299; margin-top: 3px; }
+.in-title .in-title__code { margin-top: 6px; font-size: 14px; font-weight: 600; }
+
+/* --- Khối thông tin 2 cột --- */
+.in-grid { display: flex; gap: 18px; margin-top: 14px; }
+.in-grid > div { flex: 1 1 0; min-width: 0; }
+.in-dl { margin: 0; }
+.in-kv { display: flex; gap: 6px; margin: 3px 0; font-size: 12.5px; }
+.in-kv dt { flex: 0 0 auto; color: #6C8299; min-width: 104px; margin: 0; }
+.in-kv dd { flex: 1 1 auto; margin: 0; font-weight: 600; color: #10202E; word-break: break-word; }
+
+/* --- Bảng hàng hóa --- */
+.in-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12.5px; }
+.in-table th, .in-table td { border: 1px solid #C2D4E6; padding: 6px 8px; vertical-align: top; }
+.in-table thead th {
+  background: #F2F7FC;
+  font-family: var(--font-display, "Barlow Semi Condensed", "Segoe UI", sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  text-align: left;
+  white-space: nowrap;
+}
+.in-table .num { text-align: right; white-space: nowrap; }
+.in-table tbody tr:nth-child(even) td { background: #FBFDFF; }
+.in-table__sku { display: block; font-size: 11px; color: #6C8299; font-weight: 400; }
+.in-table tfoot td { font-weight: 600; background: #fff; }
+.in-table tfoot .in-table__label { text-align: right; }
+.in-table tfoot .in-table__grand { font-size: 14px; }
+
+/* --- Chân trang: ghi chú + chữ ký --- */
+.in-note { margin-top: 12px; font-size: 12px; color: #39506A; }
+.in-sign { display: flex; gap: 12px; margin-top: 22px; page-break-inside: avoid; }
+.in-sign > div { flex: 1 1 0; text-align: center; }
+.in-sign__role { font-weight: 600; font-size: 12.5px; }
+.in-sign__hint { font-size: 11px; color: #6C8299; font-style: italic; }
+.in-sign__space { height: 62px; }
+.in-sign__name { font-size: 12px; color: #39506A; }
+
+.in-foot { margin-top: 18px; text-align: center; font-size: 11px; color: #6C8299; border-top: 1px solid #DFE9F3; padding-top: 8px; }
+
+/* --- Khi in --- */
+@media print {
+  html, body.in-body { background: #fff !important; font-size: 12.5px; }
+  .in-toolbar { display: none !important; }
+  .in-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 10mm 12mm;
+    box-shadow: none;
+  }
+  .in-table thead { display: table-header-group; }
+  .in-table tr { page-break-inside: avoid; }
+}

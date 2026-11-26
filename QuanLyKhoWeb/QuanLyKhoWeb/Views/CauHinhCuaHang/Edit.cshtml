@@ -1,0 +1,114 @@
+@model QuanLyKhoWeb.Models.Entities.CauHinhCuaHang
+@{
+    ViewData["Title"] = "Thông tin cửa hàng";
+    var coLogo = !string.IsNullOrWhiteSpace(Model.DuongDanLogo);
+}
+<div class="page-header">
+    <div>
+        <h1 class="app-page-title"><i class="bi bi-shop"></i>Thông tin cửa hàng</h1>
+        <p class="page-subtitle">Thông tin người bán in trên hóa đơn điện tử và phiếu giao hàng.</p>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post" class="form-layout" id="frmCauHinh">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="MaCauHinh" />
+    <div class="form-main">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="form-sheet">
+            <div class="form-sheet__slug">
+                <span class="sku">Cửa hàng</span>
+                <span class="cell-sub">Chỉ có một bản cấu hình dùng chung cho mọi chứng từ</span>
+            </div>
+            <div class="form-sheet__body">
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-shop"></i>Thông tin người bán</h6>
+                    <div class="form-grid">
+                        <div class="span-2">
+                            <label asp-for="TenCuaHang" class="form-label required">Tên cửa hàng</label>
+                            <input asp-for="TenCuaHang" class="form-control" placeholder="VD: Cửa hàng Sổ Kho" />
+                            <span asp-validation-for="TenCuaHang" class="text-danger"></span>
+                        </div>
+                        <div class="span-full">
+                            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                            <input asp-for="DiaChi" class="form-control" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" />
+                            <span asp-validation-for="DiaChi" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control" inputmode="tel" placeholder="VD: 0900000000" />
+                            <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" inputmode="email" placeholder="VD: lienhe@sokho.vn" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="NguoiDaiDien" class="form-label">Người đại diện</label>
+                            <input asp-for="NguoiDaiDien" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                            <span asp-validation-for="NguoiDaiDien" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <h6 class="section-title"><i class="bi bi-receipt"></i>Nội dung trên chứng từ</h6>
+                    <div class="form-grid">
+                        <div class="span-full">
+                            <label asp-for="GhiChuHoaDon" class="form-label">Ghi chú chân trang</label>
+                            <textarea asp-for="GhiChuHoaDon" class="form-control" rows="3"
+                                      placeholder="VD: Cảm ơn quý khách đã mua hàng. Vui lòng giữ hóa đơn để đối chiếu khi cần."></textarea>
+                            <span class="form-hint">Dòng này in ở cuối hóa đơn và phiếu giao hàng.</span>
+                            <span asp-validation-for="GhiChuHoaDon" class="text-danger"></span>
+                        </div>
+                        <div class="span-full">
+                            <label asp-for="DuongDanLogo" class="form-label">Logo</label>
+                            <input asp-for="DuongDanLogo" class="form-control" placeholder="VD: /images/logo.png" />
+                            <span class="form-hint">Đường dẫn tương đối trong thư mục web (bắt đầu bằng <code>/</code>). Để trống nếu không in logo.</span>
+                            <span asp-validation-for="DuongDanLogo" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions d-lg-none">
+            <button class="btn btn-primary"><i class="bi bi-check2"></i>Lưu cấu hình</button>
+        </div>
+    </div>
+
+    <aside class="form-aside">
+        <div class="summary-card">
+            <div class="summary-head"><i class="bi bi-info-circle"></i>Xem trước</div>
+            <div class="summary-body">
+                <div class="cell-main">@(string.IsNullOrWhiteSpace(Model.TenCuaHang) ? "Chưa đặt tên cửa hàng" : Model.TenCuaHang)</div>
+                <div class="cell-sub">@(string.IsNullOrWhiteSpace(Model.DiaChi) ? "Chưa có địa chỉ" : Model.DiaChi)</div>
+                <div class="cell-sub">
+                    @(string.IsNullOrWhiteSpace(Model.SoDienThoai) ? "Chưa có SĐT" : Model.SoDienThoai)
+                    @if (!string.IsNullOrWhiteSpace(Model.Email)) { <text> · @Model.Email</text> }
+                </div>
+                @if (coLogo)
+                {
+                    <div class="summary-note mt-2"><i class="bi bi-image"></i><span>Đang dùng logo: <b>@Model.DuongDanLogo</b></span></div>
+                }
+                else
+                {
+                    <div class="summary-note mt-2"><i class="bi bi-image"></i><span>Chưa có logo — chứng từ in tên cửa hàng ở đầu trang.</span></div>
+                }
+                @if (Model.NgayCapNhat > DateTime.MinValue)
+                {
+                    <div class="summary-note"><i class="bi bi-clock-history"></i><span>Cập nhật gần nhất: <b>@Model.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</b></span></div>
+                }
+            </div>
+            <div class="summary-actions">
+                <button class="btn btn-primary w-100"><i class="bi bi-check2"></i>Lưu cấu hình</button>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

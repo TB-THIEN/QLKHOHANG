@@ -1,0 +1,162 @@
+@model QuanLyKhoWeb.Models.ViewModels.InHoaDonVm
+@{
+    Layout = "_LayoutIn";
+    var dh = Model.DonHang;
+    var ch = Model.CuaHang;
+    ViewData["Title"] = "Hóa đơn " + dh.MaCodeDonHang;
+
+    var logo = string.IsNullOrWhiteSpace(ch.DuongDanLogo)
+        ? null
+        : (ch.DuongDanLogo!.StartsWith("/") || ch.DuongDanLogo.StartsWith("~"))
+            ? Url.Content(ch.DuongDanLogo.StartsWith("~") ? ch.DuongDanLogo : "~" + ch.DuongDanLogo)
+            : null;
+
+    var tongSoLuong = dh.ChiTietDonHangs.Sum(c => c.SoLuong);
+    var daHuy = dh.TrangThai == "CANCELLED";
+    var hinhThuc = dh.HinhThucNhanHang == "GIAO_HANG" ? "Giao hàng tận nơi" : "Nhận tại cửa hàng";
+}
+<div class="in-toolbar">
+    <button type="button" class="in-btn in-btn--primary" onclick="window.print()">
+        <i class="bi bi-printer"></i> In hóa đơn
+    </button>
+    <a class="in-btn in-btn--ghost" asp-action="Details" asp-route-id="@dh.MaDonHang">Quay lại đơn</a>
+    <span class="in-toolbar__note">Hoặc bấm Ctrl+P để in / lưu PDF (khổ A4).</span>
+</div>
+
+<div class="in-sheet">
+    <div class="in-head">
+        @if (logo != null)
+        {
+            <img src="@logo" class="in-head__logo" alt="Logo @ch.TenCuaHang" />
+        }
+        <div class="in-head__seller">
+            <div class="in-head__name">@ch.TenCuaHang</div>
+            @if (!string.IsNullOrWhiteSpace(ch.DiaChi))
+            {
+                <div class="in-head__line">Địa chỉ: @ch.DiaChi</div>
+            }
+            <div class="in-head__line">
+                @if (!string.IsNullOrWhiteSpace(ch.SoDienThoai)) { <span>Điện thoại: @ch.SoDienThoai</span> }
+                @if (!string.IsNullOrWhiteSpace(ch.Email)) { <span> · Email: @ch.Email</span> }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(ch.NguoiDaiDien))
+            {
+                <div class="in-head__mst">
+                    <span>Người đại diện: @ch.NguoiDaiDien</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="in-title">
+        <h1>Hóa đơn bán hàng</h1>
+        <div class="in-title__sub">Hóa đơn điện tử · In ngày @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+        <div class="in-title__code">Số: @dh.MaCodeDonHang</div>
+        @if (daHuy)
+        {
+            <div class="in-title__sub" style="color:#C0392B;font-weight:600;text-transform:uppercase">Đơn hàng đã hủy — không có giá trị thanh toán</div>
+        }
+    </div>
+
+    <div class="in-grid">
+        <div>
+            <dl class="in-dl">
+                <div class="in-kv"><dt>Người mua</dt><dd>@(string.IsNullOrWhiteSpace(dh.TenKhachHangGiao) ? "Khách lẻ" : dh.TenKhachHangGiao)</dd></div>
+                <div class="in-kv"><dt>Điện thoại</dt><dd>@(string.IsNullOrWhiteSpace(dh.SdtKhachHangGiao) ? "—" : dh.SdtKhachHangGiao)</dd></div>
+                <div class="in-kv"><dt>Địa chỉ</dt><dd>@(string.IsNullOrWhiteSpace(dh.DiaChiGiaoHang) ? "—" : dh.DiaChiGiaoHang)</dd></div>
+            </dl>
+        </div>
+        <div>
+            <dl class="in-dl">
+                <div class="in-kv"><dt>Ngày đặt hàng</dt><dd>@(dh.NgayDatHang?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd></div>
+                <div class="in-kv"><dt>Hình thức</dt><dd>@hinhThuc</dd></div>
+                <div class="in-kv"><dt>Nhân viên bán</dt><dd>@(dh.MaNhanVienNavigation?.HoTen ?? "—")</dd></div>
+            </dl>
+        </div>
+    </div>
+
+    <table class="in-table">
+        <thead>
+            <tr>
+                <th style="width:34px" class="num">STT</th>
+                <th>Sản phẩm</th>
+                <th class="num" style="width:56px">SL</th>
+                <th class="num" style="width:92px">Đơn giá</th>
+                <th class="num" style="width:104px">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+        @{ var stt = 0; }
+        @foreach (var ct in dh.ChiTietDonHangs)
+        {
+            stt++;
+            <tr>
+                <td class="num">@stt</td>
+                <td>
+                    @ct.MaSkuNavigation?.MaMauSanPhamNavigation?.TenSanPham
+                    <span class="in-table__sku">@ct.MaSkuNavigation?.MaCodeSku</span>
+                </td>
+                <td class="num">@ct.SoLuong</td>
+                <td class="num">@ct.DonGia.ToString("N0")</td>
+                <td class="num">@ct.ThanhTienDong.ToString("N0")</td>
+            </tr>
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" class="in-table__label">Tổng số lượng</td>
+                <td class="num">@tongSoLuong</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td colspan="3" class="in-table__label">Tổng tiền hàng</td>
+                <td colspan="2" class="num">@dh.TongTienHang.ToString("N0") đ</td>
+            </tr>
+            @if (dh.TienGiamGia > 0)
+            {
+                <tr>
+                    <td colspan="3" class="in-table__label">
+                        Giảm giá@(dh.MaKhuyenMaiNavigation != null ? " (" + dh.MaKhuyenMaiNavigation.MaCodeKhuyenMai + ")" : "")
+                    </td>
+                    <td colspan="2" class="num">-@dh.TienGiamGia.ToString("N0") đ</td>
+                </tr>
+            }
+            <tr>
+                <td colspan="3" class="in-table__label">Phí vận chuyển</td>
+                <td colspan="2" class="num">@dh.PhiVanChuyen.ToString("N0") đ</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="in-table__label in-table__grand">Tổng cộng thanh toán</td>
+                <td colspan="2" class="num in-table__grand">@dh.ThanhTien.ToString("N0") đ</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    @if (!string.IsNullOrWhiteSpace(dh.GhiChu))
+    {
+        <div class="in-note"><b>Ghi chú:</b> @dh.GhiChu</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(ch.GhiChuHoaDon))
+    {
+        <div class="in-note">@ch.GhiChuHoaDon</div>
+    }
+
+    <div class="in-sign">
+        <div>
+            <div class="in-sign__role">Người mua hàng</div>
+            <div class="in-sign__hint">(Ký, ghi rõ họ tên)</div>
+            <div class="in-sign__space"></div>
+            <div class="in-sign__name">@(string.IsNullOrWhiteSpace(dh.TenKhachHangGiao) ? "" : dh.TenKhachHangGiao)</div>
+        </div>
+        <div>
+            <div class="in-sign__role">Người bán hàng</div>
+            <div class="in-sign__hint">(Ký, ghi rõ họ tên)</div>
+            <div class="in-sign__space"></div>
+            <div class="in-sign__name">@(dh.MaNhanVienNavigation?.HoTen ?? "")</div>
+        </div>
+    </div>
+
+    <div class="in-foot">
+        Hóa đơn được lập tự động từ hệ thống quản lý kho. Vui lòng kiểm tra hàng hóa trước khi rời cửa hàng.
+    </div>
+</div>

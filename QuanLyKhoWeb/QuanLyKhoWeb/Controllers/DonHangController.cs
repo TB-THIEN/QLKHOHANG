@@ -31,6 +31,8 @@ namespace QuanLyKhoWeb.Controllers
             var q = _context.DonHangs
                 .Include(d => d.ChiTietDonHangs).ThenInclude(ct => ct.MaSkuNavigation).ThenInclude(s => s.MaMauSanPhamNavigation)
                 .Include(d => d.MaNhanVienNavigation)
+                // Hủy = xóa hẳn, nhưng lọc thêm để dữ liệu cũ (nếu còn) không hiện ra.
+                .Where(d => d.TrangThai != "CANCELLED")
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -66,6 +68,32 @@ namespace QuanLyKhoWeb.Controllers
                 .FirstOrDefaultAsync(d => d.MaDonHang == id);
             if (dh == null) return NotFound();
             return View(dh);
+        }
+
+        // In hóa đơn điện tử: trang A4 riêng, người dùng bấm Ctrl+P (hoặc nút In) để in/lưu PDF.
+        // Không gọi dịch vụ ký số bên ngoài; thông tin người bán lấy từ bảng cau_hinh_cua_hang.
+        public async Task<IActionResult> InHoaDon(int id)
+        {
+            var dh = await _context.DonHangs
+                .Include(d => d.ChiTietDonHangs).ThenInclude(ct => ct.MaSkuNavigation).ThenInclude(s => s.MaMauSanPhamNavigation)
+                .Include(d => d.MaKhuyenMaiNavigation)
+                .Include(d => d.MaNhanVienNavigation)
+                .FirstOrDefaultAsync(d => d.MaDonHang == id);
+            if (dh == null) return NotFound();
+
+            // Chỉ đơn đã xác nhận mới in hóa đơn; đơn chờ xác nhận hoặc đã hủy thì chặn cả khi gọi trực tiếp URL.
+            if (dh.TrangThai == "CHO_XAC_NHAN" || dh.TrangThai == "CANCELLED")
+            {
+                TempData["Loi"] = "Chỉ in được hóa đơn của đơn hàng đã xác nhận.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var vm = new InHoaDonVm
+            {
+                DonHang = dh,
+                CuaHang = await QuanLyKhoWeb.Services.CauHinhCuaHangService.LayAsync(_context)
+            };
+            return View(vm);
         }
 
         // Tạo đơn: bỏ nguồn đơn/khách hàng panel cũ, thêm Mã giảm giá listdown, TT bổ sung có tên/SĐT/địa chỉ, mã tự sinh
@@ -190,7 +218,22 @@ namespace QuanLyKhoWeb.Controllers
                 ModelState.AddModelError(string.Empty, kq.ThongBao);
                 return View(vm);
             }
-            TempData["ThongBao"] = kq.ThongBao + (hinhThuc == "GIAO_HANG" ? " Vận đơn đã tự tạo." : "");
+            TempData["ThongBao"] = kq.ThongBao + " Đơn đang ở trạng thái Chờ xác nhận."
+                + (hinhThuc == "GIAO_HANG" ? " Vận đơn sẽ hiện ở trang Vận chuyển sau khi xác nhận." : "");
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Xác nhận đơn đang Chờ xác nhận (chốt đơn):
+        //  - Nhận tại shop: Hoàn tất + Đã thanh toán.
+        //  - Giao hàng: Đã xác nhận; vận đơn mới hiện ở trang Vận chuyển, giao xong tự Hoàn tất.
+        [HttpPost, Authorize(Policy = "SuaDonHang"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> XacNhan(int id, string? tu)
+        {
+            var kq = await _donHangService.XacNhanDonHangAsync(id);
+            if (kq.ThanhCong) TempData["ThongBao"] = kq.ThongBao;
+            else TempData["Loi"] = kq.ThongBao;
+            // Bấm từ trang chi tiết thì quay lại chi tiết cho tiện theo dõi
+            if (tu == "chitiet") return RedirectToAction(nameof(Details), new { id });
             return RedirectToAction(nameof(Index));
         }
 

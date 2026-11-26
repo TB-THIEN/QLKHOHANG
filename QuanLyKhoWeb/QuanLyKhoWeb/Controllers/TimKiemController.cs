@@ -46,6 +46,7 @@ namespace QuanLyKhoWeb.Controllers
                 case "baocao":
                 {
                     var rows = await _context.DonHangs.AsNoTracking()
+                        .Where(d => d.TrangThai != "CANCELLED")
                         .Where(d => EF.Functions.Collate(d.MaCodeDonHang, "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(d.TenKhachHangGiao ?? "", "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(d.SdtKhachHangGiao ?? "", "Vietnamese_CI_AI").Contains(term)
@@ -254,6 +255,7 @@ namespace QuanLyKhoWeb.Controllers
         {
             "COMPLETED" => "Hoàn tất",
             "CONFIRMED" => "Đã xác nhận",
+            "CHO_XAC_NHAN" => "Chờ xác nhận",
             "CANCELLED" => "Đã hủy",
             _ => trangThai ?? ""
         };

@@ -168,7 +168,9 @@ CREATE TABLE don_hang (
     ngay_dat_hang DATETIME2 DEFAULT GETDATE(),             -- Ngày giờ tạo đơn
     -- Bỏ trạng thái DRAFT (đơn luôn tạo thẳng CONFIRMED).
     trang_thai VARCHAR(20) DEFAULT 'CONFIRMED'
-        CHECK (trang_thai IN ('CONFIRMED', 'COMPLETED', 'CANCELLED')), -- Trạng thái đơn hàng
+        -- CHO_XAC_NHAN: vừa tạo, chờ bấm Xác nhận; CONFIRMED: đơn giao hàng đã xác nhận, chờ giao;
+        -- COMPLETED: hoàn tất (đã thu tiền); CANCELLED: đã hủy.
+        CHECK (trang_thai IN ('CHO_XAC_NHAN', 'CONFIRMED', 'COMPLETED', 'CANCELLED')),
     trang_thai_thanh_toan VARCHAR(20) DEFAULT 'UNPAID'
         CHECK (trang_thai_thanh_toan IN ('UNPAID', 'PAID')), -- Đã thanh toán hay chưa (chỉ hủy được khi UNPAID)
     hinh_thuc_nhan_hang VARCHAR(20) NOT NULL DEFAULT 'TAI_SHOP'
@@ -648,7 +650,7 @@ BEGIN
         SET @ma_don_hang = SCOPE_IDENTITY();
 
         -- Trigger trg_cthd_tru_ton_khi_ban tự trừ kho khi chèn chi tiết
-        -- (trigger yêu cầu đơn CONFIRMED nên đơn tạm ở CONFIRMED/UNPAID tới đây).
+        -- (trigger yêu cầu đơn CONFIRMED nên đơn tạm ở CONFIRMED tới bước này).
         INSERT INTO chi_tiet_don_hang (ma_don_hang, ma_sku, so_luong, don_gia, thanh_tien_dong)
         SELECT @ma_don_hang, ct.ma_sku, ct.so_luong, sp.gia_tien, ct.so_luong * sp.gia_tien
         FROM @chi_tiet ct
@@ -660,10 +662,12 @@ BEGIN
             VALUES (@ma_don_hang, NULL);
         END
 
-        -- Đơn tạo từ màn bán hàng đã chốt và nhận tiền ngay -> luôn là đơn thành công.
+        -- Đơn mới tạo chỉ ở trạng thái Chờ xác nhận (chưa hoàn tất, chưa thu tiền)
+        -- để còn hủy được nếu nhập sai. Người dùng bấm Xác nhận trên trang Đơn hàng
+        -- (sp_XacNhanDonHang) thì đơn mới chuyển Hoàn tất / Đã xác nhận.
         UPDATE don_hang
-        SET trang_thai = 'COMPLETED',
-            trang_thai_thanh_toan = 'PAID'
+        SET trang_thai = 'CHO_XAC_NHAN',
+            trang_thai_thanh_toan = 'UNPAID'
         WHERE ma_don_hang = @ma_don_hang;
 
     COMMIT TRANSACTION;
@@ -714,7 +718,12 @@ GO
 CREATE INDEX IX_nhatky_sku_thoigian ON nhat_ky_ton_kho(ma_sku, thoi_gian);
 GO
 
--- sp_HuyDonHang: ghi nhật ký HUY_DON theo người bấm hủy.
+-- sp_HuyDonHang: hủy đơn = xóa vĩnh viễn khỏi hệ thống.
+--  1) Đánh dấu CANCELLED để trigger trg_donhang_hoan_ton_khi_huy hoàn tồn kho / kệ / lượt khuyến mãi.
+--  2) Ghi nhật ký HUY_DON.
+--  3) Xóa vận đơn, chi tiết đơn rồi xóa đơn hàng.
+-- Lưu ý: chi tiết đơn được xóa khi đơn đã CANCELLED nên trg_cthd_hoan_ton_khi_xoa_dong
+-- không hoàn tồn lần hai.
 CREATE PROCEDURE sp_HuyDonHang
     @ma_don_hang INT,
     @ma_nguoi_thuc_hien INT,
@@ -724,10 +733,11 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @trang_thai_tt VARCHAR(20);
-    SELECT @trang_thai_tt = trang_thai_thanh_toan FROM don_hang WHERE ma_don_hang = @ma_don_hang;
+    DECLARE @trang_thai VARCHAR(20), @trang_thai_tt VARCHAR(20);
+    SELECT @trang_thai = trang_thai, @trang_thai_tt = trang_thai_thanh_toan
+    FROM don_hang WHERE ma_don_hang = @ma_don_hang;
 
-    IF @trang_thai_tt IS NULL
+    IF @trang_thai IS NULL
     BEGIN
         RAISERROR (N'Không tìm thấy đơn hàng.', 16, 1);
         RETURN;
@@ -750,17 +760,78 @@ BEGIN
         RETURN;
     END
 
-    UPDATE don_hang
-    SET trang_thai = 'CANCELLED',
-        ngay_huy = GETDATE(),
-        ly_do_huy = @ly_do_huy
-    WHERE ma_don_hang = @ma_don_hang;
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
-    INSERT INTO nhat_ky_ton_kho (ma_sku, loai_bien_dong, so_luong_thay_doi, ma_nguoi_thuc_hien, ma_don_hang)
-    SELECT ct.ma_sku, 'HUY_DON', SUM(ct.so_luong), @ma_nguoi_thuc_hien, @ma_don_hang
-    FROM chi_tiet_don_hang ct
-    WHERE ct.ma_don_hang = @ma_don_hang
-    GROUP BY ct.ma_sku;
+        -- Bước 1: chuyển CANCELLED để hoàn tồn kho, hoàn kệ và lượt khuyến mãi (trigger).
+        -- Nếu đơn vốn đã CANCELLED thì trigger không hoàn tồn lần nữa.
+        IF @trang_thai <> 'CANCELLED'
+        BEGIN
+            UPDATE don_hang
+            SET trang_thai = 'CANCELLED',
+                ngay_huy = GETDATE(),
+                ly_do_huy = @ly_do_huy
+            WHERE ma_don_hang = @ma_don_hang;
+        END
+
+        -- Bước 2: ghi nhật ký hoàn tồn (giữ lại vết dù đơn bị xóa).
+        INSERT INTO nhat_ky_ton_kho (ma_sku, loai_bien_dong, so_luong_thay_doi, ma_nguoi_thuc_hien, ma_don_hang)
+        SELECT ct.ma_sku, 'HUY_DON', SUM(ct.so_luong), @ma_nguoi_thuc_hien, @ma_don_hang
+        FROM chi_tiet_don_hang ct
+        WHERE ct.ma_don_hang = @ma_don_hang
+        GROUP BY ct.ma_sku;
+
+        -- Bước 3: xóa vận đơn (FK không cascade), rồi chi tiết (đơn đang CANCELLED nên
+        -- trigger xóa dòng không hoàn tồn), cuối cùng xóa đơn hàng.
+        DELETE FROM van_don WHERE ma_don_hang = @ma_don_hang;
+        DELETE FROM chi_tiet_don_hang WHERE ma_don_hang = @ma_don_hang;
+        DELETE FROM don_hang WHERE ma_don_hang = @ma_don_hang;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+-- sp_XacNhanDonHang: chốt đơn đang ở trạng thái Chờ xác nhận.
+--  - Nhận tại shop: Hoàn tất + Đã thanh toán (khách đã nhận hàng và trả tiền tại quầy).
+--  - Giao hàng: Đã xác nhận (vận đơn đã tạo lúc lập đơn sẽ hiện ở trang Vận chuyển);
+--    khi vận đơn chuyển Đã giao, trigger trg_vandon_dongbo_don_hang tự hoàn tất + thanh toán.
+CREATE PROCEDURE sp_XacNhanDonHang
+    @ma_don_hang INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @trang_thai VARCHAR(20), @hinh_thuc VARCHAR(20);
+    SELECT @trang_thai = trang_thai, @hinh_thuc = hinh_thuc_nhan_hang
+    FROM don_hang WHERE ma_don_hang = @ma_don_hang;
+
+    IF @trang_thai IS NULL
+    BEGIN
+        RAISERROR (N'Không tìm thấy đơn hàng.', 16, 1);
+        RETURN;
+    END
+
+    IF @trang_thai <> 'CHO_XAC_NHAN'
+    BEGIN
+        RAISERROR (N'Chỉ đơn đang chờ xác nhận mới xác nhận được.', 16, 1);
+        RETURN;
+    END
+
+    IF @hinh_thuc = 'GIAO_HANG'
+        UPDATE don_hang
+        SET trang_thai = 'CONFIRMED'
+        WHERE ma_don_hang = @ma_don_hang;
+    ELSE
+        UPDATE don_hang
+        SET trang_thai = 'COMPLETED',
+            trang_thai_thanh_toan = 'PAID'
+        WHERE ma_don_hang = @ma_don_hang;
 END;
 GO
 
@@ -2073,4 +2144,33 @@ BEGIN
     FROM nguoi_dung nd INNER JOIN vai_tro vt ON vt.ma_vai_tro = nd.ma_vai_tro
     WHERE nd.ma_nguoi_dung = SCOPE_IDENTITY();
 END;
+GO
+
+-- 29. CẤU HÌNH CỬA HÀNG: thông tin người bán in trên hóa đơn điện tử / phiếu giao hàng.
+-- Bảng chỉ có 1 dòng (ma_cau_hinh = 1); màn hình Cấu hình cửa hàng trong web sửa dữ liệu này.
+USE DO_AN_QLK;
+GO
+
+IF OBJECT_ID(N'cau_hinh_cua_hang', N'U') IS NULL
+CREATE TABLE cau_hinh_cua_hang (
+    ma_cau_hinh INT NOT NULL PRIMARY KEY DEFAULT 1,        -- Khóa chính, luôn = 1 (1 dòng duy nhất)
+    ten_cua_hang NVARCHAR(150) NOT NULL,                   -- Tên cửa hàng (người bán)
+    dia_chi NVARCHAR(255),                                 -- Địa chỉ cửa hàng
+    so_dien_thoai VARCHAR(20),                             -- Số điện thoại liên hệ
+    email VARCHAR(255),                                    -- Email liên hệ
+    nguoi_dai_dien NVARCHAR(100),                          -- Người đại diện theo pháp luật
+    ghi_chu_hoa_don NVARCHAR(MAX),                         -- Ghi chú chân trang hóa đơn
+    duong_dan_logo VARCHAR(255),                           -- Logo in trên hóa đơn (tương đối trong wwwroot)
+    ngay_cap_nhat DATETIME2 NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT CK_cauhinh_mot_dong CHECK (ma_cau_hinh = 1)
+);
+GO
+
+-- Dữ liệu mặc định: 1 dòng duy nhất để trang in không bị trống.
+IF NOT EXISTS (SELECT 1 FROM cau_hinh_cua_hang WHERE ma_cau_hinh = 1)
+    INSERT INTO cau_hinh_cua_hang (ma_cau_hinh, ten_cua_hang, dia_chi, so_dien_thoai, email,
+                                   nguoi_dai_dien, ghi_chu_hoa_don)
+    VALUES (1, N'Cửa hàng Sổ Kho', N'123 Đường Nguyễn Văn Cừ - TP. Hồ Chí Minh',
+            '0900000000', 'lienhe@sokho.vn', N'Nguyễn Văn A',
+            N'Cảm ơn quý khách đã mua hàng. Vui lòng giữ hóa đơn để đối chiếu khi cần.');
 GO

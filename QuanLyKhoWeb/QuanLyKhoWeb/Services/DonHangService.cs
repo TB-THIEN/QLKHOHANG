@@ -22,11 +22,29 @@ namespace QuanLyKhoWeb.Services
 
                 await conn.OpenAsync();
                 await conn.ExecuteAsync("sp_HuyDonHang", parameters, commandType: CommandType.StoredProcedure);
-                return (true, "Hủy đơn hàng thành công.");
+                return (true, "Đã hủy và xóa đơn hàng khỏi hệ thống.");
             }
             catch (SqlException ex)
             {
                 // Bắt các RAISERROR trong SP, vd: "Chỉ có quản lý mới có quyền hủy đơn hàng."
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool ThanhCong, string ThongBao)> XacNhanDonHangAsync(int maDonHang)
+        {
+            using var conn = (SqlConnection)_connectionFactory.CreateConnection();
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ma_don_hang", maDonHang);
+
+                await conn.OpenAsync();
+                await conn.ExecuteAsync("sp_XacNhanDonHang", parameters, commandType: CommandType.StoredProcedure);
+                return (true, "Đã xác nhận đơn hàng.");
+            }
+            catch (SqlException ex)
+            {
                 return (false, ex.Message);
             }
         }
@@ -61,8 +79,9 @@ namespace QuanLyKhoWeb.Services
 
                 await conn.OpenAsync();
                 // SP tự tính tiền giảm theo mã khuyến mãi + tự lấy đơn giá từ gia_tien,
-                // trả về (ma_don_hang, ma_code_don_hang), đồng thời tự tạo vận đơn nếu GIAO_HANG.
-                // Đơn tạo ra luôn là đơn thành công (COMPLETED + PAID) vì đã chốt và nhận tiền.
+                // trả về (ma_don_hang, ma_code_don_hang); đơn GIAO_HANG có sẵn vận đơn
+                // nhưng chỉ hiện ở trang Vận chuyển sau khi đơn được xác nhận.
+                // Đơn tạo ra ở trạng thái Chờ xác nhận (CHO_XAC_NHAN + UNPAID).
                 var row = await conn.QueryFirstOrDefaultAsync<(int ma_don_hang, string ma_code_don_hang)>(
                     "sp_TaoDonHang", p, commandType: CommandType.StoredProcedure);
                 return (true, $"Tạo đơn {row.ma_code_don_hang} thành công.", row.ma_don_hang);

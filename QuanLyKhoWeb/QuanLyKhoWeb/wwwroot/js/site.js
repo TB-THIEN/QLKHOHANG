@@ -212,19 +212,51 @@
 // khiNap: giá trị server render từ cột decimal có thể là "1500000.00" (hoặc "1500000,00").
 // Lúc nạp trang phải bỏ phần lẻ trước khi lọc chữ số, nếu không mỗi lần mở trang Sửa
 // giá lại bị nhân 100. Khi người dùng đang gõ thì chỉ lọc chữ số (giữ nguyên số họ nhập).
+// Chèn dấu chấm làm chuỗi dài ra nên phải đặt lại con trỏ theo đúng số chữ số phía trước
+// con trỏ; nếu không con trỏ nhảy về cuối/đầu và người dùng gõ tiếp sẽ ra số sai.
 function formatMoneyInput(el, khiNap) {
-  var raw = String(el.value == null ? '' : el.value).trim();
+  var raw = String(el.value == null ? '' : el.value);
+  var conTro = null;
+  try { conTro = el.selectionStart; } catch (e) { conTro = null; }
   if (khiNap) {
     var thapPhan = raw.match(/^(\d+)[.,]\d{2}$/); // 1500000.00 / 1500000,00
     if (thapPhan) raw = thapPhan[1];
   }
+  // Số chữ số nằm trước con trỏ (bỏ qua dấu chấm, khoảng trắng người dùng gõ)
+  var soChuSoTruoc = null;
+  if (conTro != null && conTro > 0) soChuSoTruoc = raw.slice(0, conTro).replace(/\D/g, '').length;
   var d = raw.replace(/\D/g, '').slice(0, 15);
-  el.value = d.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  var hienThi = d.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  if (el.value !== hienThi) el.value = hienThi;
+  // Đặt lại con trỏ ngay sau chữ số thứ N trong chuỗi đã định dạng
+  if (soChuSoTruoc != null && el.ownerDocument.activeElement === el) {
+    var viTri = 0, dem = 0;
+    for (; viTri < hienThi.length; viTri++) {
+      if (/\d/.test(hienThi.charAt(viTri))) {
+        dem++;
+        if (dem === soChuSoTruoc) { viTri++; break; }
+      }
+    }
+    try { el.setSelectionRange(viTri, viTri); } catch (e) { /* trình duyệt cũ: bỏ qua */ }
+  }
 }
+// Chạy ở pha capture để định dạng xong TRƯỚC các listener 'input' khác của trang
+// (VD ô tóm tắt giá ở trang Tạo sản phẩm đọc lại .value ngay trong listener của nó).
 document.addEventListener('input', function (e) {
   var t = e.target;
   if (t && t.classList && t.classList.contains('money')) formatMoneyInput(t);
-});
+}, true);
+// Rời ô: chuẩn hóa lại một lần (đề phòng IME/autofill chèn ký tự lạ).
+document.addEventListener('change', function (e) {
+  var t = e.target;
+  if (!t || !t.classList || !t.classList.contains('money')) return;
+  // Bấm nút Lưu làm ô mất focus: listener 'submit' ở trên đã gỡ dấu chấm rồi,
+  // nếu ở đây định dạng lại thì jQuery Validate thấy "1.500.000" và báo
+  // "must be a number" dù người dùng nhập đúng. Chuỗi chỉ còn chữ số = vừa gỡ
+  // dấu chấm để gửi lên server, giữ nguyên.
+  if (/^\d+$/.test(t.value)) return;
+  formatMoneyInput(t, true);
+}, true);
 document.addEventListener('submit', function (e) {
   var f = e.target;
   if (f && f.querySelectorAll) f.querySelectorAll('input.money').forEach(function (i) {
@@ -232,8 +264,28 @@ document.addEventListener('submit', function (e) {
   });
 }, true);
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('input.money').forEach(function (el) { formatMoneyInput(el, true); });
+  document.querySelectorAll('input.money').forEach(function (el) {
+    // Tắt autofill: trình duyệt có thể khôi phục giá trị cũ (sai) vào ô tiền khi tải lại.
+    el.setAttribute('autocomplete', 'off');
+    formatMoneyInput(el, true);
+  });
 });
+// Submit bị chặn (validate thất bại) thì trang không chuyển đi: định dạng lại ô tiền
+// cho dễ đọc, vì lúc gửi đã gỡ dấu chấm. setTimeout 0 để chạy SAU jQuery Validate.
+// Phải đăng ký ở pha capture: nếu để bubble, jQuery Validate preventDefault +
+// stopPropagation ngay tại form nên listener cấp document sẽ không được gọi.
+document.addEventListener('submit', function (e) {
+  var f = e.target;
+  if (!f || !f.querySelectorAll) return;
+  setTimeout(function () {
+    // Chỉ định dạng lại khi form bị chặn (có ô báo lỗi); submit thành công thì
+    // trang đã chuyển đi, không đụng vào giá trị nữa.
+    if (!f.querySelector('.input-validation-error, .field-validation-error')) return;
+    f.querySelectorAll('input.money').forEach(function (i) {
+      if (/^\d+$/.test(i.value)) formatMoneyInput(i, true);
+    });
+  }, 0);
+}, true);
 
 // Hộp gợi ý dùng chung (1 list duy nhất do web tự vẽ, đã bỏ datalist mặc định):
 // hỗ trợ chuột, phím lên/xuống + Enter, Esc, và dòng tạo mới (tùy chọn).
