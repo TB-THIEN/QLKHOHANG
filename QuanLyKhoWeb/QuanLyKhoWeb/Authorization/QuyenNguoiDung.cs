@@ -17,13 +17,13 @@ namespace QuanLyKhoWeb.Authorization
         public static bool LaNhanVienKho(ClaimsPrincipal? u) => TenVaiTro(u) == NhanVienKho;
         public static bool LaNhanVienBanHang(ClaimsPrincipal? u) => TenVaiTro(u) == NhanVienBanHang;
 
-        // Nhân viên giao hàng: vai trò chuẩn, hoặc vai trò tự tạo được gắn "được nhận vận đơn".
+        // Nhân viên giao hàng: vai trò chuẩn, hoặc vai trò tự tạo có bật cờ giao_hang.
         // Ba vai trò còn lại không bị coi là giao hàng dù có bật cờ này.
         public static bool LaNhanVienGiaoHang(ClaimsPrincipal? u)
         {
             if (LaQuanLy(u) || LaNhanVienKho(u) || LaNhanVienBanHang(u)) return false;
             if (TenVaiTro(u) == NhanVienGiaoHang) return true;
-            return u?.FindFirst("DuocNhanVanDon")?.Value == "True";
+            return u?.FindFirst("GiaoHang")?.Value == "True";
         }
 
         // Báo cáo: Quản lý + Nhân viên bán hàng (Nhân viên kho và giao hàng không có trang này)

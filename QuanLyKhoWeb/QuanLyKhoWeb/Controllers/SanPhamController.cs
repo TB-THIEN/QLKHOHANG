@@ -142,9 +142,7 @@ namespace QuanLyKhoWeb.Controllers
             // Kiểm tra các file ảnh đã chọn: đúng định dạng, không vượt dung lượng, không quá số lượng.
             KiemTraAnh(vm.HinhAnhs, nameof(vm.HinhAnhs));
 
-            // Tên sản phẩm không được chứa số; các ô số nhập chữ/số thập phân thì báo lại rõ ràng
-            if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenSanPham))
-                ModelState.AddModelError(nameof(vm.TenSanPham), "Tên sản phẩm không được chứa số.");
+            // Ô số nhập chữ/số thập phân thì báo lại rõ ràng
             QuanLyKhoWeb.Services.KiemTraDauVao.BaoLoiSoNguyen(ModelState, nameof(vm.GiaTien),
                 "Giá tiền phải là số lớn hơn hoặc bằng 0 (không nhập chữ).",
                 nameof(vm.GiaTien));
@@ -299,8 +297,6 @@ namespace QuanLyKhoWeb.Controllers
             // Kiểm tra danh sách ảnh mới thêm (nếu có)
             KiemTraAnh(vm.HinhAnhMois, nameof(vm.HinhAnhMois));
 
-            if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenSanPham))
-                ModelState.AddModelError(nameof(vm.TenSanPham), "Tên sản phẩm không được chứa số.");
             QuanLyKhoWeb.Services.KiemTraDauVao.BaoLoiSoNguyen(ModelState, nameof(vm.SoLuong),
                 "Số lượng phải là số nguyên lớn hơn hoặc bằng 0 (không nhập chữ hay số thập phân).",
                 nameof(vm.SoLuong));

@@ -378,3 +378,38 @@ window.setupVaiTroAutocomplete = function (txtId, boxId, excludeExact) {
     excludeExact: excludeExact
   });
 };
+
+// Thông báo kiểm tra HTML5 mặc định của trình duyệt là tiếng Anh (theo ngôn ngữ
+// trình duyệt), lẫn với giao diện tiếng Việt. Đổi sang câu tiếng Việt cho các lỗi
+// phổ biến (bắt buộc, vượt max/min, sai định dạng...).
+(function () {
+  function thongBaoTiengViet(el) {
+    var v = el.validity;
+    if (!v || v.valid) return '';
+    if (v.valueMissing) return el.tagName === 'SELECT'
+      ? 'Vui lòng chọn một mục trong danh sách.'
+      : 'Vui lòng nhập thông tin này.';
+    if (v.rangeOverflow) return 'Giá trị phải nhỏ hơn hoặc bằng ' + el.max + '.';
+    if (v.rangeUnderflow) return 'Giá trị phải lớn hơn hoặc bằng ' + el.min + '.';
+    if (v.stepMismatch) return 'Giá trị không hợp lệ.';
+    if (v.tooLong) return 'Nội dung quá dài.';
+    if (v.tooShort) return 'Nội dung quá ngắn.';
+    if (v.patternMismatch) return el.title || 'Giá trị không đúng định dạng.';
+    if (v.typeMismatch) return 'Giá trị không đúng định dạng.';
+    if (v.badInput) return 'Vui lòng nhập số hợp lệ.';
+    return 'Giá trị không hợp lệ.';
+  }
+  document.addEventListener('invalid', function (e) {
+    var el = e.target;
+    if (!el || !el.setCustomValidity) return;
+    var msg = thongBaoTiengViet(el);
+    if (msg) el.setCustomValidity(msg);
+  }, true);
+  // Gõ/sửa lại thì xóa thông báo cũ để trình duyệt kiểm tra lại từ đầu.
+  ['input', 'change'].forEach(function (ten) {
+    document.addEventListener(ten, function (e) {
+      var el = e.target;
+      if (el && el.setCustomValidity && el.validationMessage) el.setCustomValidity('');
+    }, true);
+  });
+})();

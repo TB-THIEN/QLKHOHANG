@@ -1,0 +1,62 @@
+@model QuanLyKhoWeb.Models.ViewModels.PhanTrangVm
+@{
+    // Thanh phân trang dùng chung: nút Trước / số trang / Sau, giữ nguyên bộ lọc hiện tại.
+    var thamSo = (Model.ThamSo ?? new())
+        .Where(x => !string.IsNullOrEmpty(x.Value))
+        .ToDictionary(x => x.Key, x => x.Value!);
+    var trangHienTai = Math.Max(1, Model.Trang);
+    var tongTrang = Math.Max(1, Model.TotalPage);
+    var tuTrang = Math.Max(1, trangHienTai - 2);
+    var denTrang = Math.Min(tongTrang, trangHienTai + 2);
+}
+@if (tongTrang > 1)
+{
+    var ctrl = Model.Controller;
+    Dictionary<string, string> Route(int p)
+    {
+        var d = new Dictionary<string, string>(thamSo) { ["trang"] = p.ToString() };
+        return d;
+    }
+    <nav aria-label="@Model.AriaLabel" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(trangHienTai <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-controller="@ctrl" asp-action="@Model.Action"
+                   asp-all-route-data="@Route(Math.Max(1, trangHienTai - 1))"
+                   aria-label="Trang trước">Trước</a>
+            </li>
+            @if (tuTrang > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-controller="@ctrl" asp-action="@Model.Action" asp-all-route-data="@Route(1)">1</a>
+                </li>
+                @if (tuTrang > 2)
+                {
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                }
+            }
+            @for (int p = tuTrang; p <= denTrang; p++)
+            {
+                <li class="page-item @(p == trangHienTai ? "active" : "")">
+                    <a class="page-link" asp-controller="@ctrl" asp-action="@Model.Action"
+                       asp-all-route-data="@Route(p)"
+                       aria-current="@(p == trangHienTai ? "page" : null)">@p</a>
+                </li>
+            }
+            @if (denTrang < tongTrang)
+            {
+                @if (denTrang < tongTrang - 1)
+                {
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                }
+                <li class="page-item">
+                    <a class="page-link" asp-controller="@ctrl" asp-action="@Model.Action" asp-all-route-data="@Route(tongTrang)">@tongTrang</a>
+                </li>
+            }
+            <li class="page-item @(trangHienTai >= tongTrang ? "disabled" : "")">
+                <a class="page-link" asp-controller="@ctrl" asp-action="@Model.Action"
+                   asp-all-route-data="@Route(Math.Min(tongTrang, trangHienTai + 1))"
+                   aria-label="Trang sau">Sau</a>
+            </li>
+        </ul>
+    </nav>
+}

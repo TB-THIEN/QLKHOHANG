@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuanLyKhoWeb.Authorization;
 using QuanLyKhoWeb.Data;
 using QuanLyKhoWeb.Models.Entities;
 using QuanLyKhoWeb.Models.ViewModels;
@@ -19,14 +20,20 @@ namespace QuanLyKhoWeb.Controllers
             _donHangService = donHangService;
         }
 
+        // Nhân viên giao hàng chỉ được xem/sửa đơn có vận đơn gán cho chính mình.
+        private bool LaGiaoHang => QuyenNguoiDung.LaNhanVienGiaoHang(User);
+        private int? ToiLaAi => QuyenNguoiDung.MaNguoiDung(User);
+        private bool DuocXemDon(DonHang d) => !LaGiaoHang || (ToiLaAi.HasValue && d.VanDon?.MaNhanVienGiaoHang == ToiLaAi.Value);
+
         // Danh sách: mã đơn, sản phẩm, số lượng, tổng tiền, chức năng (chi tiết + hủy + hoàn thành) + lọc thời gian/hình thức
-        public async Task<IActionResult> Index(string? search, DateTime? tuNgay, DateTime? denNgay, string? hinhThuc)
+        public async Task<IActionResult> Index(string? search, DateTime? tuNgay, DateTime? denNgay, string? hinhThuc, int trang = 1)
         {
             ViewData["SearchValue"] = search;
             ViewData["SearchController"] = "DonHang";
             ViewBag.TuNgay = tuNgay?.ToString("yyyy-MM-dd");
             ViewBag.DenNgay = denNgay?.ToString("yyyy-MM-dd");
             ViewBag.HinhThuc = hinhThuc;
+            ViewBag.LaGiaoHang = LaGiaoHang;
 
             var q = _context.DonHangs
                 .Include(d => d.ChiTietDonHangs).ThenInclude(ct => ct.MaSkuNavigation).ThenInclude(s => s.MaMauSanPhamNavigation)
@@ -54,7 +61,26 @@ namespace QuanLyKhoWeb.Controllers
             if (hinhThuc == "TAI_SHOP" || hinhThuc == "GIAO_HANG")
                 q = q.Where(d => d.HinhThucNhanHang == hinhThuc);
 
-            var list = await q.OrderByDescending(d => d.NgayDatHang).Take(200).ToListAsync();
+            // Nhân viên giao hàng: chỉ thấy đơn có vận đơn gán cho chính mình.
+            if (LaGiaoHang)
+            {
+                var toi = ToiLaAi;
+                q = toi.HasValue
+                    ? q.Where(d => d.VanDon != null && d.VanDon.MaNhanVienGiaoHang == toi.Value)
+                    : q.Where(d => false);
+            }
+
+            const int pageSize = 50;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderByDescending(d => d.NgayDatHang)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
             return View(list);
         }
 
@@ -65,8 +91,14 @@ namespace QuanLyKhoWeb.Controllers
                 .Include(d => d.MaKhuyenMaiNavigation)
                 .Include(d => d.MaNhanVienNavigation)
                 .Include(d => d.PhanBoXuatKhoTheoKes).ThenInclude(p => p.MaKeHangNavigation).ThenInclude(k => k.MaKhuVucNavigation)
+                .Include(d => d.VanDon)
                 .FirstOrDefaultAsync(d => d.MaDonHang == id);
             if (dh == null) return NotFound();
+            if (!DuocXemDon(dh))
+            {
+                TempData["Loi"] = "Bạn chỉ xem được đơn hàng được giao cho mình.";
+                return RedirectToAction(nameof(Index));
+            }
             return View(dh);
         }
 
@@ -78,8 +110,16 @@ namespace QuanLyKhoWeb.Controllers
                 .Include(d => d.ChiTietDonHangs).ThenInclude(ct => ct.MaSkuNavigation).ThenInclude(s => s.MaMauSanPhamNavigation)
                 .Include(d => d.MaKhuyenMaiNavigation)
                 .Include(d => d.MaNhanVienNavigation)
+                .Include(d => d.VanDon)
                 .FirstOrDefaultAsync(d => d.MaDonHang == id);
             if (dh == null) return NotFound();
+
+            // Nhân viên giao hàng: không in hóa đơn của đơn người khác.
+            if (!DuocXemDon(dh))
+            {
+                TempData["Loi"] = "Bạn chỉ in được hóa đơn của đơn hàng được giao cho mình.";
+                return RedirectToAction(nameof(Index));
+            }
 
             // Chỉ đơn đã xác nhận mới in hóa đơn; đơn chờ xác nhận hoặc đã hủy thì chặn cả khi gọi trực tiếp URL.
             if (dh.TrangThai == "CHO_XAC_NHAN" || dh.TrangThai == "CANCELLED")

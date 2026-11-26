@@ -18,7 +18,7 @@ namespace QuanLyKhoWeb.Controllers
 
         // Danh sách vận đơn: Mã đơn hàng, tên hàng, số lượng, họ tên KH, Nhân viên giao (Add hoặc tên)
         // NV giao hàng: chỉ liệt kê vận đơn gán cho mình, không có bộ lọc nhân viên.
-        public async Task<IActionResult> Index(string? search, DateTime? tuNgay, DateTime? denNgay, int? maNvGiao)
+        public async Task<IActionResult> Index(string? search, DateTime? tuNgay, DateTime? denNgay, int? maNvGiao, int trang = 1)
         {
             ViewData["SearchValue"] = search;
             ViewBag.TuNgay = tuNgay?.ToString("yyyy-MM-dd");
@@ -36,7 +36,7 @@ namespace QuanLyKhoWeb.Controllers
                 // Listdown nhân viên giao (thay "Tất cả chi nhánh")
                 ViewBag.NvGiaoHang = await _context.NguoiDungs
                     .Include(n => n.MaVaiTroNavigation)
-                    .Where(n => n.MaVaiTroNavigation.DuocNhanVanDon == true && n.TrangThaiHoatDong == true)
+                    .Where(n => n.MaVaiTroNavigation.GiaoHang == true && n.TrangThaiHoatDong == true)
                     .OrderBy(n => n.HoTen).ToListAsync();
             }
             ViewBag.MaNvGiao = maNvGiao;
@@ -64,7 +64,17 @@ namespace QuanLyKhoWeb.Controllers
             // Không đọc được mã người dùng thì NV giao hàng không thấy gì cả
             else if (LaGiaoHang) q = q.Where(v => false);
 
-            var list = await q.OrderByDescending(v => v.NgayTao).Take(200).ToListAsync();
+            const int pageSize = 30;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderByDescending(v => v.NgayTao)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
             return View(list);
         }
 
@@ -93,7 +103,7 @@ namespace QuanLyKhoWeb.Controllers
                 ? new List<QuanLyKhoWeb.Models.Entities.NguoiDung>()
                 : await _context.NguoiDungs
                     .Include(n => n.MaVaiTroNavigation)
-                    .Where(n => n.MaVaiTroNavigation.DuocNhanVanDon == true && n.TrangThaiHoatDong == true)
+                    .Where(n => n.MaVaiTroNavigation.GiaoHang == true && n.TrangThaiHoatDong == true)
                     .OrderBy(n => n.HoTen).ToListAsync();
             return View(vd);
         }
@@ -137,7 +147,7 @@ namespace QuanLyKhoWeb.Controllers
                 .Include(n => n.MaVaiTroNavigation)
                 .AnyAsync(n => n.MaNguoiDung == maNvGiao
                     && n.TrangThaiHoatDong == true
-                    && n.MaVaiTroNavigation.DuocNhanVanDon == true);
+                    && n.MaVaiTroNavigation.GiaoHang == true);
             if (!nvHopLe)
             {
                 TempData["Loi"] = "Nhân viên giao hàng không hợp lệ hoặc đã ngừng hoạt động.";

@@ -115,13 +115,13 @@ CREATE TABLE vai_tro (
     ma_vai_tro INT IDENTITY(1,1) PRIMARY KEY,              -- Mã vai trò (khóa chính)
     ten_vai_tro NVARCHAR(100) NOT NULL UNIQUE,             -- Tên vai trò (hiển thị + autocomplete)
     co_quyen_huy_don BIT NOT NULL DEFAULT 0,               -- 1 = được hủy đơn hàng
-    duoc_nhan_van_don BIT NOT NULL DEFAULT 0,              -- 1 = được nhận vận đơn (giao hàng)
+    giao_hang BIT NOT NULL DEFAULT 0,              -- 1 = được nhận vận đơn (giao hàng)
     ngay_tao DATETIME2 NOT NULL DEFAULT GETDATE()          -- Ngày tạo bản ghi
 );
 GO
 
 -- Seed 4 vai trò mặc định.
-INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, duoc_nhan_van_don) VALUES
+INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, giao_hang) VALUES
     (N'Quản lý', 1, 0),
     (N'Nhân viên giao hàng', 0, 1),
     (N'Nhân viên kho', 0, 0),
@@ -410,7 +410,7 @@ BEGIN
         INNER JOIN nguoi_dung nd ON nd.ma_nguoi_dung = i.ma_nhan_vien_giao_hang
         INNER JOIN vai_tro vt ON vt.ma_vai_tro = nd.ma_vai_tro
         WHERE i.ma_nhan_vien_giao_hang IS NOT NULL
-          AND (vt.duoc_nhan_van_don = 0 OR nd.trang_thai_hoat_dong <> 1)
+          AND (vt.giao_hang = 0 OR nd.trang_thai_hoat_dong <> 1)
     )
     BEGIN
         RAISERROR (N'Người phụ trách phải là nhân viên giao hàng đang hoạt động.', 16, 1);
@@ -1246,9 +1246,26 @@ CREATE INDEX IX_phanbo_sku_kehang ON phan_bo_xuat_kho_theo_ke(ma_sku, ma_ke_hang
 GO
 CREATE INDEX IX_phanbo_kehang ON phan_bo_xuat_kho_theo_ke(ma_ke_hang);
 GO
+-- Bảng phan_bo_xuat_kho_theo_khu ghi vết đã trừ khu nào bao nhiêu
+-- (hàng chưa xếp kệ nhưng vẫn bán được, cần hoàn đúng khu khi hủy đơn).
+CREATE TABLE phan_bo_xuat_kho_theo_khu (
+    ma_phan_bo INT IDENTITY(1,1) PRIMARY KEY,
+    ma_don_hang INT NOT NULL,
+    ma_sku INT NOT NULL,
+    ma_khu_vuc INT NOT NULL,
+    so_luong INT NOT NULL CHECK (so_luong > 0),
+    CONSTRAINT FK_phanbo_khu_donhang FOREIGN KEY (ma_don_hang) REFERENCES don_hang(ma_don_hang) ON DELETE CASCADE,
+    CONSTRAINT FK_phanbo_khu_sku FOREIGN KEY (ma_sku) REFERENCES san_pham_sku(ma_sku),
+    CONSTRAINT FK_phanbo_khu_khuvuc FOREIGN KEY (ma_khu_vuc) REFERENCES khu_vuc_kho(ma_khu_vuc)
+);
+GO
+CREATE INDEX IX_phanbo_khu_sku_khuvuc ON phan_bo_xuat_kho_theo_khu(ma_sku, ma_khu_vuc);
+GO
+CREATE INDEX IX_phanbo_khu_khuvuc ON phan_bo_xuat_kho_theo_khu(ma_khu_vuc);
+GO
 
 -- Xóa dòng trực tiếp -> hoàn đúng kệ đã trừ (Điểm 1).
-CREATE TRIGGER trg_cthd_hoan_ton_khi_xoa_dong
+CREATE OR ALTER TRIGGER trg_cthd_hoan_ton_khi_xoa_dong
 ON chi_tiet_don_hang
 AFTER DELETE
 AS
@@ -1289,6 +1306,27 @@ BEGIN
         WHERE dh.ma_don_hang IS NULL OR dh.trang_thai <> 'CANCELLED'
     ) x ON x.ma_don_hang = pb.ma_don_hang AND x.ma_sku = pb.ma_sku;
 
+    -- Hoàn tồn khu đã trừ khi bán.
+    UPDATE tk
+    SET tk.so_luong = tk.so_luong + pb.so_luong
+    FROM ton_kho_khu tk
+    INNER JOIN phan_bo_xuat_kho_theo_khu pb ON pb.ma_sku = tk.ma_sku AND pb.ma_khu_vuc = tk.ma_khu_vuc
+    INNER JOIN (
+        SELECT DISTINCT d.ma_don_hang, d.ma_sku
+        FROM deleted d
+        LEFT JOIN don_hang dh ON dh.ma_don_hang = d.ma_don_hang
+        WHERE dh.ma_don_hang IS NULL OR dh.trang_thai <> 'CANCELLED'
+    ) x ON x.ma_don_hang = pb.ma_don_hang AND x.ma_sku = pb.ma_sku;
+
+    DELETE pb
+    FROM phan_bo_xuat_kho_theo_khu pb
+    INNER JOIN (
+        SELECT DISTINCT d.ma_don_hang, d.ma_sku
+        FROM deleted d
+        LEFT JOIN don_hang dh ON dh.ma_don_hang = d.ma_don_hang
+        WHERE dh.ma_don_hang IS NULL OR dh.trang_thai <> 'CANCELLED'
+    ) x ON x.ma_don_hang = pb.ma_don_hang AND x.ma_sku = pb.ma_sku;
+
     -- Xóa dòng trực tiếp vẫn phải để lại vết trong sổ nhật ký tồn kho.
     INSERT INTO nhat_ky_ton_kho (ma_sku, loai_bien_dong, so_luong_thay_doi, ma_nguoi_thuc_hien, ma_don_hang)
     SELECT d.ma_sku, 'HUY_DON', SUM(d.so_luong), dh.ma_nhan_vien, d.ma_don_hang
@@ -1300,7 +1338,7 @@ END;
 GO
 
 -- Hủy cả đơn -> hoàn đúng kệ đã trừ (Điểm 1).
-CREATE TRIGGER trg_donhang_hoan_ton_khi_huy
+CREATE OR ALTER TRIGGER trg_donhang_hoan_ton_khi_huy
 ON don_hang
 AFTER UPDATE
 AS
@@ -1334,6 +1372,21 @@ BEGIN
 
         DELETE pb
         FROM phan_bo_xuat_kho_theo_ke pb
+        INNER JOIN inserted i ON i.ma_don_hang = pb.ma_don_hang
+        INNER JOIN deleted d ON d.ma_don_hang = i.ma_don_hang
+        WHERE i.trang_thai = 'CANCELLED' AND d.trang_thai <> 'CANCELLED';
+
+        -- Hoàn tồn khu đã trừ khi bán.
+        UPDATE tk
+        SET tk.so_luong = tk.so_luong + pb.so_luong
+        FROM ton_kho_khu tk
+        INNER JOIN phan_bo_xuat_kho_theo_khu pb ON pb.ma_sku = tk.ma_sku AND pb.ma_khu_vuc = tk.ma_khu_vuc
+        INNER JOIN inserted i ON i.ma_don_hang = pb.ma_don_hang
+        INNER JOIN deleted d ON d.ma_don_hang = i.ma_don_hang
+        WHERE i.trang_thai = 'CANCELLED' AND d.trang_thai <> 'CANCELLED';
+
+        DELETE pb
+        FROM phan_bo_xuat_kho_theo_khu pb
         INNER JOIN inserted i ON i.ma_don_hang = pb.ma_don_hang
         INNER JOIN deleted d ON d.ma_don_hang = i.ma_don_hang
         WHERE i.trang_thai = 'CANCELLED' AND d.trang_thai <> 'CANCELLED';
@@ -1678,7 +1731,7 @@ GO
 
 SELECT nd.ma_nguoi_dung, nd.ten_dang_nhap, nd.ho_ten, vt.ten_vai_tro AS vai_tro, nd.email,
        nd.so_dien_thoai, nd.ngay_sinh, nd.gioi_tinh, nd.thuong_tru,
-       vt.duoc_nhan_van_don, nd.trang_thai_hoat_dong, nd.phai_doi_mat_khau
+       vt.giao_hang, nd.trang_thai_hoat_dong, nd.phai_doi_mat_khau
 FROM nguoi_dung nd INNER JOIN vai_tro vt ON vt.ma_vai_tro = nd.ma_vai_tro
 WHERE nd.ten_dang_nhap = 'admin';
 GO
@@ -1690,7 +1743,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes
 GO
 
 
-CREATE TRIGGER trg_cthd_tru_ton_khi_ban
+CREATE OR ALTER TRIGGER trg_cthd_tru_ton_khi_ban
 ON chi_tiet_don_hang
 AFTER INSERT
 AS
@@ -1763,7 +1816,52 @@ BEGIN
     INSERT INTO phan_bo_xuat_kho_theo_ke (ma_don_hang, ma_sku, ma_ke_hang, so_luong)
     SELECT ma_don_hang, ma_sku, ma_ke_hang, tru_duoc FROM #pb_tmp;
 
+    -- Phần kệ không đủ -> trừ tiếp tồn khu (hàng chưa xếp kệ).
+    ;WITH g AS (
+        SELECT ma_don_hang, ma_sku, SUM(so_luong) AS can_tru
+        FROM inserted GROUP BY ma_don_hang, ma_sku
+    ),
+    da_tru AS (
+        SELECT ma_don_hang, ma_sku, SUM(tru_duoc) AS tru_ke
+        FROM #pb_tmp GROUP BY ma_don_hang, ma_sku
+    ),
+    can_khu AS (
+        SELECT g.ma_don_hang, g.ma_sku, g.can_tru - ISNULL(t.tru_ke, 0) AS con_lai
+        FROM g LEFT JOIN da_tru t ON t.ma_don_hang = g.ma_don_hang AND t.ma_sku = g.ma_sku
+        WHERE g.can_tru - ISNULL(t.tru_ke, 0) > 0
+    ),
+    k AS (
+        SELECT tk.ma_sku, tk.ma_khu_vuc, tk.so_luong,
+               ROW_NUMBER() OVER (PARTITION BY tk.ma_sku ORDER BY tk.so_luong DESC, tk.ma_khu_vuc) AS rn
+        FROM ton_kho_khu tk
+        WHERE tk.so_luong > 0
+          AND EXISTS (SELECT 1 FROM can_khu c WHERE c.ma_sku = tk.ma_sku)
+    ),
+    c AS (
+        SELECT k.ma_sku, k.ma_khu_vuc, k.so_luong, c.ma_don_hang, c.con_lai,
+               SUM(k.so_luong) OVER (PARTITION BY c.ma_don_hang, k.ma_sku ORDER BY k.rn
+                                     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS da_chia_truoc
+        FROM k INNER JOIN can_khu c ON c.ma_sku = k.ma_sku
+    )
+    SELECT ma_don_hang, ma_sku, ma_khu_vuc,
+           CASE WHEN con_lai - ISNULL(da_chia_truoc, 0) <= 0 THEN 0
+                WHEN so_luong >= con_lai - ISNULL(da_chia_truoc, 0) THEN con_lai - ISNULL(da_chia_truoc, 0)
+                ELSE so_luong END AS tru_duoc
+    INTO #pb_khu_tmp FROM c;
+
+    DELETE FROM #pb_khu_tmp WHERE tru_duoc <= 0;
+
+    UPDATE tk SET tk.so_luong = tk.so_luong - a.tru_duoc
+    FROM ton_kho_khu tk
+    INNER JOIN (SELECT ma_sku, ma_khu_vuc, SUM(tru_duoc) AS tru_duoc
+                FROM #pb_khu_tmp GROUP BY ma_sku, ma_khu_vuc) a
+        ON a.ma_sku = tk.ma_sku AND a.ma_khu_vuc = tk.ma_khu_vuc;
+
+    INSERT INTO phan_bo_xuat_kho_theo_khu (ma_don_hang, ma_sku, ma_khu_vuc, so_luong)
+    SELECT ma_don_hang, ma_sku, ma_khu_vuc, tru_duoc FROM #pb_khu_tmp;
+
     DROP TABLE #pb_tmp;
+    DROP TABLE #pb_khu_tmp;
 
     INSERT INTO nhat_ky_ton_kho (ma_sku, loai_bien_dong, so_luong_thay_doi, ma_nguoi_thuc_hien, ma_don_hang)
     SELECT i.ma_sku, 'BAN_HANG', -SUM(i.so_luong), dh.ma_nhan_vien, i.ma_don_hang
@@ -1889,7 +1987,7 @@ CREATE PROCEDURE sp_CapNhatNhanVien
     @chi_nhanh_ngan_hang NVARCHAR(100) = NULL,
     @trang_thai_hoat_dong BIT = 1,
     @co_quyen_huy_don BIT = 0,
-    @duoc_nhan_van_don BIT = 0
+    @giao_hang BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1951,8 +2049,8 @@ BEGIN
     IF @ma_vai_tro IS NULL
     BEGIN
         BEGIN TRY
-            INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, duoc_nhan_van_don)
-            VALUES (@ten_chuan, @co_quyen_huy_don, @duoc_nhan_van_don);
+            INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, giao_hang)
+            VALUES (@ten_chuan, @co_quyen_huy_don, @giao_hang);
             SET @ma_vai_tro = SCOPE_IDENTITY();
         END TRY
         BEGIN CATCH
@@ -2028,7 +2126,7 @@ BEGIN
     WHERE ISNULL(v.gia_tri_cu, N'') <> ISNULL(v.gia_tri_moi, N'');
 
     SELECT nd.ma_nguoi_dung, nd.ten_dang_nhap, nd.ho_ten, vt.ten_vai_tro AS vai_tro, nd.email,
-           nd.so_dien_thoai, nd.ngay_sinh, nd.gioi_tinh, vt.duoc_nhan_van_don
+           nd.so_dien_thoai, nd.ngay_sinh, nd.gioi_tinh, vt.giao_hang
     FROM nguoi_dung nd INNER JOIN vai_tro vt ON vt.ma_vai_tro = nd.ma_vai_tro
     WHERE nd.ma_nguoi_dung = @ma_nguoi_dung;
 END;
@@ -2050,7 +2148,7 @@ CREATE PROCEDURE sp_TaoNhanVien
     @stk_ngan_hang VARCHAR(30) = NULL,
     @chi_nhanh_ngan_hang NVARCHAR(100) = NULL,
     @co_quyen_huy_don BIT = 0,
-    @duoc_nhan_van_don BIT = 0
+    @giao_hang BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2103,8 +2201,8 @@ BEGIN
     IF @ma_vai_tro IS NULL
     BEGIN
         BEGIN TRY
-            INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, duoc_nhan_van_don)
-            VALUES (@ten_chuan, @co_quyen_huy_don, @duoc_nhan_van_don);
+            INSERT INTO vai_tro (ten_vai_tro, co_quyen_huy_don, giao_hang)
+            VALUES (@ten_chuan, @co_quyen_huy_don, @giao_hang);
             SET @ma_vai_tro = SCOPE_IDENTITY();
         END TRY
         BEGIN CATCH
@@ -2140,7 +2238,7 @@ BEGIN
             1);
 
     SELECT nd.ma_nguoi_dung, nd.ten_dang_nhap, nd.ho_ten, vt.ten_vai_tro AS vai_tro, nd.email,
-           nd.so_dien_thoai, nd.ngay_sinh, nd.gioi_tinh, vt.duoc_nhan_van_don
+           nd.so_dien_thoai, nd.ngay_sinh, nd.gioi_tinh, vt.giao_hang
     FROM nguoi_dung nd INNER JOIN vai_tro vt ON vt.ma_vai_tro = nd.ma_vai_tro
     WHERE nd.ma_nguoi_dung = SCOPE_IDENTITY();
 END;

@@ -4,6 +4,9 @@
     ViewData["Subtitle"] = "Tồn theo SKU và vị trí kệ";
     var loc = (ViewBag.Loc as string) ?? "TATCA";
     var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.NhapKho(User);
+    int trang = ViewBag.Trang ?? 1;
+    int totalPage = ViewBag.TotalPage ?? 1;
+    int total = ViewBag.Total ?? Model.Count;
 }
 <div class="page-header">
     <div>
@@ -43,7 +46,7 @@
 <div class="app-card">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Tồn theo sản phẩm</h6>
-        <span class="cell-sub">@Model.Count SKU</span>
+        <span class="cell-sub">@total SKU · trang @trang/@totalPage</span>
     </div>
     <div class="table-responsive">
         <table class="table table-app mb-0">
@@ -53,9 +56,15 @@
             <tbody>
             @foreach (var s in Model)
             {
+                // Hàng có thể nằm trên kệ hoặc chỉ ở khu (nhập khu chưa xếp kệ).
+                // Trước đây chỉ xét kệ nên hàng trong khu bị hiện nhầm "Chưa xếp kệ".
                 var vitri = s.TonKhoKeHangs.Any()
                     ? string.Join(", ", s.TonKhoKeHangs.Select(t => $"{t.MaKeHangNavigation?.MaKhuVucNavigation?.TenKhuVuc} / {t.MaKeHangNavigation?.TenKeHang}"))
-                    : "Chưa xếp kệ";
+                    : s.TonKhoKhus.Any()
+                        ? string.Join(", ", s.TonKhoKhus.Select(t => $"{t.MaKhuVucNavigation?.TenKhuVuc} (chưa xếp kệ)"))
+                        : "Chưa xếp kệ";
+                // Hàng đã nhập kho nhưng chưa được xếp vào khu/kệ nào.
+                var chuaPhanBo = s.SoLuong - s.TonKhoKeHangs.Sum(t => t.SoLuong) - s.TonKhoKhus.Sum(t => t.SoLuong);
                 <tr>
                     <td><span class="sku">@s.MaCodeSku</span></td>
                     <td>
@@ -66,7 +75,12 @@
                     <td class="cell-main">@s.MaMauSanPhamNavigation?.TenSanPham</td>
                     <td class="num">@s.GiaTien.ToString("N0") đ</td>
                     <td class="num"><span class="badge @(s.SoLuong==0?"bg-danger":s.SoLuong<=5?"bg-warning":"bg-success") badge-dot">@s.SoLuong</span></td>
-                    <td class="cell-sub">@vitri</td>
+                    <td class="cell-sub">@vitri
+                        @if (chuaPhanBo > 0)
+                        {
+                            <div class="text-warning mt-1" title="Hàng đã nhập kho nhưng chưa xếp vào khu/kệ nào"><i class="bi bi-exclamation-triangle"></i> Chưa phân bổ: @chuaPhanBo</div>
+                        }
+                    </td>
                     <td>
                         <div class="table-actions">
                             <a asp-controller="SanPham" asp-action="Details" asp-route-id="@s.MaSku" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sản phẩm" aria-label="Xem chi tiết @s.MaCodeSku"><i class="bi bi-eye"></i></a>
@@ -90,6 +104,20 @@
     </div>
 </div>
 
+<partial name="_PhanTrang" model="@(new QuanLyKhoWeb.Models.ViewModels.PhanTrangVm {
+    Trang = trang,
+    TotalPage = totalPage,
+    Total = total,
+    PageSize = 60,
+    Nhan = "SKU",
+    Controller = "TonKho",
+    AriaLabel = "Phân trang tồn kho",
+    ThamSo = new() {
+        ["search"] = Context.Request.Query["search"].ToString(),
+        ["loc"] = loc
+    }
+})" />
+
 <div class="modal fade" id="modalQuet" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h6 class="modal-title"><i class="bi bi-qr-code-scan"></i>Quét mã SKU</h6><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
@@ -99,6 +127,13 @@
             <div class="d-flex gap-2 mt-3">
                 <input id="txtMaQuet" class="form-control" placeholder="Hoặc nhập mã SKU…" />
                 <button id="btnXem" class="btn btn-outline-primary">Xem</button>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                <label class="btn btn-outline-secondary btn-sm mb-0" for="fileQuet" role="button">
+                    <i class="bi bi-camera"></i> Chụp ảnh để quét
+                </label>
+                <input id="fileQuet" type="file" accept="image/*" capture="environment" class="d-none" />
+                <span class="cell-sub">Dùng khi điện thoại chặn camera trực tiếp (trang chạy HTTP).</span>
             </div>
             <div id="previewQuet" class="mt-3" style="display:none">
                 <div class="d-flex gap-3 align-items-center p-3" style="border:1px solid var(--kho-line);border-radius:var(--radius-sm);background:var(--kho-surface-2)">
@@ -213,9 +248,37 @@ function batDauQuet() {
 }
 function dungQuet() {
   const q = quet;
-  if (!q) return;
+  if (!q) return Promise.resolve();
   quet = null;
-  try { q.stop().then(() => q.clear()).catch(() => {}); } catch (e) {}
+  try { return q.stop().then(() => q.clear()).catch(() => {}); } catch (e) { return Promise.resolve(); }
+}
+
+// Điện thoại mở trang qua HTTP sẽ bị chặn camera trực tiếp:
+// cho người dùng chụp ảnh bằng ứng dụng camera của máy rồi đọc mã từ ảnh.
+const fileQuet = document.getElementById('fileQuet');
+if (fileQuet) {
+  fileQuet.addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    if (!window.Html5Qrcode) { alert('Chưa tải được thư viện quét mã. Bạn vẫn có thể nhập mã SKU bên dưới.'); return; }
+    await dungQuet();
+    const reader = document.getElementById('reader');
+    if (reader) reader.innerHTML = '';
+    try {
+      const q = new Html5Qrcode('reader');
+      const txt = await q.scanFile(f, true);
+      await q.clear();
+      document.getElementById('txtMaQuet').value = txt;
+      xemTruoc(txt);
+    } catch (err) {
+      const loi = document.getElementById('quetLoi');
+      if (loi) {
+        loi.style.display = 'block';
+        loi.innerHTML = '<div class="callout"><i class="bi bi-image-alt"></i><span>Không đọc được mã trong ảnh. Chụp lại rõ hơn hoặc nhập mã SKU bên dưới.</span></div>';
+      }
+    }
+  });
 }
 const modalQuetEl = document.getElementById('modalQuet');
 if (modalQuetEl) {

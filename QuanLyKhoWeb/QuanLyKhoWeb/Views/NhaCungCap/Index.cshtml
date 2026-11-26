@@ -4,6 +4,9 @@
     ViewData["Subtitle"] = "Nguồn nhập hàng cho kho";
     // Chỉ Quản lý được thêm/sửa/xóa; các vai trò khác chỉ xem
     var duocSua = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaNhaCungCap(User);
+    int trang = ViewBag.Trang ?? 1;
+    int totalPage = ViewBag.TotalPage ?? 1;
+    int total = ViewBag.Total ?? Model.Count;
 }
 <div class="page-header">
     <div>
@@ -26,7 +29,7 @@
 <div class="app-card">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách nhà cung cấp</h6>
-        <span class="cell-sub">@Model.Count đối tác</span>
+        <span class="cell-sub">@total đối tác · trang @trang/@totalPage</span>
     </div>
     <div class="table-responsive">
         <table class="table table-app mb-0">
@@ -75,6 +78,17 @@
         </table>
     </div>
 </div>
+
+<partial name="_PhanTrang" model="@(new QuanLyKhoWeb.Models.ViewModels.PhanTrangVm {
+    Trang = trang,
+    TotalPage = totalPage,
+    Total = total,
+    PageSize = 30,
+    Nhan = "đối tác",
+    Controller = "NhaCungCap",
+    AriaLabel = "Phân trang nhà cung cấp",
+    ThamSo = new() { ["search"] = Context.Request.Query["search"].ToString() }
+})" />
 
 @if (duocSua)
 {

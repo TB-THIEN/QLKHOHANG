@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuanLyKhoWeb.Authorization;
 using QuanLyKhoWeb.Data;
 using QuanLyKhoWeb.Models.ViewModels;
 
@@ -33,6 +34,10 @@ namespace QuanLyKhoWeb.Controllers
 
             var kq = new List<GoiYTimKiemVm>();
 
+            // Nhân viên giao hàng chỉ nhận gợi ý đơn/vận đơn gán cho chính mình.
+            var laGiaoHang = QuyenNguoiDung.LaNhanVienGiaoHang(User);
+            var toiLaAi = QuyenNguoiDung.MaNguoiDung(User);
+
             void Them(string nhom, string icon, string tieuDe, string? moTa, string? url)
             {
                 if (string.IsNullOrEmpty(url)) return;
@@ -45,8 +50,16 @@ namespace QuanLyKhoWeb.Controllers
                 case "donhang":
                 case "baocao":
                 {
-                    var rows = await _context.DonHangs.AsNoTracking()
-                        .Where(d => d.TrangThai != "CANCELLED")
+                    var qDon = _context.DonHangs.AsNoTracking()
+                        .Where(d => d.TrangThai != "CANCELLED");
+                    if (laGiaoHang)
+                    {
+                        var toi = toiLaAi;
+                        qDon = toi.HasValue
+                            ? qDon.Where(d => d.VanDon != null && d.VanDon.MaNhanVienGiaoHang == toi.Value)
+                            : qDon.Where(d => false);
+                    }
+                    var rows = await qDon
                         .Where(d => EF.Functions.Collate(d.MaCodeDonHang, "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(d.TenKhachHangGiao ?? "", "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(d.SdtKhachHangGiao ?? "", "Vietnamese_CI_AI").Contains(term)
@@ -173,7 +186,15 @@ namespace QuanLyKhoWeb.Controllers
                 }
                 case "vanchuyen":
                 {
-                    var rows = await _context.VanDons.AsNoTracking()
+                    var qVd = _context.VanDons.AsNoTracking();
+                    if (laGiaoHang)
+                    {
+                        var toi = toiLaAi;
+                        qVd = toi.HasValue
+                            ? qVd.Where(v => v.MaNhanVienGiaoHang == toi.Value)
+                            : qVd.Where(v => false);
+                    }
+                    var rows = await qVd
                         .Where(v => EF.Functions.Collate(v.MaCodeVanDon, "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(v.MaDonHangNavigation.MaCodeDonHang, "Vietnamese_CI_AI").Contains(term)
                             || EF.Functions.Collate(v.MaDonHangNavigation.TenKhachHangGiao ?? "", "Vietnamese_CI_AI").Contains(term)

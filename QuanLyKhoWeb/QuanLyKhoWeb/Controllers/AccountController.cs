@@ -54,7 +54,7 @@ namespace QuanLyKhoWeb.Controllers
                 new Claim(ClaimTypes.Name, nd.HoTen),
                 new Claim("VaiTro", nd.MaVaiTroNavigation.TenVaiTro),
                 new Claim("CoQuyenHuyDon", nd.MaVaiTroNavigation.CoQuyenHuyDon.ToString()),
-                new Claim("DuocNhanVanDon", nd.MaVaiTroNavigation.DuocNhanVanDon.ToString())
+                new Claim("GiaoHang", nd.MaVaiTroNavigation.GiaoHang.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

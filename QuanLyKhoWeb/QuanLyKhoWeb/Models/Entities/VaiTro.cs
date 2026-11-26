@@ -11,7 +11,7 @@ public partial class VaiTro
 
     public bool CoQuyenHuyDon { get; set; }
 
-    public bool DuocNhanVanDon { get; set; }
+    public bool GiaoHang { get; set; }
 
     public DateTime NgayTao { get; set; }
 

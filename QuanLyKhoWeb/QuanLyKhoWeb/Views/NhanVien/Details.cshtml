@@ -52,6 +52,12 @@
             <form asp-action="DoiTrangThai" method="post" id="frmDoiTt">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.MaNguoiDung" />
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="chkDuocGiao" name="giaoHang" value="true"
+                           @(Model.MaVaiTroNavigation?.GiaoHang == true ? "checked" : "") />
+                    <label class="form-check-label" for="chkDuocGiao">Được nhận vận đơn (giao hàng)</label>
+                </div>
+                <div class="form-hint mb-3">Cờ này gắn với VAI TRÒ nên bật/tắt sẽ áp cho tất cả nhân viên cùng vai trò. Chỉ bật cho vai trò thực sự đi giao hàng.</div>
                 <label class="form-label" for="txtVaiTroDetail">Vai trò</label>
                 <div class="position-relative mb-2">
                     <input name="tenVaiTro" id="txtVaiTroDetail" class="form-control" autocomplete="off"

@@ -177,7 +177,8 @@ namespace QuanLyKhoWeb.Controllers
                 p.Add("@chi_nhanh_ngan_hang", string.IsNullOrWhiteSpace(vm.ChiNhanhNganHang) ? null : vm.ChiNhanhNganHang.Trim());
                 p.Add("@trang_thai_hoat_dong", nv.TrangThaiHoatDong ?? true);
                 p.Add("@co_quyen_huy_don", false);
-                p.Add("@duoc_nhan_van_don", true);
+                // Vai trò không đổi ở form này: giữ nguyên cờ hiện tại của vai trò.
+                p.Add("@giao_hang", nv.MaVaiTroNavigation.GiaoHang == true);
                 await conn.OpenAsync();
                 await conn.ExecuteAsync("sp_CapNhatNhanVien", p, commandType: CommandType.StoredProcedure);
                 TempData["ThongBao"] = "Đã cập nhật hồ sơ nhân viên.";
@@ -192,7 +193,7 @@ namespace QuanLyKhoWeb.Controllers
         // được ghi vào nhat_ky_thay_doi_nguoi_dung (ai đổi, lúc nào) thay vì sửa EF trực tiếp.
         // Vai trò gõ mới sẽ được SP tự tạo (giống lúc Thêm mới); SP chặn có hơn 1 quản lý.
         [HttpPost, Authorize(Policy = "ChiQuanLy"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> DoiTrangThai(int id, bool trangThai, string? tenVaiTro)
+        public async Task<IActionResult> DoiTrangThai(int id, bool trangThai, string? tenVaiTro, bool giaoHang = false)
         {
             var nv = await _context.NguoiDungs.Include(n => n.MaVaiTroNavigation).FirstOrDefaultAsync(n => n.MaNguoiDung == id);
             if (nv == null) return NotFound();
@@ -221,12 +222,41 @@ namespace QuanLyKhoWeb.Controllers
                 p.Add("@ngay_sinh", nv.NgaySinh);
                 p.Add("@gioi_tinh", nv.GioiTinh);
                 p.Add("@thuong_tru", nv.ThuongTru);
+                // Phải truyền lại hồ sơ hiện có: SP gán NULL cho tham số không truyền,
+                // nên trước đây đổi vai trò/trạng thái làm mất CCCD, ảnh thẻ, STK, chi nhánh.
+                p.Add("@cccd", nv.Cccd);
+                p.Add("@anh_the", nv.AnhThe);
+                p.Add("@stk_ngan_hang", nv.StkNganHang);
+                p.Add("@chi_nhanh_ngan_hang", nv.ChiNhanhNganHang);
                 p.Add("@trang_thai_hoat_dong", trangThai);
                 // Chỉ áp dụng khi vai trò MỚI hoàn toàn; vai trò đã có sẵn thì SP giữ nguyên quyền cũ.
                 p.Add("@co_quyen_huy_don", false);
-                p.Add("@duoc_nhan_van_don", true);
+                p.Add("@giao_hang", giaoHang);
                 await conn.OpenAsync();
                 await conn.ExecuteAsync("sp_CapNhatNhanVien", p, commandType: CommandType.StoredProcedure);
+
+                // Cờ giao hàng nằm trên VAI TRÒ, không phải trên từng nhân viên.
+                // SP chỉ dùng @giao_hang khi phải tạo vai trò mới; nếu quản lý bật/tắt cờ
+                // cho vai trò hiện có thì phải cập nhật chính vai trò đó (áp cho mọi người cùng vai trò).
+                var vaiTroHienTai = nv.MaVaiTroNavigation;
+                if (vaiTroHienTai != null
+                    && string.Equals(vaiTroMoi, vaiTroHienTai.TenVaiTro, StringComparison.OrdinalIgnoreCase)
+                    && (vaiTroHienTai.GiaoHang == true) != giaoHang)
+                {
+                    var pCo = new DynamicParameters();
+                    pCo.Add("@ma_vai_tro", vaiTroHienTai.MaVaiTro);
+                    pCo.Add("@giao_hang", giaoHang);
+                    pCo.Add("@ma_nguoi_dung", nv.MaNguoiDung);
+                    pCo.Add("@ma_nguoi_thuc_hien", maThucHien);
+                    pCo.Add("@gia_tri_cu", vaiTroHienTai.GiaoHang == true);
+                    await conn.ExecuteAsync(@"
+                        UPDATE vai_tro SET giao_hang = @giao_hang WHERE ma_vai_tro = @ma_vai_tro;
+                        INSERT INTO nhat_ky_thay_doi_nguoi_dung (ma_nguoi_dung, ma_nguoi_thuc_hien, ten_truong, gia_tri_cu, gia_tri_moi)
+                        VALUES (@ma_nguoi_dung, @ma_nguoi_thuc_hien, N'giao_hang',
+                                CONVERT(NVARCHAR(255), @gia_tri_cu), CONVERT(NVARCHAR(255), @giao_hang));
+                    ", pCo);
+                }
+
                 TempData["ThongBao"] = "Đã cập nhật trạng thái và vai trò nhân viên.";
             }
             catch (SqlException ex)
@@ -295,7 +325,8 @@ namespace QuanLyKhoWeb.Controllers
                 AnhThe = duongDanAnh,
                 StkNganHang = vm.StkNganHang,
                 ChiNhanhNganHang = vm.ChiNhanhNganHang,
-                TrangThaiHoatDong = vm.TrangThaiHoatDong
+                TrangThaiHoatDong = vm.TrangThaiHoatDong,
+                GiaoHang = vm.GiaoHang
             });
 
             if (!ketQua.ThanhCong)
@@ -305,6 +336,25 @@ namespace QuanLyKhoWeb.Controllers
                 foreach (var l in ketQua.Loi)
                     ModelState.AddModelError(l.Truong, l.ThongBao);
                 return View(vm);
+            }
+
+            // Cờ giao hàng nằm trên VAI TRÒ: SP chỉ dùng @giao_hang khi tạo vai trò mới.
+            // Nếu quản lý chọn vai trò đã có thì phải cập nhật chính vai trò đó,
+            // nếu không tick/bỏ tick ở form này sẽ bị bỏ qua trong im lặng.
+            if (ketQua.MaNguoiDung is int maMoi)
+            {
+                var vaiTroCuaNv = await _context.NguoiDungs
+                    .Where(n => n.MaNguoiDung == maMoi)
+                    .Select(n => new { n.MaVaiTroNavigation!.MaVaiTro, n.MaVaiTroNavigation.GiaoHang })
+                    .FirstOrDefaultAsync();
+                if (vaiTroCuaNv != null && (vaiTroCuaNv.GiaoHang == true) != vm.GiaoHang)
+                {
+                    using var conn = (SqlConnection)_factory.CreateConnection();
+                    await conn.OpenAsync();
+                    await conn.ExecuteAsync(
+                        "UPDATE vai_tro SET giao_hang = @giao_hang WHERE ma_vai_tro = @ma_vai_tro",
+                        new { giao_hang = vm.GiaoHang, ma_vai_tro = vaiTroCuaNv.MaVaiTro });
+                }
             }
 
             TempData["ThongBao"] = $"Đã cấp tài khoản {ketQua.TenDangNhap} cho nhân viên.";

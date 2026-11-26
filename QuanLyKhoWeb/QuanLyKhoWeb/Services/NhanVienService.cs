@@ -104,7 +104,7 @@ namespace QuanLyKhoWeb.Services
                 p.Add("@chi_nhanh_ngan_hang", ChuanHoa(yeuCau.ChiNhanhNganHang));
                 // Chỉ áp dụng khi vai trò CHƯA tồn tại (SP tự tạo vai trò mới với 2 quyền này).
                 p.Add("@co_quyen_huy_don", false);
-                p.Add("@duoc_nhan_van_don", true);
+                p.Add("@giao_hang", yeuCau.GiaoHang);
                 await conn.OpenAsync(ct);
                 await conn.ExecuteAsync(new CommandDefinition(
                     "sp_TaoNhanVien", p, commandType: CommandType.StoredProcedure, cancellationToken: ct));

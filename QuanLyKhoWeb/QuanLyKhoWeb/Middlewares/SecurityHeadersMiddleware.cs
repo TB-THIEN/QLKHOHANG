@@ -27,7 +27,7 @@ namespace QuanLyKhoWeb.Middlewares
                 "script-src 'self' 'unsafe-inline'",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 "font-src 'self' https://fonts.gstatic.com",
-                "img-src 'self' data:",
+                "img-src 'self' data: blob:",
                 "media-src 'self' blob: mediastream:",
                 "connect-src 'self'",
                 "frame-ancestors 'none'",

@@ -492,6 +492,10 @@ small { font-size: var(--fs-sm); }
   transition: background .14s var(--ease), border-color .14s var(--ease), color .14s var(--ease), box-shadow .14s;
 }
 .btn:active { transform: translateY(.5px); }
+.btn:disabled, .btn.disabled, .btn[disabled] {
+  opacity: .5; cursor: not-allowed; box-shadow: none; transform: none;
+}
+.btn-primary:disabled, .btn-primary.disabled, .btn-primary[disabled] { background: var(--kho-primary); border-color: var(--kho-primary); color: #fff; }
 .btn i { font-size: 14px; }
 .btn-primary { background: var(--kho-primary); border: 1px solid var(--kho-primary); color: #fff; box-shadow: 0 1px 2px rgba(28, 126, 214, .24); }
 .btn-primary:hover, .btn-primary:focus-visible { background: var(--kho-primary-2); border-color: var(--kho-primary-2); color: #fff; }
@@ -553,6 +557,8 @@ small { font-size: var(--fs-sm); }
   border-radius: var(--radius-sm); box-shadow: var(--shadow-2);
   max-height: 260px; overflow-y: auto; padding: 5px;
 }
+/* Hộp gợi ý chưa có kết quả: ẩn hẳn khung trắng thay vì để một dải 1px che nội dung. */
+.list-group:empty { display: none; }
 .list-group-item { border: 0; border-radius: 5px; padding: 8px 10px; background: transparent; color: var(--kho-ink); font-size: 13px; text-align: left; }
 .list-group-item-action:hover { background: var(--kho-primary-soft); color: var(--kho-primary-2); }
 .spinner-border { color: var(--kho-primary); }

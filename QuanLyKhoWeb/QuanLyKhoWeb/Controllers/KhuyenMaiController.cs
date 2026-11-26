@@ -13,13 +13,25 @@ namespace QuanLyKhoWeb.Controllers
         public KhuyenMaiController(DoAnQlkContext context) => _context = context;
 
         // Danh sách mã (chỉ Mã khuyến mãi -> giảm giá đơn hàng)
-        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Index(string? search, int trang = 1)
         {
             ViewData["SearchValue"] = search;
             var q = _context.KhuyenMais.AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
                 q = q.Where(k => k.MaCodeKhuyenMai.Contains(search) || k.TenKhuyenMai.Contains(search));
-            return View(await q.OrderByDescending(k => k.MaKhuyenMai).Take(200).ToListAsync());
+
+            const int pageSize = 30;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderByDescending(k => k.MaKhuyenMai)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(list);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -56,8 +68,6 @@ namespace QuanLyKhoWeb.Controllers
                 nameof(vm.GiaTriDonToiThieu));
             if (vm.NgayKetThuc <= vm.NgayBatDau)
                 ModelState.AddModelError(nameof(vm.NgayKetThuc), "Ngày kết thúc phải sau ngày bắt đầu (bắt buộc nhập).");
-            if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenKhuyenMai))
-                ModelState.AddModelError(nameof(vm.TenKhuyenMai), "Tên mã không được chứa số.");
             if (!ModelState.IsValid)
             {
                 ViewBag.MaTuSinh = vm.MaCodeKhuyenMai;
@@ -131,8 +141,6 @@ namespace QuanLyKhoWeb.Controllers
             QuanLyKhoWeb.Services.KiemTraDauVao.BaoLoiSoNguyen(ModelState, nameof(vm.GiaTriDonToiThieu),
                 "Giá trị đơn tối thiểu phải là số (không nhập chữ).",
                 nameof(vm.GiaTriDonToiThieu));
-            if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenKhuyenMai))
-                ModelState.AddModelError(nameof(vm.TenKhuyenMai), "Tên mã không được chứa số.");
             if (vm.SoLanSuDungToiDa.HasValue && vm.SoLanSuDungToiDa < km.SoLanDaDung)
                 ModelState.AddModelError(nameof(vm.SoLanSuDungToiDa), $"Giới hạn không được thấp hơn số đã dùng ({km.SoLanDaDung}).");
             if (!ModelState.IsValid) return View(vm);

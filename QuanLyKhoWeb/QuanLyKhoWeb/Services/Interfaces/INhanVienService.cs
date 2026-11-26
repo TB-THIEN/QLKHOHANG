@@ -20,6 +20,9 @@ namespace QuanLyKhoWeb.Services.Interfaces
         public string? StkNganHang { get; set; }
         public string? ChiNhanhNganHang { get; set; }
         public bool TrangThaiHoatDong { get; set; } = true;
+
+        // Chỉ áp dụng khi SP tạo vai trò mới; vai trò đã có giữ nguyên cờ cũ.
+        public bool GiaoHang { get; set; }
     }
 
     // Một lỗi gắn với tên trường để controller đưa thẳng vào ModelState

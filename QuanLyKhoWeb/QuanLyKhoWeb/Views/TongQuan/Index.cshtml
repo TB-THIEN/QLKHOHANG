@@ -18,7 +18,10 @@
         <form method="get" class="d-flex gap-2 align-items-end">
             <div><label class="form-label mb-0">Xem đơn ngày</label><input type="date" name="ngay" value="@ngayXem" class="form-control form-control-sm" onchange="this.form.submit()" /></div>
         </form>
-        <a asp-controller="DonHang" asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Tạo đơn</a>
+        @if (QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User))
+        {
+            <a asp-controller="DonHang" asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Tạo đơn</a>
+        }
     </div>
 </div>
 
@@ -88,8 +91,11 @@
                 <tr><td colspan="4">
                     <div class="empty-state">
                         <i class="bi bi-receipt"></i>
-                        <div>Chưa có đơn hàng trong ngày</div>
-                        <a asp-controller="DonHang" asp-action="Create" class="btn btn-primary">Tạo đơn hàng</a>
+                        <div>@(ViewBag.LaGiaoHang == true ? "Bạn chưa được giao đơn nào trong ngày" : "Chưa có đơn hàng trong ngày")</div>
+                        @if (QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User))
+                        {
+                            <a asp-controller="DonHang" asp-action="Create" class="btn btn-primary">Tạo đơn hàng</a>
+                        }
                     </div>
                 </td></tr>
             }
