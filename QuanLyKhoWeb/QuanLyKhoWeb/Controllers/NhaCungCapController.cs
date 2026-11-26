@@ -14,7 +14,7 @@ namespace QuanLyKhoWeb.Controllers
         public NhaCungCapController(DoAnQlkContext context) => _context = context;
 
         // Danh sách + tìm kiếm theo mã/tên/SĐT/email
-        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Index(string? search, int trang = 1)
         {
             ViewData["SearchValue"] = search;
             var q = _context.NhaCungCaps.AsQueryable();
@@ -24,7 +24,19 @@ namespace QuanLyKhoWeb.Controllers
                     || (n.SoDienThoai != null && n.SoDienThoai.Contains(search))
                     || (n.Email != null && n.Email.Contains(search))
                     || (n.DiaChi != null && n.DiaChi.Contains(search)));
-            return View(await q.OrderBy(n => n.MaNhaCungCap).Take(200).ToListAsync());
+
+            const int pageSize = 30;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderBy(n => n.MaNhaCungCap)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(list);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -54,8 +66,6 @@ namespace QuanLyKhoWeb.Controllers
             ModelState.Clear();
             if (string.IsNullOrWhiteSpace(vm.TenNhaCungCap))
                 ModelState.AddModelError(nameof(vm.TenNhaCungCap), "Vui lòng nhập tên nhà cung cấp.");
-            else if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenNhaCungCap))
-                ModelState.AddModelError(nameof(vm.TenNhaCungCap), "Tên nhà cung cấp không được chứa số.");
             if (!KiemTraEmail(email, out var loiEmail))
                 ModelState.AddModelError(nameof(vm.Email), loiEmail);
             else if (email != null && await _context.NhaCungCaps.AnyAsync(n => n.Email == email))
@@ -96,8 +106,6 @@ namespace QuanLyKhoWeb.Controllers
             ModelState.Clear();
             if (string.IsNullOrWhiteSpace(vm.TenNhaCungCap))
                 ModelState.AddModelError(nameof(vm.TenNhaCungCap), "Vui lòng nhập tên nhà cung cấp.");
-            else if (!QuanLyKhoWeb.Services.KiemTraDauVao.LaTenHopLe(vm.TenNhaCungCap))
-                ModelState.AddModelError(nameof(vm.TenNhaCungCap), "Tên nhà cung cấp không được chứa số.");
             if (!KiemTraEmail(email, out var loiEmail))
                 ModelState.AddModelError(nameof(vm.Email), loiEmail);
             else if (email != null && await _context.NhaCungCaps.AnyAsync(n => n.Email == email && n.MaNhaCungCap != id))

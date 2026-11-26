@@ -23,13 +23,14 @@ namespace QuanLyKhoWeb.Controllers
         }
 
         // Quản lí kho (tách khỏi Báo cáo): danh sách tồn + bộ lọc
-        public async Task<IActionResult> Index(string? search, string loc = "TATCA")
+        public async Task<IActionResult> Index(string? search, string loc = "TATCA", int trang = 1)
         {
             ViewData["SearchValue"] = search;
             ViewBag.Loc = loc;
             var q = _context.SanPhamSkus
                 .Include(s => s.MaMauSanPhamNavigation)
                 .Include(s => s.TonKhoKeHangs).ThenInclude(t => t.MaKeHangNavigation).ThenInclude(k => k.MaKhuVucNavigation)
+                .Include(s => s.TonKhoKhus).ThenInclude(t => t.MaKhuVucNavigation)
                 .AsQueryable();
 
             // Tìm theo SKU, tên hàng, và cả khu/kệ đang chứa hàng đó.
@@ -48,7 +49,17 @@ namespace QuanLyKhoWeb.Controllers
                 _ => q
             };
 
-            var list = await q.OrderBy(s => s.SoLuong).Take(300).ToListAsync();
+            const int pageSize = 60;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderBy(s => s.SoLuong)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
             return View(list);
         }
 
@@ -399,7 +410,7 @@ namespace QuanLyKhoWeb.Controllers
         // ================= PHẦN PHIẾU NHẬP (gộp chung mục Tồn kho & Nhập kho) =================
 
         // Danh sách phiếu nhập
-        public async Task<IActionResult> PhieuNhap(string? search)
+        public async Task<IActionResult> PhieuNhap(string? search, int trang = 1)
         {
             ViewData["SearchValue"] = search;
             var q = _context.PhieuNhapKhos
@@ -412,7 +423,19 @@ namespace QuanLyKhoWeb.Controllers
                     || (p.MaNhaCungCapNavigation != null && p.MaNhaCungCapNavigation.TenNhaCungCap.Contains(search))
                     || (p.NguoiTaoNavigation != null && p.NguoiTaoNavigation.HoTen.Contains(search))
                     || (p.GhiChu != null && p.GhiChu.Contains(search)));
-            return View(await q.OrderByDescending(p => p.MaPhieuNhap).Take(200).ToListAsync());
+
+            const int pageSize = 30;
+            var total = await q.CountAsync();
+            if (trang < 1) trang = 1;
+            var totalPage = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+            if (trang > totalPage) trang = totalPage;
+            ViewBag.Trang = trang;
+            ViewBag.TotalPage = totalPage;
+            ViewBag.Total = total;
+
+            var list = await q.OrderByDescending(p => p.MaPhieuNhap)
+                .Skip((trang - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(list);
         }
 
         public async Task<IActionResult> ChiTietPhieu(int id)

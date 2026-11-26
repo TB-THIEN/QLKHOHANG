@@ -896,7 +896,7 @@ public partial class DoAnQlkContext : DbContext
 
             entity.Property(e => e.MaVaiTro).HasColumnName("ma_vai_tro");
             entity.Property(e => e.CoQuyenHuyDon).HasColumnName("co_quyen_huy_don");
-            entity.Property(e => e.DuocNhanVanDon).HasColumnName("duoc_nhan_van_don");
+            entity.Property(e => e.GiaoHang).HasColumnName("giao_hang");
             entity.Property(e => e.NgayTao)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("ngay_tao");

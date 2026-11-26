@@ -44,6 +44,11 @@ namespace QuanLyKhoWeb.Models.ViewModels
 
         [Display(Name = "Trạng thái")]
         public bool TrangThaiHoatDong { get; set; } = true; // true=đang làm, false=nghỉ làm (ẩn khỏi danh sách)
+
+        // Chỉ có hiệu lực khi "Vai trò" là tên mới (SP tự tạo vai trò với cờ này).
+        // Vai trò đã tồn tại thì giữ nguyên quyền cũ của vai trò đó.
+        [Display(Name = "Được nhận vận đơn")]
+        public bool GiaoHang { get; set; } = false;
     }
 
     public class NhanVienEditVm

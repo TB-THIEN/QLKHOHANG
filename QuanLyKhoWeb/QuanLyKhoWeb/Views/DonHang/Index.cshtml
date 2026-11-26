@@ -4,6 +4,9 @@
     ViewData["Subtitle"] = "Mã tự sinh, hủy có xác nhận";    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User);
     var duocHuy = QuanLyKhoWeb.Authorization.QuyenNguoiDung.HuyDon(User);
     var hinhThuc = (ViewBag.HinhThuc as string) ?? "";
+    int trang = ViewBag.Trang ?? 1;
+    int totalPage = ViewBag.TotalPage ?? 1;
+    int total = ViewBag.Total ?? Model.Count;
     var coTheHuy = Model.Where(d => duocHuy && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED").ToList();
     var coTheXacNhan = Model.Where(d => duocTao && d.TrangThai == "CHO_XAC_NHAN").ToList();
 }
@@ -66,7 +69,7 @@
 <div class="app-card">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <h6 class="section-title mb-0" style="border-left-color:var(--kho-primary)"><i class="bi bi-table"></i>Danh sách đơn</h6>
-        <span class="cell-sub">@Model.Count đơn trong kỳ</span>
+        <span class="cell-sub">@total đơn · trang @trang/@totalPage</span>
     </div>
     <div class="table-responsive">
         <table class="table table-app mb-0">
@@ -133,9 +136,16 @@
                 <tr><td colspan="7">
                     <div class="empty-state">
                         <i class="bi bi-receipt"></i>
-                        <div>Chưa có đơn hàng trong kỳ lọc</div>
-                        <p class="page-subtitle mx-auto" style="max-width:42ch">Đổi khoảng thời gian, hoặc tạo đơn hàng mới.</p>
-                        @if (duocTao) { <a asp-action="Create" class="btn btn-primary">Tạo đơn hàng</a> }
+                        <div>@(ViewBag.LaGiaoHang == true ? "Bạn chưa được giao đơn nào trong kỳ lọc" : "Chưa có đơn hàng trong kỳ lọc")</div>
+                        @if (ViewBag.LaGiaoHang == true)
+                        {
+                            <p class="page-subtitle mx-auto" style="max-width:42ch">Đơn sẽ hiện ở đây khi được phân công vận đơn cho bạn.</p>
+                        }
+                        else
+                        {
+                            <p class="page-subtitle mx-auto" style="max-width:42ch">Đổi khoảng thời gian, hoặc tạo đơn hàng mới.</p>
+                            if (duocTao) { <a asp-action="Create" class="btn btn-primary">Tạo đơn hàng</a> }
+                        }
                     </div>
                 </td></tr>
             }
@@ -143,6 +153,28 @@
         </table>
     </div>
 </div>
+
+@{
+    var qSearch = Context.Request.Query["search"].ToString();
+    var qTuNgay = Context.Request.Query["tuNgay"].ToString();
+    var qDenNgay = Context.Request.Query["denNgay"].ToString();
+    var qHinhThuc = Context.Request.Query["hinhThuc"].ToString();
+}
+<partial name="_PhanTrang" model="@(new QuanLyKhoWeb.Models.ViewModels.PhanTrangVm {
+    Trang = trang,
+    TotalPage = totalPage,
+    Total = total,
+    PageSize = 50,
+    Nhan = "đơn",
+    Controller = "DonHang",
+    AriaLabel = "Phân trang đơn hàng",
+    ThamSo = new() {
+        ["search"] = qSearch,
+        ["tuNgay"] = qTuNgay,
+        ["denNgay"] = qDenNgay,
+        ["hinhThuc"] = qHinhThuc
+    }
+})" />
 
 @* Modal đặt ngoài bảng để không bị ảnh hưởng bởi vùng cuộn của table-responsive *@
 @foreach (var d in coTheHuy)

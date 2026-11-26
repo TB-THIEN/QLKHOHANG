@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuanLyKhoWeb.Authorization;
 using QuanLyKhoWeb.Data;
 
 namespace QuanLyKhoWeb.Controllers
@@ -20,10 +21,21 @@ namespace QuanLyKhoWeb.Controllers
             var dauNgay = ngayXem.ToDateTime(TimeOnly.MinValue);
             var cuoiNgay = dauNgay.AddDays(1);
 
-            var donTrongNgay = await _context.DonHangs
+            // Nhân viên giao hàng chỉ thấy đơn có vận đơn gán cho chính mình.
+            var laGiaoHang = QuyenNguoiDung.LaNhanVienGiaoHang(User);
+            var toiLaAi = QuyenNguoiDung.MaNguoiDung(User);
+            ViewBag.LaGiaoHang = laGiaoHang;
+
+            var qDon = _context.DonHangs
                 .Where(d => d.NgayDatHang >= dauNgay && d.NgayDatHang < cuoiNgay
-                    && d.TrangThai != "CANCELLED")
-                .ToListAsync();
+                    && d.TrangThai != "CANCELLED");
+            if (laGiaoHang)
+            {
+                qDon = toiLaAi.HasValue
+                    ? qDon.Where(d => d.VanDon != null && d.VanDon.MaNhanVienGiaoHang == toiLaAi.Value)
+                    : qDon.Where(d => false);
+            }
+            var donTrongNgay = await qDon.ToListAsync();
 
             // Ô tìm kiếm của trang chỉ lọc bảng đơn bên dưới, số liệu tổng quan giữ nguyên cả ngày.
             var donHienThi = donTrongNgay;

@@ -41,8 +41,18 @@
                 </div>
                 <div>
                     <label class="form-label required">Nhà cung cấp</label>
-                    <select name="maNhaCungCap" class="form-select" required>
-                        <option value="">Chọn nhà cung cấp</option>
+                    @if (nccs.Count == 0)
+                    {
+                        <div class="alert alert-warning py-2 px-3 mb-2" role="alert" id="canhBaoNcc">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Chưa có nhà cung cấp nào đang hoạt động.</strong>
+                            <div class="small mt-1">Phiếu nhập bắt buộc phải chọn nhà cung cấp. Vui lòng vào
+                                <a asp-controller="NhaCungCap" asp-action="Create" class="alert-link">Nhà cung cấp</a>
+                                để thêm mới, hoặc bật lại một nhà cung cấp đang tạm ngưng, rồi quay lại tạo phiếu.</div>
+                        </div>
+                    }
+                    <select name="maNhaCungCap" class="form-select" required id="selNcc" disabled="@(nccs.Count == 0 ? "disabled" : null)">
+                        <option value="">@(nccs.Count == 0 ? "Chưa có nhà cung cấp đang hoạt động" : "Chọn nhà cung cấp")</option>
                         @foreach (var n in nccs) { <option value="@n.MaNhaCungCap">@n.MaCodeNcc — @n.TenNhaCungCap</option> }
                     </select>
                 </div>
@@ -56,8 +66,8 @@
                 </div>
             </div>
             <div class="summary-actions">
-                <button class="btn btn-primary w-100" name="luuNhap" value="false"><i class="bi bi-check2"></i>Tạo &amp; hoàn tất</button>
-                <button class="btn btn-outline-primary w-100" name="luuNhap" value="true"><i class="bi bi-save"></i>Lưu nháp</button>
+                <button class="btn btn-primary w-100" name="luuNhap" value="false" disabled="@(nccs.Count == 0 ? "disabled" : null)"><i class="bi bi-check2"></i>Tạo &amp; hoàn tất</button>
+                <button class="btn btn-outline-primary w-100" name="luuNhap" value="true" disabled="@(nccs.Count == 0 ? "disabled" : null)"><i class="bi bi-save"></i>Lưu nháp</button>
                 <a asp-action="PhieuNhap" class="btn btn-outline-secondary w-100">Hủy</a>
             </div>
         </div>
@@ -101,6 +111,14 @@ function themDong(sp) {
   items.push({...sp, slKh: 0, slTn: 0, dg: 0});
   render();
 }
+// Chỉ dựng lại bảng khi thêm/xóa dòng. Khi sửa số lượng/đơn giá chỉ cập nhật
+// mô hình + tạm tính, KHÔNG thay thế input đang thao tác (trước đây render() lại
+// toàn bộ tbody trong onchange làm cú click đầu tiên bị mất focus).
+function capNhatTong() {
+  let tong = 0;
+  items.forEach(it => { tong += (it.dg || 0) * (it.slTn || 0); });
+  document.getElementById('tamTinh').textContent = fmt(tong);
+}
 function render() {
   const tb = document.querySelector('#tblItems tbody');
   tb.innerHTML = '';
@@ -109,23 +127,39 @@ function render() {
     document.getElementById('tamTinh').textContent = fmt(0);
     return;
   }
-  let tong = 0;
   items.forEach((it, idx) => {
-    tong += it.dg * it.slTn;
     const tr = document.createElement('tr');
+    // Ô đơn giá dùng .money của site.js; hiển thị sẵn dấu phân cách nghìn.
+    const dgHienThi = it.dg ? it.dg.toLocaleString('vi-VN') : '';
     tr.innerHTML = `<td><div class="cell-main">${it.ten}</div><div class="cell-sub">${it.maCodeSku}</div>
       <input type="hidden" name="MaSkus" value="${it.maSku}"/></td>
-      <td><input type="number" name="SoLuongKeHoaches" value="${it.slKh}" min="0" step="1" class="form-control form-control-sm" onchange="doiKh(${idx}, this.value)"/></td>
-      <td><input type="number" name="SoLuongThucNhans" value="${it.slTn}" min="0" step="1" class="form-control form-control-sm" onchange="doiTn(${idx}, this.value)"/></td>
-      <td><input type="text" inputmode="numeric" name="DonGiaNhaps" value="${it.dg}" class="form-control form-control-sm money" onchange="doiDg(${idx}, this.value)"/></td>
+      <td><input type="number" name="SoLuongKeHoaches" value="${it.slKh}" min="0" step="1" class="form-control form-control-sm" onchange="doiKh(${idx}, this.value, this)"/></td>
+      <td><input type="number" name="SoLuongThucNhans" value="${it.slTn}" min="0" step="1" class="form-control form-control-sm" onchange="doiTn(${idx}, this.value, this)"/></td>
+      <td><input type="text" inputmode="numeric" name="DonGiaNhaps" value="${dgHienThi}" class="form-control form-control-sm money" onchange="doiDg(${idx}, this.value, this)"/></td>
       <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="xoaDong(${idx})" aria-label="Bỏ dòng hàng"><i class="bi bi-trash"></i></button></td>`;
     tb.appendChild(tr);
   });
-  document.getElementById('tamTinh').textContent = fmt(tong);
+  capNhatTong();
 }
-window.doiKh = (i, v) => { items[i].slKh = Math.max(0, parseInt(v) || 0); render(); };
-window.doiTn = (i, v) => { items[i].slTn = Math.max(0, parseInt(v) || 0); render(); };
-window.doiDg = (i, v) => { items[i].dg = Math.max(0, parseFloat(String(v).replace(/\./g, '')) || 0); render(); };
+window.doiKh = (i, v, el) => {
+  const n = Math.max(0, parseInt(v) || 0);
+  items[i].slKh = n;
+  if (el && el.value !== String(n)) el.value = n;
+  capNhatTong();
+};
+window.doiTn = (i, v, el) => {
+  const n = Math.max(0, parseInt(v) || 0);
+  items[i].slTn = n;
+  if (el && el.value !== String(n)) el.value = n;
+  capNhatTong();
+};
+window.doiDg = (i, v, el) => {
+  const n = Math.max(0, parseInt(String(v).replace(/\./g, '')) || 0);
+  items[i].dg = n;
+  const hienThi = n ? n.toLocaleString('vi-VN') : '';
+  if (el && el.value !== hienThi) el.value = hienThi;
+  capNhatTong();
+};
 window.xoaDong = i => { items.splice(i,1); render(); };
 render();
 </script>
