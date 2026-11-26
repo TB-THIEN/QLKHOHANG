@@ -169,6 +169,8 @@ builder.Services.AddAuthorization(options =>
     ThemPolicy("DuocXacNhanGiao", QuyenNguoiDung.XacNhanGiao);
     // Hủy đơn: theo cột co_quyen_huy_don của vai trò
     ThemPolicy("DuocHuyDon", QuyenNguoiDung.HuyDon);
+    // Cấu hình cửa hàng (thông tin người bán trên hóa đơn): chỉ Quản lý
+    ThemPolicy("SuaCauHinhCuaHang", QuyenNguoiDung.SuaCauHinhCuaHang);
 });
 
 var app = builder.Build();

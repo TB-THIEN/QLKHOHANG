@@ -20,6 +20,8 @@ public partial class DoAnQlkContext : DbContext
 
     public virtual DbSet<BoDemMaSkuTheoThang> BoDemMaSkuTheoThangs { get; set; }
 
+    public virtual DbSet<CauHinhCuaHang> CauHinhCuaHangs { get; set; }
+
     public virtual DbSet<ChiTietDonHang> ChiTietDonHangs { get; set; }
 
     public virtual DbSet<ChiTietPhieuNhapKho> ChiTietPhieuNhapKhos { get; set; }
@@ -165,6 +167,42 @@ public partial class DoAnQlkContext : DbContext
                 .HasForeignKey(d => d.MaSku)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ctpn_sku");
+        });
+
+        modelBuilder.Entity<CauHinhCuaHang>(entity =>
+        {
+            entity.HasKey(e => e.MaCauHinh).HasName("PK_cau_hinh_cua_hang");
+
+            entity.ToTable("cau_hinh_cua_hang");
+
+            entity.Property(e => e.MaCauHinh)
+                .ValueGeneratedNever()
+                .HasColumnName("ma_cau_hinh");
+            entity.Property(e => e.TenCuaHang)
+                .HasMaxLength(150)
+                .HasColumnName("ten_cua_hang");
+            entity.Property(e => e.DiaChi)
+                .HasMaxLength(255)
+                .HasColumnName("dia_chi");
+            entity.Property(e => e.SoDienThoai)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("so_dien_thoai");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("email");
+            entity.Property(e => e.NguoiDaiDien)
+                .HasMaxLength(100)
+                .HasColumnName("nguoi_dai_dien");
+            entity.Property(e => e.GhiChuHoaDon).HasColumnName("ghi_chu_hoa_don");
+            entity.Property(e => e.DuongDanLogo)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("duong_dan_logo");
+            entity.Property(e => e.NgayCapNhat)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("ngay_cap_nhat");
         });
 
         modelBuilder.Entity<DanhMuc>(entity =>

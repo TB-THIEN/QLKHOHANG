@@ -1,6 +1,7 @@
 @model QuanLyKhoWeb.Models.Entities.DonHang
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
+    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User);
 }
 <div class="page-header">
     <div>
@@ -10,12 +11,27 @@
     <div class="d-flex gap-2 align-items-center flex-wrap">
         @if (Model.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
         else if (Model.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+        else if (Model.TrangThai == "CHO_XAC_NHAN") { <span class="badge bg-warning badge-dot">Chờ xác nhận</span> }
         else { <span class="badge bg-info badge-dot">Đã xác nhận</span> }
-        @* Đơn hoàn tất tức là đã thanh toán nên không hiện badge thanh toán nữa *@
-        @if (Model.TrangThai != "COMPLETED")
+        @* Chỉ hiện badge thanh toán khi đã thu tiền; đơn hoàn tất coi như đã thanh toán *@
+        @if (Model.TrangThai != "COMPLETED" && Model.TrangThaiThanhToan == "PAID")
         {
-            if (Model.TrangThaiThanhToan == "PAID") { <span class="badge bg-success">Đã thanh toán</span> }
-            else { <span class="badge bg-warning badge-dot">Chưa thanh toán</span> }
+            <span class="badge bg-success">Đã thanh toán</span>
+        }
+        @* Chỉ đơn đã xác nhận mới được in hóa đơn (đơn chờ xác nhận hoặc đã hủy thì không) *@
+        @if (Model.TrangThai != "CHO_XAC_NHAN" && Model.TrangThai != "CANCELLED")
+        {
+            <a asp-action="InHoaDon" asp-route-id="@Model.MaDonHang" target="_blank" class="btn btn-primary" title="In hóa đơn điện tử khổ A4"><i class="bi bi-printer"></i>In hóa đơn</a>
+        }
+        @if (duocTao && Model.TrangThai == "CHO_XAC_NHAN")
+        {
+            <form asp-action="XacNhan" method="post" class="d-inline"
+                  onsubmit="return confirm('Xác nhận đơn @Model.MaCodeDonHang?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.MaDonHang" />
+                <input type="hidden" name="tu" value="chitiet" />
+                <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle"></i>Xác nhận đơn</button>
+            </form>
         }
         <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
     </div>

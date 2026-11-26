@@ -18,6 +18,11 @@
         @if (daGiao) { <span class="badge bg-success badge-dot">Đã giao</span> }
         else if (Model.TrangThai == "CHUA_GIAO") { <span class="badge bg-warning badge-dot">Chưa giao</span> }
         else { <span class="badge bg-info badge-dot">Chưa hoàn thành</span> }
+        @* Chỉ vận đơn đã gán nhân viên giao mới in được phiếu giao hàng *@
+        @if (Model.MaNhanVienGiaoHangNavigation != null)
+        {
+            <a asp-action="InPhieuGiaoHang" asp-route-id="@Model.MaVanDon" target="_blank" class="btn btn-primary" title="In phiếu giao hàng khổ A4"><i class="bi bi-printer"></i>In phiếu giao</a>
+        }
         <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>Quay lại</a>
     </div>
 </div>
@@ -33,7 +38,9 @@
             <h6 class="section-title"><i class="bi bi-receipt"></i>Thông tin đơn hàng <span class="text-muted fw-normal" style="font-weight:400">— chỉ xem</span></h6>
             <dl class="detail-list">
                 <div class="detail-row"><dt class="dl-label"><i class="bi bi-hash"></i>Mã đơn</dt><dd class="mb-0"><span class="sku">@dh.MaCodeDonHang</span></dd></div>
-                <div class="detail-row"><dt class="dl-label"><i class="bi bi-calendar3"></i>Ngày đặt</dt><dd class="mb-0">@dh.NgayDatHang</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-calendar3"></i>Ngày đặt</dt><dd class="mb-0">@(dh.NgayDatHang?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-clock-history"></i>Tạo vận đơn</dt><dd class="mb-0">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd></div>
+                <div class="detail-row"><dt class="dl-label"><i class="bi bi-arrow-repeat"></i>Cập nhật gần nhất</dt><dd class="mb-0">@Model.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</dd></div>
                 <div class="detail-row"><dt class="dl-label"><i class="bi bi-cash-stack"></i>Thành tiền</dt><dd class="mb-0"><strong>@dh.ThanhTien.ToString("N0") đ</strong></dd></div>
                 <div class="detail-row"><dt class="dl-label"><i class="bi bi-sticky"></i>Ghi chú đơn</dt><dd class="mb-0">@(string.IsNullOrEmpty(dh.GhiChu) ? "—" : dh.GhiChu)</dd></div>
             </dl>

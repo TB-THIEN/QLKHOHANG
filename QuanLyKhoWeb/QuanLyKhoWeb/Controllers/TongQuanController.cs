@@ -33,7 +33,8 @@ namespace QuanLyKhoWeb.Controllers
                     || (d.SdtKhachHangGiao ?? "").Contains(search)).ToList();
 
             ViewBag.DonHomNay = donTrongNgay.Count;
-            ViewBag.DoanhThuHomNay = donTrongNgay.Sum(d => d.ThanhTien);
+            // Doanh thu chỉ tính đơn đã hoàn tất (đơn Chờ xác nhận chưa thu tiền)
+            ViewBag.DoanhThuHomNay = donTrongNgay.Where(d => d.TrangThai == "COMPLETED").Sum(d => d.ThanhTien);
             ViewBag.TongTonKho = await _context.SanPhamSkus.SumAsync(s => (int?)s.SoLuong) ?? 0;
             ViewBag.SanPhamSapHet = await _context.SanPhamSkus.CountAsync(s => s.SoLuong <= 5);
             ViewBag.DonMoiNhat = donHienThi.OrderByDescending(d => d.NgayDatHang).Take(30).ToList();

@@ -1,16 +1,16 @@
 ﻿@model List<QuanLyKhoWeb.Models.Entities.DonHang>
 @{
     ViewData["Title"] = "Đơn hàng";
-    ViewData["Subtitle"] = "Mã tự sinh, hủy có xác nhận";
-    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User);
+    ViewData["Subtitle"] = "Mã tự sinh, hủy có xác nhận";    var duocTao = QuanLyKhoWeb.Authorization.QuyenNguoiDung.SuaDonHang(User);
     var duocHuy = QuanLyKhoWeb.Authorization.QuyenNguoiDung.HuyDon(User);
     var hinhThuc = (ViewBag.HinhThuc as string) ?? "";
     var coTheHuy = Model.Where(d => duocHuy && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED").ToList();
+    var coTheXacNhan = Model.Where(d => duocTao && d.TrangThai == "CHO_XAC_NHAN").ToList();
 }
 <div class="page-header">
     <div>
         <h1 class="app-page-title"><i class="bi bi-receipt"></i>Đơn hàng</h1>
-        <p class="page-subtitle">Theo dõi đơn theo thời gian. Hủy đơn sẽ hoàn lại tồn kho tương ứng.</p>
+        <p class="page-subtitle">Theo dõi đơn theo thời gian. Hủy đơn sẽ xóa hẳn đơn khỏi hệ thống và hoàn lại tồn kho tương ứng.</p>
     </div>
     @if (duocTao) { <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i>Tạo đơn hàng</a> }
 </div>
@@ -86,6 +86,7 @@
                         <div class="mt-1">
                             @if (d.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
                             else if (d.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+                            else if (d.TrangThai == "CHO_XAC_NHAN") { <span class="badge bg-warning badge-dot">Chờ xác nhận</span> }
                             else { <span class="badge bg-info badge-dot">Đã xác nhận</span> }
                         </div>
                     </td>
@@ -110,6 +111,15 @@
                     <td>
                         <div class="table-actions">
                             <a asp-action="Details" asp-route-id="@d.MaDonHang" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" aria-label="Xem đơn @d.MaCodeDonHang"><i class="bi bi-eye"></i></a>
+                            @* Chỉ đơn đã xác nhận mới in được hóa đơn (chờ xác nhận / đã hủy thì không) *@
+                            @if (d.TrangThai != "CHO_XAC_NHAN" && d.TrangThai != "CANCELLED")
+                            {
+                                <a asp-action="InHoaDon" asp-route-id="@d.MaDonHang" target="_blank" class="btn btn-sm btn-outline-secondary" title="In hóa đơn" aria-label="In hóa đơn @d.MaCodeDonHang"><i class="bi bi-printer"></i></a>
+                            }
+                            @if (duocTao && d.TrangThai == "CHO_XAC_NHAN")
+                            {
+                                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#xn-@d.MaDonHang" title="Xác nhận đơn" aria-label="Xác nhận đơn @d.MaCodeDonHang"><i class="bi bi-check2-circle"></i></button>
+                            }
                             @if (duocHuy && d.TrangThai != "CANCELLED" && d.TrangThai != "COMPLETED")
                             {
                                 <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#huy-@d.MaDonHang" title="Hủy đơn" aria-label="Hủy đơn @d.MaCodeDonHang"><i class="bi bi-x-circle"></i></button>
@@ -154,13 +164,49 @@
                             <div class="confirm-record__meta">@d.NgayDatHang?.ToString("dd/MM/yyyy HH:mm") · @d.ThanhTien.ToString("N0") đ</div>
                         </div>
                     </div>
-                    <p class="mb-2">Đơn hàng sẽ chuyển sang trạng thái đã hủy và tồn kho được hoàn lại.</p>
-                    <label class="form-label">Lý do hủy (không bắt buộc)</label>
-                    <input name="lyDoHuy" class="form-control" placeholder="VD: Khách đổi ý" />
+                    <p class="mb-2 text-danger fw-semibold">Đơn hàng sẽ bị xóa vĩnh viễn khỏi hệ thống, không thể khôi phục. Tồn kho sẽ được hoàn lại.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Giữ đơn</button>
-                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+                    <button type="submit" class="btn btn-danger">Hủy &amp; xóa đơn</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+}
+
+@foreach (var d in coTheXacNhan)
+{
+    var giaoHang = d.HinhThucNhanHang == "GIAO_HANG";
+    <div class="modal fade" id="xn-@d.MaDonHang" tabindex="-1" aria-labelledby="xnTen-@d.MaDonHang" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="xnTen-@d.MaDonHang"><i class="bi bi-check2-circle"></i>Xác nhận đơn @d.MaCodeDonHang</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form asp-action="XacNhan" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@d.MaDonHang" />
+                <div class="modal-body">
+                    <div class="confirm-record">
+                        <i class="bi bi-receipt"></i>
+                        <div>
+                            <div class="confirm-record__name">@d.MaCodeDonHang</div>
+                            <div class="confirm-record__meta">@d.NgayDatHang?.ToString("dd/MM/yyyy HH:mm") · @d.ThanhTien.ToString("N0") đ</div>
+                        </div>
+                    </div>
+                    @if (giaoHang)
+                    {
+                        <p class="mb-0">Đơn chuyển sang <b>Đã xác nhận</b> và xuất hiện ở trang <b>Vận chuyển</b> để giao. Khi giao xong đơn tự chuyển <b>Hoàn tất</b> và ghi nhận thanh toán.</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0">Đơn chuyển sang <b>Hoàn tất</b> và ghi nhận <b>Đã thanh toán</b>. Sau khi xác nhận sẽ không hủy được đơn.</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Để sau</button>
+                    <button type="submit" class="btn btn-success">Xác nhận đơn</button>
                 </div>
             </form>
         </div></div>

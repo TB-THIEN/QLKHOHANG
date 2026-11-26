@@ -46,6 +46,10 @@ namespace QuanLyKhoWeb.Controllers
                 .Include(v => v.MaNhanVienGiaoHangNavigation)
                 .AsQueryable();
 
+            // Chỉ hiện vận đơn của đơn đã xác nhận: đơn còn Chờ xác nhận hoặc đã hủy thì ẩn.
+            q = q.Where(v => v.MaDonHangNavigation.TrangThai != "CHO_XAC_NHAN"
+                && v.MaDonHangNavigation.TrangThai != "CANCELLED");
+
             if (!string.IsNullOrWhiteSpace(search))
                 q = q.Where(v => v.MaDonHangNavigation.MaCodeDonHang.Contains(search)
                     || v.MaCodeVanDon.Contains(search)
@@ -207,6 +211,39 @@ namespace QuanLyKhoWeb.Controllers
             await _context.SaveChangesAsync();
             TempData["ThongBao"] = "Đã xác nhận giao hàng. Vận đơn khóa ở trạng thái Đã giao.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // In phiếu giao hàng: trang A4 riêng, người dùng bấm Ctrl+P (hoặc nút In) để in/lưu PDF.
+        // NV giao hàng chỉ in được phiếu của vận đơn gán cho mình (giống trang chi tiết).
+        public async Task<IActionResult> InPhieuGiaoHang(int id)
+        {
+            var vd = await _context.VanDons
+                .Include(v => v.MaDonHangNavigation).ThenInclude(d => d.ChiTietDonHangs).ThenInclude(ct => ct.MaSkuNavigation).ThenInclude(s => s.MaMauSanPhamNavigation)
+                .Include(v => v.MaDonHangNavigation).ThenInclude(d => d.MaKhuyenMaiNavigation)
+                .Include(v => v.MaNhanVienGiaoHangNavigation)
+                .FirstOrDefaultAsync(v => v.MaVanDon == id);
+            if (vd == null) return NotFound();
+
+            // Chỉ vận đơn đã gán nhân viên giao mới in được phiếu giao hàng.
+            if (vd.MaNhanVienGiaoHang == null)
+            {
+                TempData["Loi"] = "Vui lòng gán nhân viên giao hàng trước khi in phiếu giao hàng.";
+                return RedirectToAction(nameof(GanNhanVien), new { id });
+            }
+
+            if (LaGiaoHang && vd.MaNhanVienGiaoHang != ToiLaAi)
+            {
+                TempData["Loi"] = "Bạn chỉ in được phiếu giao hàng của vận đơn được gán cho mình.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var vm = new QuanLyKhoWeb.Models.ViewModels.InPhieuGiaoHangVm
+            {
+                VanDon = vd,
+                DonHang = vd.MaDonHangNavigation,
+                CuaHang = await QuanLyKhoWeb.Services.CauHinhCuaHangService.LayAsync(_context)
+            };
+            return View(vm);
         }
 
         // Xóa vận đơn: chỉ xóa được khi đã giao (dọn bản ghi vận chuyển; đơn hàng

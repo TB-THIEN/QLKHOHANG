@@ -12,6 +12,10 @@
     {
         Task<(bool ThanhCong, string ThongBao)> HuyDonHangAsync(int maDonHang, int maNguoiThucHien, string? lyDoHuy);
 
+        // Chốt đơn đang Chờ xác nhận: nhận tại shop -> Hoàn tất + Đã thanh toán;
+        // giao hàng -> Đã xác nhận (chờ giao, giao xong trigger tự hoàn tất).
+        Task<(bool ThanhCong, string ThongBao)> XacNhanDonHangAsync(int maDonHang);
+
         // Khớp đúng chữ ký sp_TaoDonHang mới nhất: tên/SĐT/địa chỉ khách được SP lưu
         // trực tiếp vào đơn (ten_khach_hang_giao/sdt_khach_hang_giao/dia_chi_giao_hang);
         // tiền giảm giá do SP tự tính theo mã khuyến mãi, không truyền từ client.

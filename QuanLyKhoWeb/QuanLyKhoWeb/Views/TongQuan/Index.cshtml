@@ -78,6 +78,7 @@
                     <td>
                         @if (d.TrangThai == "CANCELLED") { <span class="badge bg-secondary badge-dot">Đã hủy</span> }
                         else if (d.TrangThai == "COMPLETED") { <span class="badge bg-success badge-dot">Hoàn tất</span> }
+                        else if (d.TrangThai == "CHO_XAC_NHAN") { <span class="badge bg-warning badge-dot">Chờ xác nhận</span> }
                         else { <span class="badge bg-info badge-dot">Đã xác nhận</span> }
                     </td>
                 </tr>

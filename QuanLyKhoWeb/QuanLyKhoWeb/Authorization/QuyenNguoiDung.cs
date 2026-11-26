@@ -51,6 +51,14 @@ namespace QuanLyKhoWeb.Authorization
         // Nhà cung cấp: chỉ Quản lý được thêm/sửa/xóa
         public static bool SuaNhaCungCap(ClaimsPrincipal? u) => LaQuanLy(u);
 
+        // Cấu hình cửa hàng (thông tin người bán in trên hóa đơn / phiếu giao hàng): chỉ Quản lý
+        public static bool SuaCauHinhCuaHang(ClaimsPrincipal? u) => LaQuanLy(u);
+
+        // In hóa đơn / phiếu giao hàng: mọi vai trò đã đăng nhập đều in được
+        // (dữ liệu in ra đúng phạm vi họ được xem, chặn riêng ở controller vận chuyển).
+        public static bool InChungTu(ClaimsPrincipal? u)
+            => LaQuanLy(u) || LaNhanVienKho(u) || LaNhanVienBanHang(u) || LaNhanVienGiaoHang(u);
+
         // Sản phẩm / Khu hàng: Quản lý + Nhân viên kho + Nhân viên bán hàng
         public static bool SuaSanPham(ClaimsPrincipal? u) =>
             LaQuanLy(u) || LaNhanVienKho(u) || LaNhanVienBanHang(u);

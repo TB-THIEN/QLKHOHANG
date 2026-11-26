@@ -1,0 +1,25 @@
+@{
+    // Layout rỗng cho trang in chứng từ: không sidebar/topbar/footer, chỉ tờ giấy A4.
+    var tieuDe = ViewData["Title"]?.ToString() ?? "In chứng từ";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@tieuDe</title>
+    <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/in-chung-tu.css" asp-append-version="true" />
+</head>
+<body class="in-body">
+    @RenderBody()
+    <script>
+        // Mở trang là bật hộp thoại in luôn; người dùng vẫn bấm lại được nút In.
+        document.addEventListener('DOMContentLoaded', function () {
+            if (new URLSearchParams(location.search).get('tuDongIn') === '1') window.print();
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
